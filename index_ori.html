@@ -437,79 +437,42 @@
 
 
     // Rotate the current piece
-
     function rotatePiece() {
-
       const rotatedPiece = [];
-
       for (let x = 0; x < currentPiece[0].length; x++) {
-
         const newRow = [];
-
         for (let y = currentPiece.length - 1; y >= 0; y--) {
-
           newRow.push(currentPiece[y][x]);
-
         }
-
         rotatedPiece.push(newRow);
-
       }
-
-
 
       if (canPieceRotate(rotatedPiece)) {
-
         currentPiece = rotatedPiece;
-
       }
-
     }
 
-
-
     // Check if the current piece can rotate
-
     function canPieceRotate(rotatedPiece) {
-
       const nextX = currentPieceX;
-
       const nextY = currentPieceY;
-
       for (let y = 0; y < rotatedPiece.length; y++) {
-
         for (let x = 0; x < rotatedPiece[y].length; x++) {
-
           if (rotatedPiece[y][x] !== 0) {
-
             const posX = nextX + x;
-
             const posY = nextY + y;
-
             if (
-
               posX < 0 ||
-
               posX >= BOARD_WIDTH ||
-
               posY >= BOARD_HEIGHT ||
-
               board[posY][posX] !== 0
-
             ) {
-
               return false;
-
             }
-
           }
-
         }
-
       }
-
       return true;
-
     }
 
 

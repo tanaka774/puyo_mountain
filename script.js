@@ -16,13 +16,13 @@ const TETRIMINO_COLORS = [
 ];
 
 const TETRIMINOS = [
-  [[0, 0, 0, 0]],
-  [[1, 1], [1, 1]],
-  [[0, 2, 2], [2, 2, 0]],
-  [[3, 3, 0], [0, 3, 3]],
+  // [[0, 0, 0, 0]],
+  // [[1, 1], [1, 1]],
+  // [[0, 2, 2], [2, 2, 0]],
+  // [[3, 3, 0], [0, 3, 3]],
   [[0, 4, 0], [4, 4, 4]],
   [[5, 5, 5], [0, 5, 0]],
-  [[6, 6, 6, 6]],
+  // [[6, 6, 6, 6]],
 ];
 
 // Game state
@@ -107,7 +107,7 @@ async function update() {
     while(drawCount < 30) {
       draw(drawCount);
       drawCount++;
-    //   await sleep(100 / 100);
+      await sleep(100 / 30);
     }
     // draw();
   }
@@ -182,9 +182,11 @@ document.addEventListener('keydown', e => {
         // currentPieceY++;
         currentPieceY = movePieceDown(currentPieceY);
       }
-    } else if (e.key === 'ArrowUp') {
-      rotatePiece();
-    }
+    } else if (e.key === 'ArrowUp' || e.key === 'z') {
+      rotatePiece(-90);
+    }  else if (e.key === 'x') {
+      rotatePiece(90);
+    } 
   }
 });
 
@@ -193,10 +195,6 @@ function movePieceHor(currentPieceX, direciton) {
 }
 
 function movePieceDown(currentPieceY) {
-  // if (currentPiecePos - Math.floor(currentPiecePos) >= 0.5) {
-  //   return Math.round(currentPiecePos);
-  // }
-
   return currentPieceY + moveYDiff;
 }
 
@@ -232,16 +230,31 @@ function canPieceMoveRight() {
   return true;
 }
 
-// Rotate the current piece
-function rotatePiece() {
+// Rotate the current piece (actually turn into another piece)
+// angle should be 90, -90?
+function rotatePiece(angle) {
+  // if puyo, logic would be simpler or different
   const rotatedPiece = [];
-  for (let x = 0; x < currentPiece[0].length; x++) {
-    const newRow = [];
-    for (let y = currentPiece.length - 1; y >= 0; y--) {
-      newRow.push(currentPiece[y][x]);
+  if (angle === -90) {
+    for (let x = currentPiece[0].length - 1; x >= 0; x--) {
+      const newRow = [];
+      for (let y = 0; y < currentPiece.length; y++) {
+        newRow.push(currentPiece[y][x]);
+      }
+      rotatedPiece.push(newRow);
     }
-    rotatedPiece.push(newRow);
+  } else if (angle === 90) {
+    for (let x = 0; x < currentPiece[0].length; x++) {
+      const newRow = [];
+      for (let y = currentPiece.length - 1; y >= 0; y--) {
+        newRow.push(currentPiece[y][x]);
+      }
+      rotatedPiece.push(newRow);
+    }
+  } else {
+    console.error("angle should be 90 or -90!");
   }
+
   if (canPieceRotate(rotatedPiece)) {
     currentPiece = rotatedPiece;
   }
@@ -250,7 +263,8 @@ function rotatePiece() {
 // Check if the current piece can rotate
 function canPieceRotate(rotatedPiece) {
   const nextX = currentPieceX;
-  const nextY = currentPieceY;
+  // const nextY = currentPieceY;
+  const nextY = Math.round(currentPieceY);
   for (let y = 0; y < rotatedPiece.length; y++) {
     for (let x = 0; x < rotatedPiece[y].length; x++) {
       if (rotatedPiece[y][x] !== 0) {
