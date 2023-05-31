@@ -7,3 +7,4 @@
   - need to make it animate while rotating(in teto case, not animating because of applying new piece when rotating)
   - in puyo, animating
 - [ ] handle mino correctly on top
+- [ ] 

@@ -69,7 +69,7 @@ function draw(drawCount) {
     }
   }
   // Draw the current piece
-  if (currentPiece) {
+  if (currentPiece) { // <- is this condition necessary?
     for (let y = 0; y < currentPiece.length; y++) {
       for (let x = 0; x < currentPiece[y].length; x++) {
         const cell = currentPiece[y][x];
@@ -161,6 +161,7 @@ function clearLines() {
 
 // Check if the game is over
 function isGameOver() {
+  // TODO: if the middle of top is filled
   return board[0].some(cell => cell !== 0);
 }
 
@@ -177,18 +178,29 @@ document.addEventListener('keydown', e => {
         // currentPieceX++;
         currentPieceX = movePieceHor(currentPieceX, 1.0);
       }
-    } else if (e.key === 'ArrowDown') {
+    }
+  }
+});
+document.addEventListener('keydown', e => {
+  if (!gameOver) {
+    if (e.key === 'ArrowDown') {
       if (canPieceMoveDown()) {
         // currentPieceY++;
         currentPieceY = movePieceDown(currentPieceY);
       }
-    } else if (e.key === 'ArrowUp' || e.key === 'z') {
+    }
+  }
+});
+document.addEventListener('keydown', e => {
+  if (!gameOver) {
+    if (e.key === 'ArrowUp' || e.key === 'z') {
       rotatePiece(-90);
     }  else if (e.key === 'x') {
       rotatePiece(90);
-    } 
+    }
   }
 });
+
 
 function movePieceHor(currentPieceX, direciton) {
   return currentPieceX + direciton;
