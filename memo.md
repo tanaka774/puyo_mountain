@@ -11,7 +11,7 @@
 - [ ] 連鎖判定
 - [ ] 回した時の押し出し
 - [ ] 幽霊（13段目）
-- [ ] remove tyr-catch after debug
+- [ ] remove try-catch after debug
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
@@ -19,3 +19,10 @@
 - error happens at the line using Math.floor(childY) 
   - handle carefully at top or bottom
   - how to set ghost zone (currently at y:-1)
+- sometimes submerge puyo below when angle is 0 or 180
+- something wrong with `python -m http.server`
+
+## memo
+- createPattern() for background caching
+- only redraw changing objects for performance
+- implement well splittedpuyo (currently ugly)

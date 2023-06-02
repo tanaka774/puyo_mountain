@@ -28,15 +28,27 @@ const basePuyo = {
   parentColor: 1,
   childColor: 2,
   angle: 0,
+  isBeingSplitted: false,
+  splittedX: -1,
+  splittedY: -1,
+  splittedColor: 1,
+  unsplittedX: -1,
+  unsplittedY: -1,
+  unsplittedColor: 2,
 };
 
 const getChildPos = (puyo) => {
   let childX, childY;
-  // TODO: do smarter
-  if (puyo.angle === 0) { childX = puyo.parentX; childY = puyo.parentY + 1; }
-  else if (puyo.angle === 90) { childX = puyo.parentX - 1; childY = puyo.parentY; }
-  else if (puyo.angle === 180) { childX = puyo.parentX; childY = puyo.parentY - 1; }
-  else if (puyo.angle === 270) { childX = puyo.parentX + 1; childY = puyo.parentY; }
+  // if (!puyo.isBeingSplitted) {
+  if (true) { // temp
+    // TODO: do smarter
+    if (puyo.angle === 0) { childX = puyo.parentX; childY = puyo.parentY + 1; }
+    else if (puyo.angle === 90) { childX = puyo.parentX - 1; childY = puyo.parentY; }
+    else if (puyo.angle === 180) { childX = puyo.parentX; childY = puyo.parentY - 1; }
+    else if (puyo.angle === 270) { childX = puyo.parentX + 1; childY = puyo.parentY; }
+  } else {
+
+  }
   return [childX, childY];
 };
 
@@ -47,7 +59,7 @@ let currentPuyo = null;
 // let currentPuyo.parentX = 0;
 // let currentPuyo.parentY = 0;
 let gameOver = false;
-const moveYDiff = 0.3;
+const moveYDiff = 0.15;
 
 // Initialize the game
 function init() {
@@ -95,12 +107,20 @@ function draw() {
   }
   // Draw the current piece
   if (currentPuyo) { // <- is this condition necessary?
-    ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.parentColor];
-    ctx.fillRect(currentPuyo.parentX * CELL_SIZE, currentPuyo.parentY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    if (currentPuyo.isBeingSplitted) {
+      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.splittedColor];
+      ctx.fillRect(currentPuyo.splittedX * CELL_SIZE, currentPuyo.splittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
-    const [childX, childY] = getChildPos(currentPuyo);
-    ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.childColor];
-    ctx.fillRect(childX * CELL_SIZE, childY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.unsplittedColor];
+      ctx.fillRect(currentPuyo.unsplittedX * CELL_SIZE, currentPuyo.unsplittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    } else {
+      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.parentColor];
+      ctx.fillRect(currentPuyo.parentX * CELL_SIZE, currentPuyo.parentY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+      const [childX, childY] = getChildPos(currentPuyo);
+      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.childColor];
+      ctx.fillRect(childX * CELL_SIZE, childY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    }
   }
 }
 
@@ -109,15 +129,22 @@ async function update() {
   if (!gameOver) {
     if (canPuyoMoveDown()) {
       // currentPuyo.parentY++;
-      currentPuyo.parentY = movePuyoDown(currentPuyo.parentY);
+      currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
     } else {
-      lockPuyo();
-      // check chain instead of this
-      // clearLines();
+      try {
+        if (currentPuyo.isBeingSplitted) {
+          handleSplitting();
+        } else {
+          lockPuyo();
+        }
+      } catch (err) {
+        console.log(currentPuyo);
+        console.error(err);
+      }
       if (isGameOver()) {
         gameOver = true;
         // alert('Game Over');
-      } else {
+      } else if (!currentPuyo.isBeingSplitted) {
         currentPuyo = getRandomPuyo();
         currentPuyo.parentX = Math.floor(BOARD_WIDTH / 2);
         currentPuyo.parentY = 0;
@@ -128,7 +155,7 @@ async function update() {
     while (drawCount < 60) {
       draw(drawCount);
       drawCount++;
-      await sleep(100 / 1000);
+      // await sleep(100 / 1000);
     }
     // draw();
   }
@@ -142,6 +169,8 @@ function sleep(ms) {
 // Check if the current piece can move down
 // TODO: ちぎりの確認ここでやる？
 function canPuyoMoveDown() {
+  if (currentPuyo.isBeingSplitted) { return false; }
+
   const parentX = currentPuyo.parentX;
   const parentY = currentPuyo.parentY;
   const [childX, childY] = getChildPos(currentPuyo);
@@ -153,8 +182,6 @@ function canPuyoMoveDown() {
     const downY = angle === 0 ? childY : parentY;
     const nextY = Math.round(downY) + 1;
     if (nextY >= BOARD_HEIGHT || board[nextY][parentX] !== 0) {
-      // fix Y position into integer
-      currentPuyo.parentY = Math.round(parentY);
       return false;
     }
     return true;
@@ -162,23 +189,31 @@ function canPuyoMoveDown() {
     const nextY = Math.round(parentY) + 1;
     if (nextY >= BOARD_HEIGHT || (board[nextY][parentX] !== 0 && board[nextY][childX] !== 0)) {
       // ちぎり無（のはず）
-      // fix Y position into integer
-      currentPuyo.parentY = Math.round(parentY);
       return false;
     } else if (board[nextY][parentX] !== 0) {
       // TODO: 子側でちぎり（のはず）
-      // fix Y position into integer
-      currentPuyo.parentY = Math.round(parentY);
+      currentPuyo.isBeingSplitted = true;
+      currentPuyo.splittedX = childX;
+      currentPuyo.splittedY = childY;
+      currentPuyo.splittedColor = currentPuyo.childColor;
+      currentPuyo.unsplittedX = parentX;
+      currentPuyo.unsplittedY = Math.round(parentY);
+      currentPuyo.unsplittedColor = currentPuyo.parentColor;
+
       return false;
     } else if (board[nextY][childX] !== 0) {
       // TODO: 親側でちぎり（のはず）
-      // fix Y position into integer
-      currentPuyo.parentY = Math.round(parentY);
+      currentPuyo.isBeingSplitted = true;
+      currentPuyo.splittedX = parentX;
+      currentPuyo.splittedY = parentY;
+      currentPuyo.splittedColor = currentPuyo.parentColor;
+      currentPuyo.unsplittedX = childX;
+      currentPuyo.unsplittedY = Math.round(childY);
+      currentPuyo.unsplittedColor = currentPuyo.childColor;
+
       return false;
     } else if (nextY >= BOARD_HEIGHT) {
       // ちぎり無（のはず）
-      // fix Y position into integer
-      currentPuyo.parentY = Math.round(parentY);
       return false;
     }
     return true;
@@ -186,20 +221,34 @@ function canPuyoMoveDown() {
 }
 
 // Lock the current piece in place
-// TODO:ちぎり処理追加
+// TODO:ちぎり処理追加?
 function lockPuyo() {
+  // fix Y position into integer
+  currentPuyo.parentY = Math.round(currentPuyo.parentY);
   const [childX, childY] = getChildPos(currentPuyo);
   board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
   board[childY][childX] = currentPuyo.childColor;
 }
 
-// Clear completed lines
-function clearLines() {
-  for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
-    if (board[y].every(cell => cell !== 0)) {
-      board.splice(y, 1);
-      board.unshift(Array(BOARD_WIDTH).fill(0));
-    }
+// splittedpuyo falls off until it hits some puyo or bottom and lock pos
+function handleSplitting() {
+  console.log(currentPuyo);
+  const splittedX = currentPuyo.splittedX;
+  const splittedY = currentPuyo.splittedY;
+  const nextY = movePuyoDown(splittedY, 2.0);
+
+  // need to check this condition
+  if (Math.round(nextY) >= BOARD_HEIGHT - 1 || board[Math.round(nextY) + 1][splittedX] !== 0) {
+    currentPuyo.splittedY = Math.round(nextY);
+
+    board[currentPuyo.splittedY][currentPuyo.splittedX] = currentPuyo.splittedColor;
+    board[currentPuyo.unsplittedY][currentPuyo.unsplittedX] = currentPuyo.unsplittedColor;
+
+    currentPuyo.isBeingSplitted = false;
+    return;
+  } else {
+    currentPuyo.splittedY = nextY;
+    return;
   }
 }
 
@@ -210,9 +259,10 @@ function isGameOver() {
 }
 
 // Handle keyboard input
+// TODO: ちぎり落下中は入力はいらないようにする
 document.addEventListener('keydown', e => {
   try {
-    if (!gameOver) {
+    if (!gameOver && !currentPuyo.isBeingSplitted) {
       if (e.key === 'ArrowLeft') {
         if (canPuyoMoveLeft()) {
           // currentPuyo.parentX--;
@@ -233,11 +283,11 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   try {
-    if (!gameOver) {
+    if (!gameOver && !currentPuyo.isBeingSplitted) {
       if (e.key === 'ArrowDown') {
         if (canPuyoMoveDown()) {
           // currentPuyo.parentY++;
-          currentPuyo.parentY = movePuyoDown(currentPuyo.parentY);
+          currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
         }
       }
     }
@@ -249,7 +299,7 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   try {
-    if (!gameOver) {
+    if (!gameOver && !currentPuyo.isBeingSplitted) {
       if (e.key === 'ArrowUp' || e.key === 'z') {
         rotatePuyo(-90);
       } else if (e.key === 'x') {
@@ -267,8 +317,8 @@ function movePuyoHor(parentX, direciton) {
   return parentX + direciton;
 }
 
-function movePuyoDown(parentY) {
-  return parentY + moveYDiff;
+function movePuyoDown(parentY, rate) {
+  return parentY + moveYDiff * rate;
 }
 
 // Check if the current piece can move left
