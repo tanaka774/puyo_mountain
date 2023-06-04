@@ -56,10 +56,23 @@ const getChildPos = (puyo) => {
 // Game state
 let board = [];
 let currentPuyo = null;
-// let currentPuyo.parentX = 0;
-// let currentPuyo.parentY = 0;
 let gameOver = false;
-const moveYDiff = 0.15;
+const moveYDiff = 0.06;
+
+const floatingPuyo = {
+  posX: -1,
+  posY: -1,
+  color: -1,
+};
+
+let floatingPuyos = [];
+
+let vanishPuyos = [];
+
+// TODO: put split-state and gameover (and game uninit?) into here
+const gameState = {
+  chainProcessing: false,
+};
 
 // Initialize the game
 function init() {
@@ -106,6 +119,13 @@ function draw() {
     }
   }
   // Draw the current piece
+  if (gameState.chainProcessing) {
+    for (const floatingPuyo of floatingPuyos) {
+      ctx.fillStyle = TETRIMINO_COLORS[floatingPuyo.color];
+      ctx.fillRect(floatingPuyo.posX * CELL_SIZE, floatingPuyo.posY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    }
+    return;
+  }
   if (currentPuyo) { // <- is this condition necessary?
     if (currentPuyo.isBeingSplitted) {
       ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.splittedColor];
@@ -127,37 +147,40 @@ function draw() {
 // Update the game state
 async function update() {
   if (!gameOver) {
-    if (canPuyoMoveDown()) {
-      // currentPuyo.parentY++;
+    if (!currentPuyo.isBeingSplitted &&
+      !gameState.chainProcessing &&
+      canPuyoMoveDown()
+    ) {
       currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
     } else {
       try {
         if (currentPuyo.isBeingSplitted) {
           handleSplitting();
         } else {
-          lockPuyo();
+          if (!gameState.chainProcessing) { lockPuyo(); }
+          handleChain();
         }
       } catch (err) {
         console.log(currentPuyo);
         console.error(err);
       }
-      if (isGameOver()) {
+      if (!gameState.chainProcessing && isGameOver()) {
         gameOver = true;
         // alert('Game Over');
-      } else if (!currentPuyo.isBeingSplitted) {
+      } else if (!currentPuyo.isBeingSplitted && !gameState.chainProcessing) {
         currentPuyo = getRandomPuyo();
         currentPuyo.parentX = Math.floor(BOARD_WIDTH / 2);
         currentPuyo.parentY = 0;
       }
     }
     // TODO? record previous pos and animate slide between old and new pos
-    let drawCount = 1;
-    while (drawCount < 60) {
-      draw(drawCount);
-      drawCount++;
-      // await sleep(100 / 1000);
-    }
-    // draw();
+    // let drawCount = 1;
+    // while (drawCount < 60) {
+    //   draw(drawCount);
+    //   drawCount++;
+    //   // await sleep(100 / 1000);
+    // }
+    draw();
   }
   requestAnimationFrame(update);
 }
@@ -169,7 +192,7 @@ function sleep(ms) {
 // Check if the current piece can move down
 // TODO: ちぎりの確認ここでやる？
 function canPuyoMoveDown() {
-  if (currentPuyo.isBeingSplitted) { return false; }
+  // if (currentPuyo.isBeingSplitted || gameState.chainProcessing) { return false; }
 
   const parentX = currentPuyo.parentX;
   const parentY = currentPuyo.parentY;
@@ -221,7 +244,6 @@ function canPuyoMoveDown() {
 }
 
 // Lock the current piece in place
-// TODO:ちぎり処理追加?
 function lockPuyo() {
   // fix Y position into integer
   currentPuyo.parentY = Math.round(currentPuyo.parentY);
@@ -230,9 +252,140 @@ function lockPuyo() {
   board[childY][childX] = currentPuyo.childColor;
 }
 
+function handleChain() {
+  if (!gameState.chainProcessing) {
+    let connectedPuyos = 0;
+    const checkedCells = Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(false));
+    // TODO: don't want to check every cell
+    for (let y = 0; y < BOARD_HEIGHT; y++) {
+      for (let x = 0; x < BOARD_WIDTH; x++) {
+        const savePuyos = [];
+        connectedPuyos = checkChain(x, y, checkedCells, board[y][x], savePuyos);
+        if (connectedPuyos >= 4) {
+          vanishPuyos.push(savePuyos);
+        }
+      }
+    }
+  }
+  if (vanishPuyos.length === 0) { return; }
+  if (!gameState.chainProcessing) {
+    gameState.chainProcessing = true;
+    // currentPuyo = null;
+    findChainingPuyos();
+    letFloatingPuyosFall();
+  }
+  if (floatingPuyos.length > 0) {
+    letFloatingPuyosFall();
+  } else {
+    gameState.chainProcessing = false;
+    vanishPuyos = [];
+    handleChain();
+  }
+}
+
+// check whether there is chain and if so, save those puyos
+function checkChain(x, y, checkedCells, prevCell, savePuyos) {
+  if (checkedCells[y][x] === true) { return 0; }
+
+  let connectedPuyos = 0;
+  const cell = board[y][x];
+  if (cell === 0 || cell !== prevCell) {
+    return 0;
+  } else if (cell === prevCell) {
+    savePuyos.push([x, y]);
+    checkedCells[y][x] = true;
+
+    connectedPuyos++;
+  }
+
+  if (x - 1 >= 0) connectedPuyos += checkChain(x - 1, y, checkedCells, prevCell, savePuyos);
+  if (x + 1 < BOARD_WIDTH) connectedPuyos += checkChain(x + 1, y, checkedCells, prevCell, savePuyos);
+  if (y - 1 >= 0) connectedPuyos += checkChain(x, y - 1, checkedCells, prevCell, savePuyos);
+  if (y + 1 < BOARD_HEIGHT) connectedPuyos += checkChain(x, y + 1, checkedCells, prevCell, savePuyos);
+
+  return connectedPuyos;
+}
+
+// delete puyos connecting more than 4, and let puyos above those fall
+function findChainingPuyos(/*vanishPuyos*/) {
+  // store lowest puyos of vanishing <- for this, store all, and sort and filter later
+  const allVanishPuyos = [];
+
+  for (const temp of vanishPuyos) {
+    allVanishPuyos.push(...temp);
+
+    for (const vanishPuyo of temp) {
+      const [x, y] = [...vanishPuyo];
+
+      //TODO: consider some effect in vanishing
+      board[y][x] = 0;
+    }
+  }
+
+  // some duration
+  // sleep(500);
+
+
+  // extract only lowest ones
+  const lowestPuyos = allVanishPuyos
+    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => a[0] - b[0])
+    .filter((_, index, ori) => (index === 0 || ori[index - 1][0] !== ori[index][0]));
+
+  console.log("allvanish\n", allVanishPuyos);
+  console.log("lowestPuyos\n", lowestPuyos);
+  console.log("currentpuyo\n", currentPuyo);
+  console.log("board\n", board);
+
+  // let puyo above vanished ones falls
+  // TODO:? separate function from upper part
+  for (const lowestPuyo of lowestPuyos) {
+    let [lowestX, lowestY] = [...lowestPuyo];
+    for (let aboveY = lowestY - 1; aboveY >= 0; aboveY--) {
+      if (allVanishPuyos.some((cur) => cur[0] === lowestX && cur[1] === aboveY)) continue;
+      if (board[aboveY][lowestX] === 0) break;
+
+      floatingPuyo.posX = lowestX;
+      floatingPuyo.posY = aboveY;
+      floatingPuyo.color = board[aboveY][lowestX];
+      // delegate drawing to floatingpuyo
+      board[aboveY][lowestX] = 0;
+
+      console.log("floating\n", floatingPuyo);
+
+      // const nextY = movePuyoDown(aboveY, 1.0);
+      // if (Math.round(nextY) >= BOARD_HEIGHT - 1 || board[Math.round(nextY) + 1][lowestX] !== 0) {
+      //   floatingPuyo.posY = Math.round(nextY);
+      //
+      //   board[floatingPuyo.posY][lowestX] = floatingPuyo.color;
+      // } else {
+      //   floatingPuyo.posY = nextY;
+      // }
+
+      floatingPuyos.push({ ...floatingPuyo });
+    }
+  }
+}
+
+function letFloatingPuyosFall() {
+  for (const floatingPuyo of floatingPuyos) {
+    const nextY = movePuyoDown(floatingPuyo.posY, 1.0);
+    if (Math.round(nextY) >= BOARD_HEIGHT - 1 || board[Math.round(nextY) + 1][floatingPuyo.posX] !== 0) {
+      floatingPuyo.posY = Math.round(nextY);
+
+      board[floatingPuyo.posY][floatingPuyo.posX] = floatingPuyo.color;
+
+      // remove from floatingPuyos(array), X is unique here
+      floatingPuyos =
+        floatingPuyos.filter((cur) => cur["posX"] !== floatingPuyo.posX && cur["posY"] !== floatingPuyo.posY);
+    } else {
+      floatingPuyo.posY = nextY;
+    }
+  }
+}
+
 // splittedpuyo falls off until it hits some puyo or bottom and lock pos
 function handleSplitting() {
-  console.log(currentPuyo);
   const splittedX = currentPuyo.splittedX;
   const splittedY = currentPuyo.splittedY;
   const nextY = movePuyoDown(splittedY, 2.0);
@@ -245,10 +398,8 @@ function handleSplitting() {
     board[currentPuyo.unsplittedY][currentPuyo.unsplittedX] = currentPuyo.unsplittedColor;
 
     currentPuyo.isBeingSplitted = false;
-    return;
   } else {
     currentPuyo.splittedY = nextY;
-    return;
   }
 }
 
@@ -258,19 +409,20 @@ function isGameOver() {
   return board[0].some(cell => cell !== 0);
 }
 
+function takeInput() {
+  return !gameOver && !currentPuyo.isBeingSplitted && !gameState.chainProcessing;
+}
+
 // Handle keyboard input
-// TODO: ちぎり落下中は入力はいらないようにする
 document.addEventListener('keydown', e => {
   try {
-    if (!gameOver && !currentPuyo.isBeingSplitted) {
+    if (takeInput) {
       if (e.key === 'ArrowLeft') {
         if (canPuyoMoveLeft()) {
-          // currentPuyo.parentX--;
           currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
         }
       } else if (e.key === 'ArrowRight') {
         if (canPuyoMoveRight()) {
-          // currentPuyo.parentX++;
           currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
         }
       }
@@ -283,10 +435,9 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   try {
-    if (!gameOver && !currentPuyo.isBeingSplitted) {
+    if (takeInput) {
       if (e.key === 'ArrowDown') {
         if (canPuyoMoveDown()) {
-          // currentPuyo.parentY++;
           currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
         }
       }
@@ -299,7 +450,7 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   try {
-    if (!gameOver && !currentPuyo.isBeingSplitted) {
+    if (takeInput) {
       if (e.key === 'ArrowUp' || e.key === 'z') {
         rotatePuyo(-90);
       } else if (e.key === 'x') {

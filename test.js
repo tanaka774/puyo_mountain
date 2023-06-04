@@ -1,32 +1,66 @@
-const basePuyo = {
-  parentX: 0,
-  parentY: 0,
-  parentColor: 1,
-  childColor: 2,
-  angle: 0,
-  getChildPos: () => {
-    let childX, childY;
-    if (this.angle === 0) { childX = this.parentX; childY = this.parentY + 1; }
-    else if (this.angle === 90) { childX = this.parentX - 1; childY = this.parentY; }
-    else if (this.angle === 180) { childX = this.parentX; childY = this.parentY - 1; }
-    else if (this.angle === 270) { childX = this.parentX + 1; childY = this.parentY; }
-    return [childX, childY];
-  },
-  varshow: () => { return (this.parentX); }
-};
+const board = [
+  [0, 0, 2, 0],
+  [2, 2, 2, 2],
+  [3, 1, 1, 0],
+  [3, 1, 1, 0],
+];
+const BOARD_HEIGHT = board.length;
+const BOARD_WIDTH = board[0].length;
 
-const getChildPos = (puyo) => {
-  let childX, childY;
-  if (puyo.angle === 0) { childX = puyo.parentX; childY = puyo.parentY + 1; }
-  else if (puyo.angle === 90) { childX = puyo.parentX - 1; childY = puyo.parentY; }
-  else if (puyo.angle === 180) { childX = puyo.parentX; childY = puyo.parentY - 1; }
-  else if (puyo.angle === 270) { childX = puyo.parentX + 1; childY = puyo.parentY; }
-  return [childX, childY];
-};
+let recursiveCount = 0;
 
-const newPuyo = { ...basePuyo };
-newPuyo.parentX = 3;
-const [x, y] = getChildPos(newPuyo);
-console.log(newPuyo, x, y);
-console.log(basePuyo);
-console.log(basePuyo.varshow());
+let connectedPuyos = 0;
+const vanishPuyos = [];
+const checkedCells = Array.from({ length: BOARD_HEIGHT }, () => Array(BOARD_WIDTH).fill(false));
+for (let y = 0; y < BOARD_HEIGHT; y++) {
+  for (let x = 0; x < BOARD_WIDTH; x++) {
+    const savePuyos = [];
+    connectedPuyos = checkChain(x, y, checkedCells, board[y][x], savePuyos);
+    if (connectedPuyos >= 4) {
+      vanishPuyos.push(savePuyos);
+    }
+  }
+}
+console.log("vanish:", vanishPuyos);
+console.log(recursiveCount);
+const allvan = [];
+handleChain(vanishPuyos);
+const res = allvan
+  .sort((a, b) => b[1] - a[1])
+  .sort((a, b) => a[0] - b[0])
+  .filter((_, index, ori) => (index === 0 || ori[index - 1][0] !== ori[index][0]));
+console.log(res);
+
+function handleChain(vanishPuyos) {
+  for (const temp of vanishPuyos) {
+    allvan.push(...temp);
+    // for (const vanishPuyo of temp) {
+    //   const [x, y] = [...vanishPuyo];
+    //   console.log(x, y);
+    // }
+  }
+}
+
+function checkChain(x, y, checkedCells, prevCell, savePuyos) {
+  recursiveCount++;
+  if (checkedCells[y][x] === true) { return false; }
+
+  let connectedPuyos = 0;
+  const cell = board[y][x];
+  if (cell === 0 || cell !== prevCell) {
+    return false;
+  } else if (cell === prevCell) {
+    checkedCells[y][x] = true;
+    // savePuyos.push(`${x},${y}`);
+    savePuyos.push([x, y]);
+
+    connectedPuyos++;
+  }
+
+  if (x - 1 >= 0) connectedPuyos += checkChain(x - 1, y, checkedCells, prevCell, savePuyos);
+  if (x + 1 < BOARD_WIDTH) connectedPuyos += checkChain(x + 1, y, checkedCells, prevCell, savePuyos);
+  if (y - 1 >= 0) connectedPuyos += checkChain(x, y - 1, checkedCells, prevCell, savePuyos);
+  if (y + 1 < BOARD_HEIGHT) connectedPuyos += checkChain(x, y + 1, checkedCells, prevCell, savePuyos);
+
+  return connectedPuyos;
+}
