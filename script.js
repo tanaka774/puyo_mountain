@@ -50,7 +50,8 @@ const getChildPos = (puyo) => {
 let board = [];
 let currentPuyo = null;
 let gameOver = false;
-const moveYDiff = 0.03;
+const moveYDiff = 0.06;
+const VANISH_WAIT_TIME = 30;
 
 const floatingPuyo = {
   posX: -1,
@@ -59,12 +60,14 @@ const floatingPuyo = {
 };
 
 let floatingPuyos = [];
-
 let vanishPuyos = [];
+let temp_board = createBoard();
+
 
 // TODO: put split-state and gameover (and game uninit?) into here
 const gameState = {
   chainProcessing: false,
+  chainVanishWaitCount: 0,
 };
 
 // Initialize the game
@@ -111,9 +114,11 @@ function draw() {
   }
   // Draw the current piece
   if (gameState.chainProcessing) {
-    for (const floatingPuyo of floatingPuyos) {
-      ctx.fillStyle = TETRIMINO_COLORS[floatingPuyo.color];
-      ctx.fillRect(floatingPuyo.posX * CELL_SIZE, floatingPuyo.posY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
+      for (const floatingPuyo of floatingPuyos) {
+        ctx.fillStyle = TETRIMINO_COLORS[floatingPuyo.color];
+        ctx.fillRect(floatingPuyo.posX * CELL_SIZE, floatingPuyo.posY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      }
     }
     return;
   }
@@ -136,7 +141,7 @@ function draw() {
 }
 
 // Update the game state
-async function update() {
+function update() {
   if (!gameOver) {
     if (!currentPuyo.isBeingSplitted &&
       !gameState.chainProcessing &&
@@ -169,12 +174,6 @@ async function update() {
       }
     }
     // TODO? record previous pos and animate slide between old and new pos
-    // let drawCount = 1;
-    // while (drawCount < 60) {
-    //   draw(drawCount);
-    //   drawCount++;
-    //   // await sleep(100 / 1000);
-    // }
     draw();
   }
   requestAnimationFrame(update);
@@ -182,6 +181,14 @@ async function update() {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function makeDuration(count) {
+  for (let n = count; n > 0; n--) {
+    // meaningless
+    let boo = false;
+    boo = true;
+  }
 }
 
 // Check if the current piece can move down
@@ -267,15 +274,26 @@ function handleChain() {
   if (vanishPuyos.length === 0) { return; }
   if (!gameState.chainProcessing) {
     gameState.chainProcessing = true;
-    // currentPuyo = null;
+    erasePuyos();
     findChainingPuyos();
-    letFloatingPuyosFall();
   }
+
+  // some duration
+  if (gameState.chainVanishWaitCount < VANISH_WAIT_TIME) {
+    gameState.chainVanishWaitCount++;
+    return;
+  } else if (gameState.chainVanishWaitCount === VANISH_WAIT_TIME) {
+    board = JSON.parse(JSON.stringify(temp_board));
+    temp_board = [];
+    gameState.chainVanishWaitCount++;
+  }
+
   if (floatingPuyos.length > 0) {
     letFloatingPuyosFall();
   } else {
     gameState.chainProcessing = false;
     vanishPuyos = [];
+    gameState.chainVanishWaitCount = 0;
     handleChain();
   }
 }
@@ -303,14 +321,8 @@ function checkChain(x, y, checkedCells, prevCell, savePuyos) {
   return connectedPuyos;
 }
 
-// delete puyos connecting more than 4, and let puyos above those fall
-function findChainingPuyos(/*vanishPuyos*/) {
-  // store lowest puyos of vanishing <- for this, store all, and sort and filter later
-  const allVanishPuyos = [];
-
+function erasePuyos() {
   for (const temp of vanishPuyos) {
-    allVanishPuyos.push(...temp);
-
     for (const vanishPuyo of temp) {
       const [x, y] = [...vanishPuyo];
 
@@ -318,10 +330,14 @@ function findChainingPuyos(/*vanishPuyos*/) {
       board[y][x] = 0;
     }
   }
+}
 
-  // some duration
-  // sleep(500);
-
+// delete puyos connecting more than 4, and let puyos above those fall
+function findChainingPuyos() {
+  const allVanishPuyos = [];
+  for (const temp of vanishPuyos) {
+    allVanishPuyos.push(...temp);
+  }
 
   // extract only lowest ones
   const lowestPuyos = allVanishPuyos
@@ -329,8 +345,8 @@ function findChainingPuyos(/*vanishPuyos*/) {
     .sort((a, b) => a[0] - b[0])
     .filter((_, index, ori) => (index === 0 || ori[index - 1][0] !== ori[index][0]));
 
+  temp_board = JSON.parse(JSON.stringify(board));
   // let puyo above vanished ones falls
-  // TODO:? separate function from upper part
   for (const lowestPuyo of lowestPuyos) {
     let [lowestX, lowestY] = [...lowestPuyo];
     for (let aboveY = lowestY - 1; aboveY >= 0; aboveY--) {
@@ -341,7 +357,8 @@ function findChainingPuyos(/*vanishPuyos*/) {
       floatingPuyo.posY = aboveY;
       floatingPuyo.color = board[aboveY][lowestX];
       // delegate drawing to floatingpuyo
-      board[aboveY][lowestX] = 0;
+      // board[aboveY][lowestX] = 0;
+      temp_board[aboveY][lowestX] = 0;
 
       floatingPuyos.push({ ...floatingPuyo });
     }

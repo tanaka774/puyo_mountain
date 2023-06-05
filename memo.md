@@ -12,6 +12,11 @@
 - [x] 回した時の押し出し
 - [ ] 幽霊（13段目）
 - [ ] remove try-catch after debug
+- [ ] duration before lockpuyo()
+- [ ] attach each connecting puyo
+- [ ] chain vanish effect
+- [ ] bouncing effect after puyo falling (till three puyos below?)
+- [ ] 
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
