@@ -1,8 +1,7 @@
-const obj1 = { a: 1, b: 2 };
-const obj2 = { a: 2, b: 2 };
-const obj3 = { a: 3, b: 2 };
-let arr = [obj1, obj2, obj3]
-arr = arr.filter((cur) => cur["a"] === 2 && cur["b"] === 2)
-// arr = arr.filter((cur) => cur["a"] !== 3)
-// arr = arr.filter((cur) => cur["a"] !== 1)
-console.log(arr) 
+let numcount = {};
+for (let n = 1000; n >= 0; n--) {
+  let num = Math.floor(Math.random() * 4) + 1;
+  if (!(`${num}` in numcount)) numcount[`${num}`] = 0;
+  numcount[`${num}`] += 1;
+}
+console.log(numcount);

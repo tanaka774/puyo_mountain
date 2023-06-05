@@ -15,13 +15,6 @@ const TETRIMINO_COLORS = [
   '#3877FF'
 ];
 
-// const TETRIMINOS = [
-//   [[1, 1]],
-//   [[2, 1]],
-//   [[3, 1]],
-//   [[4, 2]],
-// ];
-
 const basePuyo = {
   parentX: 0,
   parentY: 0,
@@ -57,7 +50,7 @@ const getChildPos = (puyo) => {
 let board = [];
 let currentPuyo = null;
 let gameOver = false;
-const moveYDiff = 0.06;
+const moveYDiff = 0.03;
 
 const floatingPuyo = {
   posX: -1,
@@ -97,10 +90,8 @@ function createBoard() {
 // Get a random Tetrimino piece
 function getRandomPuyo() {
   const newPuyo = { ...basePuyo };
-  // newPuyo.parentColor = Math.round(Math.random() * 4);
-  // newPuyo.childColor = Math.round(Math.random() * 4);
-  newPuyo.parentColor = 1;
-  newPuyo.childColor = 2;
+  newPuyo.parentColor = Math.floor(Math.random() * 4) + 1;;
+  newPuyo.childColor = Math.floor(Math.random() * 4) + 1;;
   return newPuyo;
 }
 
@@ -251,6 +242,8 @@ function canPuyoMoveDown() {
 function lockPuyo() {
   // fix Y position into integer
   currentPuyo.parentY = Math.round(currentPuyo.parentY);
+  // currentPuyo.parentY = 1 + Math.floor(currentPuyo.parentY);
+
   const [childX, childY] = getChildPos(currentPuyo);
   board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
   board[childY][childX] = currentPuyo.childColor;
@@ -336,11 +329,6 @@ function findChainingPuyos(/*vanishPuyos*/) {
     .sort((a, b) => a[0] - b[0])
     .filter((_, index, ori) => (index === 0 || ori[index - 1][0] !== ori[index][0]));
 
-  console.log("allvanish\n", allVanishPuyos);
-  console.log("lowestPuyos\n", lowestPuyos);
-  console.log("currentpuyo\n", currentPuyo);
-  console.log("board\n", board);
-
   // let puyo above vanished ones falls
   // TODO:? separate function from upper part
   for (const lowestPuyo of lowestPuyos) {
@@ -355,17 +343,6 @@ function findChainingPuyos(/*vanishPuyos*/) {
       // delegate drawing to floatingpuyo
       board[aboveY][lowestX] = 0;
 
-      console.log("floating\n", floatingPuyo);
-
-      // const nextY = movePuyoDown(aboveY, 1.0);
-      // if (Math.round(nextY) >= BOARD_HEIGHT - 1 || board[Math.round(nextY) + 1][lowestX] !== 0) {
-      //   floatingPuyo.posY = Math.round(nextY);
-      //
-      //   board[floatingPuyo.posY][lowestX] = floatingPuyo.color;
-      // } else {
-      //   floatingPuyo.posY = nextY;
-      // }
-
       floatingPuyos.push({ ...floatingPuyo });
     }
   }
@@ -373,13 +350,15 @@ function findChainingPuyos(/*vanishPuyos*/) {
 
 function letFloatingPuyosFall() {
   for (const floatingPuyo of floatingPuyos) {
-    const nextY = movePuyoDown(floatingPuyo.posY, 1.0);
-    if (Math.round(nextY) >= BOARD_HEIGHT - 1 || board[Math.round(nextY) + 1][floatingPuyo.posX] !== 0) {
-      floatingPuyo.posY = Math.round(nextY);
+    const nextY = movePuyoDown(floatingPuyo.posY, 3.0);
+    if (nextY >= BOARD_HEIGHT - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== 0) {
+      // be careful
+      // floatingPuyo.posY = Math.round(nextY);
+      floatingPuyo.posY = Math.floor(nextY);
 
       board[floatingPuyo.posY][floatingPuyo.posX] = floatingPuyo.color;
 
-      // remove from floatingPuyos(array), X is unique here
+      // remove from floatingPuyos(array)
       floatingPuyos =
         floatingPuyos.filter((cur) => cur["posX"] !== floatingPuyo.posX && cur["posY"] !== floatingPuyo.posY);
     } else {
@@ -395,8 +374,8 @@ function handleSplitting() {
   const nextY = movePuyoDown(splittedY, 2.0);
 
   // need to check this condition
-  if (Math.round(nextY) >= BOARD_HEIGHT - 1 || board[Math.round(nextY) + 1][splittedX] !== 0) {
-    currentPuyo.splittedY = Math.round(nextY);
+  if (nextY >= BOARD_HEIGHT - 1 || board[Math.floor(nextY) + 1][splittedX] !== 0) {
+    currentPuyo.splittedY = Math.floor(nextY);
 
     board[currentPuyo.splittedY][currentPuyo.splittedX] = currentPuyo.splittedColor;
     board[currentPuyo.unsplittedY][currentPuyo.unsplittedX] = currentPuyo.unsplittedColor;
@@ -420,7 +399,7 @@ function takeInput() {
 // Handle keyboard input
 document.addEventListener('keydown', e => {
   try {
-    if (takeInput) {
+    if (takeInput()) {
       if (e.key === 'ArrowLeft') {
         if (canPuyoMoveLeft()) {
           currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
@@ -439,10 +418,10 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   try {
-    if (takeInput) {
+    if (takeInput()) {
       if (e.key === 'ArrowDown') {
         if (canPuyoMoveDown()) {
-          currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
+          currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 5.0);
         }
       }
     }
@@ -454,10 +433,10 @@ document.addEventListener('keydown', e => {
 
 document.addEventListener('keydown', e => {
   try {
-    if (takeInput) {
-      if (e.key === 'ArrowUp' || e.key === 'z') {
+    if (takeInput()) {
+      if (e.key === 'ArrowUp' || e.key === 'x') {
         rotatePuyo(-90);
-      } else if (e.key === 'x') {
+      } else if (e.key === 'z') {
         rotatePuyo(90);
       }
     }

@@ -8,7 +8,7 @@
   - in puyo, animating
 - [ ] handle mino correctly on top
 - [x] ちぎり
-- [ ] 連鎖判定
+- [x] 連鎖判定
 - [x] 回した時の押し出し
 - [ ] 幽霊（13段目）
 - [ ] remove try-catch after debug
@@ -32,7 +32,10 @@
 - check all of board for chain (actually want to check only around locked puyos but kinda hard now)
 - what about currentpuyo during chainprocessing?
 - separate file per each function (defintely!!)
+- be careful for round()!!!!
 ### tempmemo
 - checkChain() doesn't work right after splitting why
   - this is because handleSplitting() does the same process of lockpuyo() inside 
 - checkChain sequencely
+- last floatingpuyo vanishes early
+- cannot prevent taking input during splitting
