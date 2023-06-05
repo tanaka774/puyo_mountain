@@ -156,6 +156,10 @@ async function update() {
       try {
         if (currentPuyo.isBeingSplitted) {
           handleSplitting();
+
+          if (!currentPuyo.isBeingSplitted) {
+            handleChain();
+          }
         } else {
           if (!gameState.chainProcessing) { lockPuyo(); }
           handleChain();

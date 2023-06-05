@@ -34,4 +34,5 @@
 - separate file per each function (defintely!!)
 ### tempmemo
 - checkChain() doesn't work right after splitting why
+  - this is because handleSplitting() does the same process of lockpuyo() inside 
 - checkChain sequencely
