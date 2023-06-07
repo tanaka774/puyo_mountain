@@ -21,13 +21,13 @@ const basePuyo = {
   parentColor: 1,
   childColor: 2,
   angle: 0,
-  isBeingSplitted: false,
-  splittedX: -1,
-  splittedY: -1,
-  splittedColor: 1,
-  unsplittedX: -1,
-  unsplittedY: -1,
-  unsplittedColor: 2,
+  // isBeingSplitted: false,
+  // splittedX: -1,
+  // splittedY: -1,
+  // splittedColor: 1,
+  // unsplittedX: -1,
+  // unsplittedY: -1,
+  // unsplittedColor: 2,
 };
 
 const getChildPos = (puyo) => {
@@ -52,6 +52,7 @@ let currentPuyo = null;
 let gameOver = false;
 const moveYDiff = 0.06;
 const VANISH_WAIT_TIME = 30;
+const LOCK_WAIT_TIME = 60;
 
 const floatingPuyo = {
   posX: -1,
@@ -61,28 +62,36 @@ const floatingPuyo = {
 
 let floatingPuyos = [];
 let vanishPuyos = [];
+// store board status temporarily when vanishing 
 let temp_board = createBoard();
+
+let splittedPuyo = {
+  splittedX: -1,
+  splittedY: -1,
+  splittedColor: 1,
+  unsplittedX: -1,
+  unsplittedY: -1,
+  unsplittedColor: 2,
+};
 
 
 // TODO: put split-state and gameover (and game uninit?) into here
 const gameState = {
+  isBeingSplitted: false,
   chainProcessing: false,
   chainVanishWaitCount: 0,
+  lockWaitCount: 0,
+  isLocked: false,
 };
 
 // Initialize the game
 function init() {
   board = createBoard();
   currentPuyo = getRandomPuyo();
-  currentPuyo.parentX = Math.floor(BOARD_WIDTH / 2);
+  currentPuyo.parentX = Math.floor(BOARD_WIDTH / 2) - 1;
   currentPuyo.parentY = 0;
-  try {
-    draw();
-    update();
-  } catch (err) {
-    console.log(currentPuyo);
-    console.error(err);
-  }
+  draw();
+  update();
 }
 
 // Create an empty game board
@@ -93,8 +102,10 @@ function createBoard() {
 // Get a random Tetrimino piece
 function getRandomPuyo() {
   const newPuyo = { ...basePuyo };
-  newPuyo.parentColor = Math.floor(Math.random() * 4) + 1;;
-  newPuyo.childColor = Math.floor(Math.random() * 4) + 1;;
+  newPuyo.parentColor = Math.floor(Math.random() * 4) + 1;
+  newPuyo.childColor = Math.floor(Math.random() * 4) + 1;
+  newPuyo.parentX = Math.floor(BOARD_WIDTH / 2) - 1;
+  newPuyo.parentY = 0;
   return newPuyo;
 }
 
@@ -122,55 +133,49 @@ function draw() {
     }
     return;
   }
+  if (gameState.isBeingSplitted && splittedPuyo) {
+    ctx.fillStyle = TETRIMINO_COLORS[splittedPuyo.splittedColor];
+    ctx.fillRect(splittedPuyo.splittedX * CELL_SIZE, splittedPuyo.splittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    ctx.fillStyle = TETRIMINO_COLORS[splittedPuyo.unsplittedColor];
+    ctx.fillRect(splittedPuyo.unsplittedX * CELL_SIZE, splittedPuyo.unsplittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
   if (currentPuyo) { // <- is this condition necessary?
-    if (currentPuyo.isBeingSplitted) {
-      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.splittedColor];
-      ctx.fillRect(currentPuyo.splittedX * CELL_SIZE, currentPuyo.splittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.parentColor];
+    ctx.fillRect(currentPuyo.parentX * CELL_SIZE, currentPuyo.parentY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
-      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.unsplittedColor];
-      ctx.fillRect(currentPuyo.unsplittedX * CELL_SIZE, currentPuyo.unsplittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    } else {
-      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.parentColor];
-      ctx.fillRect(currentPuyo.parentX * CELL_SIZE, currentPuyo.parentY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-
-      const [childX, childY] = getChildPos(currentPuyo);
-      ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.childColor];
-      ctx.fillRect(childX * CELL_SIZE, childY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    }
+    const [childX, childY] = getChildPos(currentPuyo);
+    ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.childColor];
+    ctx.fillRect(childX * CELL_SIZE, childY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
 }
 
 // Update the game state
 function update() {
   if (!gameOver) {
-    if (!currentPuyo.isBeingSplitted &&
+    if (!gameState.isBeingSplitted &&
       !gameState.chainProcessing &&
       canPuyoMoveDown()
     ) {
       currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
     } else {
-      try {
-        if (currentPuyo.isBeingSplitted) {
-          handleSplitting();
+      if (gameState.isBeingSplitted) {
+        handleSplitting();
 
-          if (!currentPuyo.isBeingSplitted) {
-            handleChain();
-          }
-        } else {
-          if (!gameState.chainProcessing) { lockPuyo(); }
+        if (!gameState.isBeingSplitted) {
           handleChain();
         }
-      } catch (err) {
-        console.log(currentPuyo);
-        console.error(err);
+      } else {
+        if (!gameState.chainProcessing) { gameState.isLocked = lockCurrentPuyo(); }
+        if (gameState.isLocked) { handleChain(); }
       }
+      debug_boardcheck();
       if (!gameState.chainProcessing && isGameOver()) {
         gameOver = true;
         // alert('Game Over');
-      } else if (!currentPuyo.isBeingSplitted && !gameState.chainProcessing) {
+      } else if (gameState.isLocked && !gameState.isBeingSplitted && !gameState.chainProcessing) {
         currentPuyo = getRandomPuyo();
-        currentPuyo.parentX = Math.floor(BOARD_WIDTH / 2);
-        currentPuyo.parentY = 0;
+        gameState.lockWaitCount = 0;
       }
     }
     // TODO? record previous pos and animate slide between old and new pos
@@ -179,22 +184,10 @@ function update() {
   requestAnimationFrame(update);
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function makeDuration(count) {
-  for (let n = count; n > 0; n--) {
-    // meaningless
-    let boo = false;
-    boo = true;
-  }
-}
-
 // Check if the current piece can move down
 // TODO: ちぎりの確認ここでやる？
 function canPuyoMoveDown() {
-  // if (currentPuyo.isBeingSplitted || gameState.chainProcessing) { return false; }
+  // if (gameState.isBeingSplitted || gameState.chainProcessing) { return false; }
 
   const parentX = currentPuyo.parentX;
   const parentY = currentPuyo.parentY;
@@ -212,29 +205,43 @@ function canPuyoMoveDown() {
     return true;
   } else if (angle === 90 || angle === 270) {
     const nextY = Math.round(parentY) + 1;
+
+    // at first check lock-wait time on any condition
+    if (nextY >= BOARD_HEIGHT || board[nextY][parentX] !== 0 || board[nextY][childX] !== 0) {
+      // must increment lockWaitCount to max in lockpuyo() not here
+      // TODO: smater logic
+      if (gameState.lockWaitCount < LOCK_WAIT_TIME - 1) {
+        gameState.lockWaitCount++;
+        return false;
+      }
+      // gameState.lockWaitCount = 0;
+    }
+
     if (nextY >= BOARD_HEIGHT || (board[nextY][parentX] !== 0 && board[nextY][childX] !== 0)) {
       // ちぎり無（のはず）
       return false;
     } else if (board[nextY][parentX] !== 0) {
       // TODO: 子側でちぎり（のはず）
-      currentPuyo.isBeingSplitted = true;
-      currentPuyo.splittedX = childX;
-      currentPuyo.splittedY = childY;
-      currentPuyo.splittedColor = currentPuyo.childColor;
-      currentPuyo.unsplittedX = parentX;
-      currentPuyo.unsplittedY = Math.round(parentY);
-      currentPuyo.unsplittedColor = currentPuyo.parentColor;
+      gameState.isBeingSplitted = true;
+      splittedPuyo.splittedX = childX;
+      splittedPuyo.splittedY = childY;
+      splittedPuyo.splittedColor = currentPuyo.childColor;
+      splittedPuyo.unsplittedX = parentX;
+      splittedPuyo.unsplittedY = Math.round(parentY);
+      splittedPuyo.unsplittedColor = currentPuyo.parentColor;
+      currentPuyo = null;
 
       return false;
     } else if (board[nextY][childX] !== 0) {
       // TODO: 親側でちぎり（のはず）
-      currentPuyo.isBeingSplitted = true;
-      currentPuyo.splittedX = parentX;
-      currentPuyo.splittedY = parentY;
-      currentPuyo.splittedColor = currentPuyo.parentColor;
-      currentPuyo.unsplittedX = childX;
-      currentPuyo.unsplittedY = Math.round(childY);
-      currentPuyo.unsplittedColor = currentPuyo.childColor;
+      gameState.isBeingSplitted = true;
+      splittedPuyo.splittedX = parentX;
+      splittedPuyo.splittedY = parentY;
+      splittedPuyo.splittedColor = currentPuyo.parentColor;
+      splittedPuyo.unsplittedX = childX;
+      splittedPuyo.unsplittedY = Math.round(childY);
+      splittedPuyo.unsplittedColor = currentPuyo.childColor;
+      currentPuyo = null;
 
       return false;
     } else if (nextY >= BOARD_HEIGHT) {
@@ -246,7 +253,11 @@ function canPuyoMoveDown() {
 }
 
 // Lock the current piece in place
-function lockPuyo() {
+function lockCurrentPuyo() {
+  if (gameState.lockWaitCount < LOCK_WAIT_TIME) {
+    gameState.lockWaitCount++;
+    return false;
+  }
   // fix Y position into integer
   currentPuyo.parentY = Math.round(currentPuyo.parentY);
   // currentPuyo.parentY = 1 + Math.floor(currentPuyo.parentY);
@@ -254,6 +265,8 @@ function lockPuyo() {
   const [childX, childY] = getChildPos(currentPuyo);
   board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
   board[childY][childX] = currentPuyo.childColor;
+  // gameState.lockWaitCount = 0;
+  return true;
 }
 
 function handleChain() {
@@ -286,6 +299,7 @@ function handleChain() {
     board = JSON.parse(JSON.stringify(temp_board));
     temp_board = [];
     gameState.chainVanishWaitCount++;
+    return;
   }
 
   if (floatingPuyos.length > 0) {
@@ -386,20 +400,23 @@ function letFloatingPuyosFall() {
 
 // splittedpuyo falls off until it hits some puyo or bottom and lock pos
 function handleSplitting() {
-  const splittedX = currentPuyo.splittedX;
-  const splittedY = currentPuyo.splittedY;
+  const splittedX = splittedPuyo.splittedX;
+  const splittedY = splittedPuyo.splittedY;
   const nextY = movePuyoDown(splittedY, 2.0);
 
   // need to check this condition
   if (nextY >= BOARD_HEIGHT - 1 || board[Math.floor(nextY) + 1][splittedX] !== 0) {
-    currentPuyo.splittedY = Math.floor(nextY);
 
-    board[currentPuyo.splittedY][currentPuyo.splittedX] = currentPuyo.splittedColor;
-    board[currentPuyo.unsplittedY][currentPuyo.unsplittedX] = currentPuyo.unsplittedColor;
+    splittedPuyo.splittedY = Math.floor(nextY);
 
-    currentPuyo.isBeingSplitted = false;
+    board[splittedPuyo.splittedY][splittedPuyo.splittedX] = splittedPuyo.splittedColor;
+    board[splittedPuyo.unsplittedY][splittedPuyo.unsplittedX] = splittedPuyo.unsplittedColor;
+
+    gameState.isBeingSplitted = false;
+    splittedPuyo = {};
+    gameState.isLocked = true;
   } else {
-    currentPuyo.splittedY = nextY;
+    splittedPuyo.splittedY = nextY;
   }
 }
 
@@ -410,56 +427,42 @@ function isGameOver() {
 }
 
 function takeInput() {
-  return !gameOver && !currentPuyo.isBeingSplitted && !gameState.chainProcessing;
+  return !gameOver && !gameState.isBeingSplitted && !gameState.chainProcessing;
 }
 
 // Handle keyboard input
 document.addEventListener('keydown', e => {
-  try {
-    if (takeInput()) {
-      if (e.key === 'ArrowLeft') {
-        if (canPuyoMoveLeft()) {
-          currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
-        }
-      } else if (e.key === 'ArrowRight') {
-        if (canPuyoMoveRight()) {
-          currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
-        }
+  if (takeInput()) {
+    if (e.key === 'ArrowLeft') {
+      if (canPuyoMoveLeft()) {
+        currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
+      }
+    } else if (e.key === 'ArrowRight') {
+      if (canPuyoMoveRight()) {
+        currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
       }
     }
-  } catch (err) {
-    console.log(currentPuyo);
-    console.error(err);
   }
 });
 
 document.addEventListener('keydown', e => {
-  try {
-    if (takeInput()) {
-      if (e.key === 'ArrowDown') {
-        if (canPuyoMoveDown()) {
-          currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 5.0);
-        }
+  if (takeInput()) {
+    if (e.key === 'ArrowDown') {
+      gameState.lockWaitCount = LOCK_WAIT_TIME;
+      if (canPuyoMoveDown()) {
+        currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 5.0);
       }
     }
-  } catch (err) {
-    console.log(currentPuyo);
-    console.error(err);
   }
 });
 
 document.addEventListener('keydown', e => {
-  try {
-    if (takeInput()) {
-      if (e.key === 'ArrowUp' || e.key === 'x') {
-        rotatePuyo(-90);
-      } else if (e.key === 'z') {
-        rotatePuyo(90);
-      }
+  if (takeInput()) {
+    if (e.key === 'ArrowUp' || e.key === 'z') {
+      rotatePuyo(-90);
+    } else if (e.key === 'x') {
+      rotatePuyo(90);
     }
-  } catch (err) {
-    console.log(currentPuyo);
-    console.error(err);
   }
 });
 
@@ -482,7 +485,8 @@ function canPuyoMoveLeft(puyo = currentPuyo) {
   if (angle === 90 || angle === 270) {
     const leftX = angle === 90 ? childX : parentX;
     const nextX = leftX - 1;
-    if (nextX < 0 || board[Math.floor(parentY)][nextX] !== 0 || board[Math.round(parentY)][nextX] !== 0) {
+    // if (nextX < 0 || board[Math.floor(parentY)][nextX] !== 0 || board[Math.round(parentY)][nextX] !== 0) {
+    if (nextX < 0 || board[Math.floor(parentY)][nextX] !== 0 || board[Math.floor(parentY) + 1][nextX] !== 0) {
       return false;
     }
     return true;
@@ -491,9 +495,9 @@ function canPuyoMoveLeft(puyo = currentPuyo) {
     // **one condition below is unnecessary
     if (nextX < 0 ||
       board[Math.floor(parentY)][nextX] !== 0 ||
-      board[Math.round(parentY)][nextX] !== 0 ||
+      board[Math.floor(parentY) + 1][nextX] !== 0 ||
       board[Math.floor(childY)][nextX] !== 0 ||
-      board[Math.round(childY)][nextX] !== 0) {
+      board[Math.floor(childY) + 1][nextX] !== 0) {
       return false;
     }
     return true;
@@ -510,7 +514,8 @@ function canPuyoMoveRight(puyo = currentPuyo) {
   if (angle === 90 || angle === 270) {
     const rightX = angle === 270 ? childX : parentX;
     const nextX = rightX + 1;
-    if (nextX >= BOARD_WIDTH || board[Math.floor(parentY)][nextX] !== 0 || board[Math.round(parentY)][nextX] !== 0) {
+    // if (nextX >= BOARD_WIDTH || board[Math.floor(parentY)][nextX] !== 0 || board[Math.round(parentY)][nextX] !== 0) {
+    if (nextX >= BOARD_WIDTH || board[Math.floor(parentY)][nextX] !== 0 || board[Math.floor(parentY) + 1][nextX] !== 0) {
       return false;
     }
     return true;
@@ -519,9 +524,10 @@ function canPuyoMoveRight(puyo = currentPuyo) {
     // **one condition below is unnecessary
     if (nextX >= BOARD_WIDTH ||
       board[Math.floor(parentY)][nextX] !== 0 ||
-      board[Math.round(parentY)][nextX] !== 0 ||
+      // board[Math.round(parentY)][nextX] !== 0 ||
+      board[Math.floor(parentY) + 1][nextX] !== 0 ||
       board[Math.floor(childY)][nextX] !== 0 ||
-      board[Math.round(childY)][nextX] !== 0) {
+      board[Math.floor(childY) + 1][nextX] !== 0) {
       return false;
     }
     return true;
@@ -545,10 +551,11 @@ function rotatePuyo(changeAngle) {
     // left is empty? if not, can move right? if not, cannot rotate
     const nextX = rotatedChildX;
     if (nextX >= 0 &&
+      currentChildY + 1 < BOARD_HEIGHT &&
       board[Math.floor(currentChildY)][nextX] == 0 &&
-      board[Math.round(currentChildY)][nextX] == 0 &&
+      board[Math.floor(currentChildY) + 1][nextX] == 0 &&
       board[Math.floor(rotatedChildY)][nextX] == 0 &&
-      board[Math.round(rotatedChildY)][nextX] == 0) {
+      board[Math.floor(rotatedChildY) + 1][nextX] == 0) {
       currentPuyo = rotatedPuyo;
       return;
     } else if (canPuyoMoveRight(rotatedPuyo)) {
@@ -564,10 +571,11 @@ function rotatePuyo(changeAngle) {
     // right is empty? if not, can move left? if not, cannot rotate
     const nextX = rotatedChildX;
     if (nextX < BOARD_WIDTH &&
+      currentChildY + 1 < BOARD_HEIGHT &&
       board[Math.floor(rotatedChildY)][nextX] == 0 &&
-      board[Math.round(rotatedChildY)][nextX] == 0 &&
+      board[Math.floor(rotatedChildY) + 1][nextX] == 0 &&
       board[Math.floor(currentChildY)][nextX] == 0 &&
-      board[Math.round(currentChildY)][nextX] == 0) {
+      board[Math.floor(currentChildY) + 1][nextX] == 0) {
       currentPuyo = rotatedPuyo;
       return;
     } else if (canPuyoMoveLeft(rotatedPuyo)) {
@@ -581,9 +589,9 @@ function rotatePuyo(changeAngle) {
     }
   } else if (rotatedPuyo.angle === 0) {
     // if there is something below, push up by one cell
-    if (rotatedChildY >= BOARD_HEIGHT - 2 || //<- is this ok? need to check
-      board[Math.round(rotatedChildY) + 1][rotatedChildX] !== 0 ||
-      board[Math.round(rotatedChildY) + 1][currentChildX] !== 0) {
+    if (rotatedChildY >= BOARD_HEIGHT - 1 || //<- is this ok? need to check
+      board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== 0 ||
+      board[Math.floor(rotatedChildY) + 1][currentChildX] !== 0) {
       rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY);
     }
     currentPuyo = rotatedPuyo;
@@ -591,30 +599,18 @@ function rotatePuyo(changeAngle) {
   }
 }
 
-// Check if the current piece can rotate
-// TODO: 回し時の壁蹴り追加、クイックターンも？？？ この関数いる？？？
-function canPuyoRotate(rotatedPuyo) {
-  const nextX = currentPuyo.parentX;
-  // const nextY = currentPuyo.parentY;
-  const nextY = Math.round(currentPuyo.parentY);
-  for (let y = 0; y < rotatedPuyo.length; y++) {
-    for (let x = 0; x < rotatedPuyo[y].length; x++) {
-      if (rotatedPuyo[y][x] !== 0) {
-        const posX = nextX + x;
-        const posY = nextY + y;
-        if (
-          posX < 0 ||
-          posX >= BOARD_WIDTH ||
-          posY >= BOARD_HEIGHT ||
-          board[posY][posX] !== 0
-        ) {
-          return false;
-        }
+// Start the game
+init();
+
+
+// check puyo not falling when splitting
+function debug_boardcheck() {
+  for (let x = 0; x < BOARD_WIDTH; x++) {
+    for (let y = BOARD_HEIGHT - 2; y >= 0; y--) {
+      if (board[y + 1][x] === 0 && board[y][x] !== 0) {
+        console.log("he's flying!!!!")
       }
     }
   }
-  return true;
-}
 
-// Start the game
-init();
+}

@@ -16,7 +16,7 @@
 - [ ] attach each connecting puyo
 - [ ] chain vanish effect
 - [ ] bouncing effect after puyo falling (till three puyos below?)
-- [ ] 
+- [ ] write test code
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
@@ -44,3 +44,11 @@
 - checkChain sequencely
 - last floatingpuyo vanishes early
 - cannot prevent taking input during splitting
+- splitting during locking makes weird thing happen
+- moving right or left makes puyo submerge adjacent puyo in locking
+- draw illustrations of wait-count or somthing later
+- lock-wait doesn't work in move right-left and splitting
+- sometimes infinite-loop happens with chainprocessing being true and islocked being false
+  - what causes this? maybe related to splitting
+- should call lockpuyo() in handleSplitting()?
+- chain process is still weird
