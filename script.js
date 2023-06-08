@@ -123,7 +123,7 @@ function draw() {
       }
     }
   }
-  // draw nextPuyo and doubleNextPuyo right-side to board
+  // draw nextPuyo and doubleNextPuyo on right-side to board
   if (nextPuyo && doubleNextPuyo) { // <- is this condition necessary?
     nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.parentColor];
     // nextPuyoCtx.fillRect((BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
@@ -137,7 +137,7 @@ function draw() {
     nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
 
-  // Draw the current piece
+  // draw floating puyos
   if (gameState.chainProcessing) {
     if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
       for (const floatingPuyo of floatingPuyos) {
@@ -147,6 +147,7 @@ function draw() {
     }
     return;
   }
+  // draw splittedPuyo
   if (gameState.isBeingSplitted && splittedPuyo) {
     ctx.fillStyle = TETRIMINO_COLORS[splittedPuyo.splittedColor];
     ctx.fillRect(splittedPuyo.splittedX * CELL_SIZE, splittedPuyo.splittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
@@ -154,6 +155,7 @@ function draw() {
     ctx.fillStyle = TETRIMINO_COLORS[splittedPuyo.unsplittedColor];
     ctx.fillRect(splittedPuyo.unsplittedX * CELL_SIZE, splittedPuyo.unsplittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
+  // draw currentPuyo
   if (currentPuyo) { // <- is this condition necessary?
     ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.parentColor];
     ctx.fillRect(currentPuyo.parentX * CELL_SIZE, currentPuyo.parentY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
@@ -405,9 +407,10 @@ function letFloatingPuyosFall() {
 
       board[floatingPuyo.posY][floatingPuyo.posX] = floatingPuyo.color;
 
-      // remove from floatingPuyos(array)
+      // remove fixed puyo from floatingPuyos(array)
       floatingPuyos =
-        floatingPuyos.filter((cur) => cur["posX"] !== floatingPuyo.posX && cur["posY"] !== floatingPuyo.posY);
+        // floatingPuyos.filter((cur) => cur["posX"] !== floatingPuyo.posX && cur["posY"] !== floatingPuyo.posY);
+        floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
     } else {
       floatingPuyo.posY = nextY;
     }
