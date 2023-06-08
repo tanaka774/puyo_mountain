@@ -3,17 +3,14 @@
 
 <head>
   <title>Tetris</title>
-  <style>
-    canvas {
-      border: 1px solid #000;
-      display: block;
-      margin: 0 auto;
-    }
-  </style>
+  <link rel="stylesheet" type="text/css" href="./style.css">
 </head>
 
 <body>
-  <canvas id="tetrisCanvas" width="120" height="240"></canvas>
+  <div class="canvas-container">
+    <canvas id="tetrisCanvas" width="120" height="240"></canvas>
+    <canvas id="nextPuyoCanvas" width="40" height="240"></canvas>
+  </div>
   <script src="script.js"></script>
 </body>
 

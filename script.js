@@ -2,8 +2,8 @@
 const canvas = document.getElementById('tetrisCanvas');
 const ctx = canvas.getContext('2d');
 const CELL_SIZE = 20;
-const BOARD_WIDTH = canvas.width / CELL_SIZE;
-const BOARD_HEIGHT = canvas.height / CELL_SIZE;
+const BOARD_WIDTH = canvas.width / CELL_SIZE// - 1;
+const BOARD_HEIGHT = canvas.height / CELL_SIZE// - 1;
 const TETRIMINO_COLORS = [
   null,
   '#FF0D72',
@@ -21,27 +21,15 @@ const basePuyo = {
   parentColor: 1,
   childColor: 2,
   angle: 0,
-  // isBeingSplitted: false,
-  // splittedX: -1,
-  // splittedY: -1,
-  // splittedColor: 1,
-  // unsplittedX: -1,
-  // unsplittedY: -1,
-  // unsplittedColor: 2,
 };
 
 const getChildPos = (puyo) => {
   let childX, childY;
-  // if (!puyo.isBeingSplitted) {
-  if (true) { // temp
-    // TODO: do smarter
-    if (puyo.angle === 0) { childX = puyo.parentX; childY = puyo.parentY + 1; }
-    else if (puyo.angle === 90) { childX = puyo.parentX - 1; childY = puyo.parentY; }
-    else if (puyo.angle === 180) { childX = puyo.parentX; childY = puyo.parentY - 1; }
-    else if (puyo.angle === 270) { childX = puyo.parentX + 1; childY = puyo.parentY; }
-  } else {
-
-  }
+  // TODO: do smarter
+  if (puyo.angle === 0) { childX = puyo.parentX; childY = puyo.parentY + 1; }
+  else if (puyo.angle === 90) { childX = puyo.parentX - 1; childY = puyo.parentY; }
+  else if (puyo.angle === 180) { childX = puyo.parentX; childY = puyo.parentY - 1; }
+  else if (puyo.angle === 270) { childX = puyo.parentX + 1; childY = puyo.parentY; }
   return [childX, childY];
 };
 
@@ -49,8 +37,12 @@ const getChildPos = (puyo) => {
 // Game state
 let board = [];
 let currentPuyo = null;
+let nextPuyo = null;
+let doubleNextPuyo = null;
+const nextPuyoCanvas = document.getElementById('nextPuyoCanvas');
+const nextPuyoCtx = nextPuyoCanvas.getContext('2d');
 let gameOver = false;
-const moveYDiff = 0.06;
+const moveYDiff = 0.03;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 60;
 
@@ -82,15 +74,16 @@ const gameState = {
   chainVanishWaitCount: 0,
   lockWaitCount: 0,
   isLocked: false,
+  isInitialized: false,
 };
 
 // Initialize the game
 function init() {
   board = createBoard();
-  currentPuyo = getRandomPuyo();
-  currentPuyo.parentX = Math.floor(BOARD_WIDTH / 2) - 1;
-  currentPuyo.parentY = 0;
+  // currentPuyo = getRandomPuyo();
+  beforeNext();
   draw();
+  gameState.isInitialized = true;
   update();
 }
 
@@ -109,6 +102,13 @@ function getRandomPuyo() {
   return newPuyo;
 }
 
+function beforeNext() {
+  currentPuyo = (gameState.isInitialized) ? nextPuyo : getRandomPuyo();
+  nextPuyo = (nextPuyo !== null) ? doubleNextPuyo : getRandomPuyo();
+  doubleNextPuyo = getRandomPuyo();
+  gameState.lockWaitCount = 0;
+}
+
 // Draw the game board and current piece
 function draw() {
   // Clear the canvas
@@ -123,6 +123,20 @@ function draw() {
       }
     }
   }
+  // draw nextPuyo and doubleNextPuyo right-side to board
+  if (nextPuyo && doubleNextPuyo) { // <- is this condition necessary?
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.parentColor];
+    // nextPuyoCtx.fillRect((BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.childColor];
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 2 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.parentColor];
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 4 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
+
   // Draw the current piece
   if (gameState.chainProcessing) {
     if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
@@ -162,20 +176,16 @@ function update() {
       if (gameState.isBeingSplitted) {
         handleSplitting();
 
-        if (!gameState.isBeingSplitted) {
-          handleChain();
-        }
+        if (!gameState.isBeingSplitted) { handleChain(); }
       } else {
         if (!gameState.chainProcessing) { gameState.isLocked = lockCurrentPuyo(); }
         if (gameState.isLocked) { handleChain(); }
       }
-      debug_boardcheck();
       if (!gameState.chainProcessing && isGameOver()) {
         gameOver = true;
         // alert('Game Over');
       } else if (gameState.isLocked && !gameState.isBeingSplitted && !gameState.chainProcessing) {
-        currentPuyo = getRandomPuyo();
-        gameState.lockWaitCount = 0;
+        beforeNext();
       }
     }
     // TODO? record previous pos and animate slide between old and new pos
@@ -185,36 +195,40 @@ function update() {
 }
 
 // Check if the current piece can move down
-// TODO: ちぎりの確認ここでやる？
-function canPuyoMoveDown() {
-  // if (gameState.isBeingSplitted || gameState.chainProcessing) { return false; }
-
+function canPuyoMoveDown(rate = 1.0) {
   const parentX = currentPuyo.parentX;
   const parentY = currentPuyo.parentY;
   const [childX, childY] = getChildPos(currentPuyo);
   const angle = currentPuyo.angle;
 
-  if (parentY + moveYDiff < Math.round(parentY)) { return true; }
+  // TODO: handle puyo falling on top properly
+  if (board[1][parentX] !== 0 || board[1][childX] !== 0) { return false; }
+  // if (parentY + moveYDiff * rate < Math.floor(parentY) + 1) { return true; }
+  if (parentY + moveYDiff * rate < Math.round(parentY)) { return true; }
 
   if (angle === 0 || angle === 180) {
     const downY = angle === 0 ? childY : parentY;
+    // const nextY = Math.floor(downY) + 2;
     const nextY = Math.round(downY) + 1;
     if (nextY >= BOARD_HEIGHT || board[nextY][parentX] !== 0) {
       return false;
     }
     return true;
   } else if (angle === 90 || angle === 270) {
+    // const nextY = Math.floor(parentY) + 2;
     const nextY = Math.round(parentY) + 1;
 
     // at first check lock-wait time on any condition
     if (nextY >= BOARD_HEIGHT || board[nextY][parentX] !== 0 || board[nextY][childX] !== 0) {
       // must increment lockWaitCount to max in lockpuyo() not here
-      // TODO: smater logic
+      // TODO: smarter logic
       if (gameState.lockWaitCount < LOCK_WAIT_TIME - 1) {
         gameState.lockWaitCount++;
         return false;
       }
-      // gameState.lockWaitCount = 0;
+    } else {
+      // none of those below conditions catches
+      return true;
     }
 
     if (nextY >= BOARD_HEIGHT || (board[nextY][parentX] !== 0 && board[nextY][childX] !== 0)) {
@@ -227,6 +241,7 @@ function canPuyoMoveDown() {
       splittedPuyo.splittedY = childY;
       splittedPuyo.splittedColor = currentPuyo.childColor;
       splittedPuyo.unsplittedX = parentX;
+      // splittedPuyo.unsplittedY = Math.floor(parentY) + 1;
       splittedPuyo.unsplittedY = Math.round(parentY);
       splittedPuyo.unsplittedColor = currentPuyo.parentColor;
       currentPuyo = null;
@@ -239,6 +254,7 @@ function canPuyoMoveDown() {
       splittedPuyo.splittedY = parentY;
       splittedPuyo.splittedColor = currentPuyo.parentColor;
       splittedPuyo.unsplittedX = childX;
+      // splittedPuyo.unsplittedY = Math.floor(childY) + 1;
       splittedPuyo.unsplittedY = Math.round(childY);
       splittedPuyo.unsplittedColor = currentPuyo.childColor;
       currentPuyo = null;
@@ -448,9 +464,12 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keydown', e => {
   if (takeInput()) {
     if (e.key === 'ArrowDown') {
-      gameState.lockWaitCount = LOCK_WAIT_TIME;
-      if (canPuyoMoveDown()) {
-        currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 5.0);
+      let keyMoveDownRate = 8.0;
+      if (keyMoveDownRate * moveYDiff >= 0.5) keyMoveDownRate = 0.5 / moveYDiff;
+      if (canPuyoMoveDown(keyMoveDownRate)) {
+        currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate);
+      } else {
+        gameState.lockWaitCount = LOCK_WAIT_TIME;
       }
     }
   }
@@ -497,7 +516,8 @@ function canPuyoMoveLeft(puyo = currentPuyo) {
       board[Math.floor(parentY)][nextX] !== 0 ||
       board[Math.floor(parentY) + 1][nextX] !== 0 ||
       board[Math.floor(childY)][nextX] !== 0 ||
-      board[Math.floor(childY) + 1][nextX] !== 0) {
+      board[Math.floor(childY) + 1][nextX] !== 0
+    ) {
       return false;
     }
     return true;
@@ -527,7 +547,8 @@ function canPuyoMoveRight(puyo = currentPuyo) {
       // board[Math.round(parentY)][nextX] !== 0 ||
       board[Math.floor(parentY) + 1][nextX] !== 0 ||
       board[Math.floor(childY)][nextX] !== 0 ||
-      board[Math.floor(childY) + 1][nextX] !== 0) {
+      board[Math.floor(childY) + 1][nextX] !== 0
+    ) {
       return false;
     }
     return true;
@@ -551,11 +572,12 @@ function rotatePuyo(changeAngle) {
     // left is empty? if not, can move right? if not, cannot rotate
     const nextX = rotatedChildX;
     if (nextX >= 0 &&
-      currentChildY + 1 < BOARD_HEIGHT &&
+      // currentChildY + 1 < BOARD_HEIGHT &&
       board[Math.floor(currentChildY)][nextX] == 0 &&
-      board[Math.floor(currentChildY) + 1][nextX] == 0 &&
+      // board[Math.floor(currentChildY) + 1][nextX] == 0 &&
       board[Math.floor(rotatedChildY)][nextX] == 0 &&
-      board[Math.floor(rotatedChildY) + 1][nextX] == 0) {
+      board[Math.floor(rotatedChildY) + 1][nextX] == 0
+    ) {
       currentPuyo = rotatedPuyo;
       return;
     } else if (canPuyoMoveRight(rotatedPuyo)) {
@@ -571,11 +593,12 @@ function rotatePuyo(changeAngle) {
     // right is empty? if not, can move left? if not, cannot rotate
     const nextX = rotatedChildX;
     if (nextX < BOARD_WIDTH &&
-      currentChildY + 1 < BOARD_HEIGHT &&
+      // currentChildY + 1 < BOARD_HEIGHT &&
       board[Math.floor(rotatedChildY)][nextX] == 0 &&
       board[Math.floor(rotatedChildY) + 1][nextX] == 0 &&
-      board[Math.floor(currentChildY)][nextX] == 0 &&
-      board[Math.floor(currentChildY) + 1][nextX] == 0) {
+      board[Math.floor(currentChildY)][nextX] == 0
+      // && board[Math.floor(currentChildY) + 1][nextX] == 0
+    ) {
       currentPuyo = rotatedPuyo;
       return;
     } else if (canPuyoMoveLeft(rotatedPuyo)) {
@@ -590,8 +613,9 @@ function rotatePuyo(changeAngle) {
   } else if (rotatedPuyo.angle === 0) {
     // if there is something below, push up by one cell
     if (rotatedChildY >= BOARD_HEIGHT - 1 || //<- is this ok? need to check
-      board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== 0 ||
-      board[Math.floor(rotatedChildY) + 1][currentChildX] !== 0) {
+      board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== 0 // ||
+      // board[Math.floor(rotatedChildY) + 1][currentChildX] !== 0
+    ) {
       rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY);
     }
     currentPuyo = rotatedPuyo;

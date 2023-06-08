@@ -38,6 +38,7 @@
 - what about currentpuyo during chainprocessing?
 - separate file per each function (defintely!!)
 - be careful for round()!!!!
+- you don't need to care diagonally down when rotate
 ### tempmemo
 - checkChain() doesn't work right after splitting why
   - this is because handleSplitting() does the same process of lockpuyo() inside 
@@ -52,3 +53,6 @@
   - what causes this? maybe related to splitting
 - should call lockpuyo() in handleSplitting()?
 - chain process is still weird
+- after splitting nextpuyo becomes weird
+- rotating doesn't work correctly, maybe shouldn't move parentpuyo right or left
+- sometimes lock-wait doesn't work, maybe when angle is 180
