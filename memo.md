@@ -56,3 +56,4 @@
 - after splitting nextpuyo becomes weird
 - rotating doesn't work correctly, maybe shouldn't move parentpuyo right or left
 - sometimes lock-wait doesn't work, maybe when angle is 180
+- sometimes key is held down 

@@ -1,3 +1,5 @@
+import throttle from "./util/throttle.js";
+//
 // Constants
 const canvas = document.getElementById('tetrisCanvas');
 const ctx = canvas.getContext('2d');
@@ -42,7 +44,7 @@ let doubleNextPuyo = null;
 const nextPuyoCanvas = document.getElementById('nextPuyoCanvas');
 const nextPuyoCtx = nextPuyoCanvas.getContext('2d');
 let gameOver = false;
-const moveYDiff = 0.03;
+const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 60;
 
@@ -76,6 +78,39 @@ const gameState = {
   isLocked: false,
   isInitialized: false,
 };
+
+const keyInputState = {
+  isRightKeyPressed: false,
+  isLeftKeyPressed: false,
+  isDownKeyPressed: false,
+  willRotateCW: false, // clockwise, +90
+  willRotateACW: false, // anti-clockwise, -90
+}
+
+// TODO: do smarter
+// const downThrottleHandler = throttle(downKeyHandle, 10);
+// const horThrottleHandler = throttle(horKeyhandle, 20);
+// const rotateThrottleHandler = throttle(rotateKeyHandle, 80);
+
+function throttleInitializer() {
+  let downThrottleHandler;
+  let horThrottleHandler;
+  let rotateThrottleHandler;
+  let initialized = false;
+  return function() {
+    if (!initialized) {
+      downThrottleHandler = throttle(downKeyHandle, 10); // not affecting with value less than this(10)
+      horThrottleHandler = throttle(horKeyhandle, 60);
+      rotateThrottleHandler = throttle(rotateKeyHandle, 100);
+      initialized = true;
+    }
+    downThrottleHandler();
+    horThrottleHandler();
+    rotateThrottleHandler();
+  }
+}
+
+const throttleHandler = throttleInitializer();
 
 // Initialize the game
 function init() {
@@ -166,9 +201,12 @@ function draw() {
   }
 }
 
+
 // Update the game state
 function update() {
   if (!gameOver) {
+    inputHandle();
+    // throttleHandler();
     if (!gameState.isBeingSplitted &&
       !gameState.chainProcessing &&
       canPuyoMoveDown()
@@ -237,7 +275,7 @@ function canPuyoMoveDown(rate = 1.0) {
       // ちぎり無（のはず）
       return false;
     } else if (board[nextY][parentX] !== 0) {
-      // TODO: 子側でちぎり（のはず）
+      // 子側でちぎり（のはず）
       gameState.isBeingSplitted = true;
       splittedPuyo.splittedX = childX;
       splittedPuyo.splittedY = childY;
@@ -250,7 +288,7 @@ function canPuyoMoveDown(rate = 1.0) {
 
       return false;
     } else if (board[nextY][childX] !== 0) {
-      // TODO: 親側でちぎり（のはず）
+      // 親側でちぎり（のはず）
       gameState.isBeingSplitted = true;
       splittedPuyo.splittedX = parentX;
       splittedPuyo.splittedY = parentY;
@@ -399,7 +437,7 @@ function findChainingPuyos() {
 
 function letFloatingPuyosFall() {
   for (const floatingPuyo of floatingPuyos) {
-    const nextY = movePuyoDown(floatingPuyo.posY, 3.0);
+    const nextY = movePuyoDown(floatingPuyo.posY, 6.0);
     if (nextY >= BOARD_HEIGHT - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== 0) {
       // be careful
       // floatingPuyo.posY = Math.round(nextY);
@@ -409,7 +447,6 @@ function letFloatingPuyosFall() {
 
       // remove fixed puyo from floatingPuyos(array)
       floatingPuyos =
-        // floatingPuyos.filter((cur) => cur["posX"] !== floatingPuyo.posX && cur["posY"] !== floatingPuyo.posY);
         floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
     } else {
       floatingPuyo.posY = nextY;
@@ -419,9 +456,10 @@ function letFloatingPuyosFall() {
 
 // splittedpuyo falls off until it hits some puyo or bottom and lock pos
 function handleSplitting() {
+  // TODO: dont be stupid
   const splittedX = splittedPuyo.splittedX;
   const splittedY = splittedPuyo.splittedY;
-  const nextY = movePuyoDown(splittedY, 2.0);
+  const nextY = movePuyoDown(splittedY, 5.0);
 
   // need to check this condition
   if (nextY >= BOARD_HEIGHT - 1 || board[Math.floor(nextY) + 1][splittedX] !== 0) {
@@ -445,49 +483,94 @@ function isGameOver() {
   return board[0].some(cell => cell !== 0);
 }
 
-function takeInput() {
+function canTakeInput() {
   return !gameOver && !gameState.isBeingSplitted && !gameState.chainProcessing;
+}
+
+function inputHandle() {
+  if (canTakeInput()) throttleHandler();
+}
+
+function downKeyHandle() {
+  if (keyInputState.isDownKeyPressed) {
+    let keyMoveDownRate = 10.0;
+    // I'm afraid of more than 0.5, which could get this world upside down
+    if (keyMoveDownRate * moveYDiff >= 0.5) keyMoveDownRate = 0.5 / moveYDiff;
+    if (canPuyoMoveDown(keyMoveDownRate)) {
+      currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate);
+    } else {
+      // get puyo being able to lock immediately
+      gameState.lockWaitCount = LOCK_WAIT_TIME;
+    }
+  }
+}
+function horKeyhandle() {
+  if (keyInputState.isRightKeyPressed) {
+    if (canPuyoMoveRight()) {
+      currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
+    }
+  }
+  if (keyInputState.isLeftKeyPressed) {
+    if (canPuyoMoveLeft()) {
+      currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
+    }
+  }
+}
+function rotateKeyHandle() {
+  if (keyInputState.willRotateCW) {
+    rotatePuyo(90);
+  }
+  if (keyInputState.willRotateACW) {
+    rotatePuyo(-90);
+  }
 }
 
 // Handle keyboard input
 document.addEventListener('keydown', e => {
-  if (takeInput()) {
+  if (canTakeInput()) {
     if (e.key === 'ArrowLeft') {
-      if (canPuyoMoveLeft()) {
-        currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
-      }
-    } else if (e.key === 'ArrowRight') {
-      if (canPuyoMoveRight()) {
-        currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
-      }
+      keyInputState.isLeftKeyPressed = true;
     }
-  }
-});
-
-document.addEventListener('keydown', e => {
-  if (takeInput()) {
+    if (e.key === 'ArrowRight') {
+      keyInputState.isRightKeyPressed = true;
+    }
     if (e.key === 'ArrowDown') {
-      let keyMoveDownRate = 8.0;
-      if (keyMoveDownRate * moveYDiff >= 0.5) keyMoveDownRate = 0.5 / moveYDiff;
-      if (canPuyoMoveDown(keyMoveDownRate)) {
-        currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate);
-      } else {
-        gameState.lockWaitCount = LOCK_WAIT_TIME;
-      }
+      keyInputState.isDownKeyPressed = true;
     }
-  }
-});
-
-document.addEventListener('keydown', e => {
-  if (takeInput()) {
     if (e.key === 'ArrowUp' || e.key === 'z') {
-      rotatePuyo(-90);
-    } else if (e.key === 'x') {
-      rotatePuyo(90);
+      keyInputState.willRotateACW = true;
     }
+    if (e.key === 'x') {
+      keyInputState.willRotateCW = true;
+    }
+  } else {
+    keyInputState.willRotateCW = false;
+    keyInputState.willRotateACW = false;
+    keyInputState.isDownKeyPressed = false;
+    keyInputState.isRightKeyPressed = false;
+    keyInputState.isLeftKeyPressed = false;
   }
 });
 
+document.addEventListener('keyup', e => {
+  if (canTakeInput()) {
+    if (e.key === 'ArrowLeft') {
+      keyInputState.isLeftKeyPressed = false;
+    }
+    if (e.key === 'ArrowRight') {
+      keyInputState.isRightKeyPressed = false;
+    }
+    if (e.key === 'ArrowDown') {
+      keyInputState.isDownKeyPressed = false;
+    }
+    if (e.key === 'ArrowUp' || e.key === 'z') {
+      keyInputState.willRotateACW = false;
+    }
+    if (e.key === 'x') {
+      keyInputState.willRotateCW = false;
+    }
+  }
+});
 
 function movePuyoHor(parentX, direciton) {
   return parentX + direciton;
@@ -629,15 +712,3 @@ function rotatePuyo(changeAngle) {
 // Start the game
 init();
 
-
-// check puyo not falling when splitting
-function debug_boardcheck() {
-  for (let x = 0; x < BOARD_WIDTH; x++) {
-    for (let y = BOARD_HEIGHT - 2; y >= 0; y--) {
-      if (board[y + 1][x] === 0 && board[y][x] !== 0) {
-        console.log("he's flying!!!!")
-      }
-    }
-  }
-
-}

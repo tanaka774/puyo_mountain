@@ -2,7 +2,7 @@
   white-space: nowrap;
   /* display: flex; */
   margin: 10px; /* Add some space between the canvases */
-  background: lightseagreen;
+  /* background: lightseagreen; */
 }
 #tetrisCanvas {
   border: 1px solid #000;
