@@ -39,6 +39,8 @@
 - separate file per each function (defintely!!)
 - be careful for round()!!!!
 - you don't need to care diagonally down when rotate
+- if you want to record each puyo position, you should use lockpuyo() every lock case(not current implementation separating split and usual falling)
+- if you surround board with one cell which is not 0, you would not need to each surroundiing edge check?(can unify collision check?)
 ### tempmemo
 - checkChain() doesn't work right after splitting why
   - this is because handleSplitting() does the same process of lockpuyo() inside 
@@ -57,3 +59,6 @@
 - rotating doesn't work correctly, maybe shouldn't move parentpuyo right or left
 - sometimes lock-wait doesn't work, maybe when angle is 180
 - sometimes key is held down 
+- sometimes puyo is locked where is one up on expected cell
+- is throttle really suited for input handing??? specifically for rotate
+   - need to check how delay time is handled
