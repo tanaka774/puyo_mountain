@@ -1,4 +1,5 @@
 import throttle from "./util/throttle.js";
+import keyPressedTwice from "./util/keyPressedTwice.js"
 //
 // Constants
 const canvas = document.getElementById('tetrisCanvas');
@@ -8,9 +9,9 @@ const CELL_SIZE = 20;
 // x:BOARD_LEFT_EDGE ~ BOARD_RIGHT_EDGE - 1
 // y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
 const BOARD_LEFT_EDGE = 1;
-const BOARD_RIGHT_EDGE = 1 + canvas.width / CELL_SIZE;// - 1;
-const BOARD_TOP_EDGE = 2;
-const BOARD_BOTTOM_EDGE = 2 + canvas.height / CELL_SIZE;// - 1;
+const BOARD_RIGHT_EDGE = BOARD_LEFT_EDGE + canvas.width / CELL_SIZE;// - 1;
+const BOARD_TOP_EDGE = 4;
+const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + canvas.height / CELL_SIZE;// - 1;
 const NO_COLOR = 0;
 const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1;
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
@@ -54,7 +55,7 @@ const nextPuyoCtx = nextPuyoCanvas.getContext('2d');
 let gameOver = false;
 const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
-const LOCK_WAIT_TIME = 60;
+const LOCK_WAIT_TIME = 120;
 
 const floatingPuyo = {
   posX: -1,
@@ -77,7 +78,6 @@ let splittedPuyo = {
 };
 
 
-// TODO: put split-state and gameover (and game uninit?) into here
 const gameState = {
   isBeingSplitted: false,
   chainProcessing: false,
@@ -91,19 +91,22 @@ const keyInputState = {
   isRightKeyPressed: false,
   isLeftKeyPressed: false,
   isDownKeyPressed: false,
-  willRotateCW: false, // clockwise, +90
-  willRotateACW: false, // anti-clockwise, -90
+  // willRotateCW: false, // clockwise, +90
+  // willRotateACW: false, // anti-clockwise, -90
+}
+
+const quickTurn = {
+  isPossible: false,
+  willExecute: false,
+  turnCW: () => { rotatePuyo(90); rotatePuyo(90); },
+  turnACW: () => { rotatePuyo(-90); rotatePuyo(-90); },
 }
 
 // TODO: do smarter
-// const downThrottleHandler = throttle(downKeyHandle, 10);
-// const horThrottleHandler = throttle(horKeyhandle, 20);
-// const rotateThrottleHandler = throttle(rotateKeyHandle, 80);
-
 function throttleInitializer() {
   let downThrottleHandler;
   let horThrottleHandler;
-  let rotateThrottleHandler;
+  // let rotateThrottleHandler;
   let initialized = false;
   return function() {
     if (!initialized) {
@@ -124,7 +127,6 @@ const throttleHandler = throttleInitializer();
 // Initialize the game
 function init() {
   board = createBoard();
-  // currentPuyo = getRandomPuyo();
   beforeNext();
   draw();
   gameState.isInitialized = true;
@@ -133,16 +135,16 @@ function init() {
 
 // Create an empty game board
 function createBoard() {
-  // return Array.from(
+  const WALL_NUMBER = 99;
   const board = Array.from(
-    { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 3 },
-    () => Array((BOARD_RIGHT_EDGE - BOARD_TOP_EDGE) + 2).fill(NO_COLOR));
+    { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 5 },
+    () => Array((BOARD_RIGHT_EDGE - BOARD_LEFT_EDGE) + 2).fill(NO_COLOR));
   for (let y = 0; y <= BOARD_BOTTOM_EDGE; y++) {
-    board[y][BOARD_LEFT_EDGE - 1] = 99;
-    board[y][BOARD_RIGHT_EDGE] = 99;
+    board[y][BOARD_LEFT_EDGE - 1] = WALL_NUMBER;
+    board[y][BOARD_RIGHT_EDGE] = WALL_NUMBER;
   }
   for (let x = BOARD_LEFT_EDGE - 1; x <= BOARD_RIGHT_EDGE; x++) {
-    board[BOARD_BOTTOM_EDGE][x] = 99;
+    board[BOARD_BOTTOM_EDGE][x] = WALL_NUMBER;
   }
   // returning reference is okay?
   return board;
@@ -153,7 +155,6 @@ function getRandomPuyo() {
   const newPuyo = { ...basePuyo };
   newPuyo.parentColor = Math.floor(Math.random() * 4) + 1;
   newPuyo.childColor = Math.floor(Math.random() * 4) + 1;
-  // newPuyo.parentX = Math.floor(BOARD_RIGHT_EDGE / 2) - 1;
   newPuyo.parentX = PUYO_BIRTH_POSX
   newPuyo.parentY = PUYO_BIRTH_POSY;
   return newPuyo;
@@ -164,7 +165,15 @@ function beforeNext() {
   nextPuyo = (nextPuyo !== null) ? doubleNextPuyo : getRandomPuyo();
   doubleNextPuyo = getRandomPuyo();
   gameState.lockWaitCount = 0;
+  quickTurn.isPossible = false;
   // keyInputInit();
+  // erase puyos more than above BOARD_TOP_EDGE-2
+  // TODO: this implementaion is not officially right
+  for (let y = 0; y < BOARD_TOP_EDGE - 1; y++) {
+    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
+      board[y][x] = 0;
+    }
+  }
 }
 
 // Draw the game board and current piece
@@ -176,8 +185,6 @@ function draw() {
     for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
       const cell = board[y][x];
       if (cell !== NO_COLOR) {
-        // ctx.fillStyle = TETRIMINO_COLORS[cell];
-        // ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
         drawPuyo(x, y, cell)
       }
     }
@@ -187,8 +194,6 @@ function draw() {
   if (gameState.chainProcessing) {
     if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
       for (const floatingPuyo of floatingPuyos) {
-        // ctx.fillStyle = TETRIMINO_COLORS[floatingPuyo.color];
-        // ctx.fillRect(floatingPuyo.posX * CELL_SIZE, floatingPuyo.posY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
         drawPuyo(floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color);
       }
     }
@@ -197,24 +202,16 @@ function draw() {
 
   // draw splittedPuyo
   if (gameState.isBeingSplitted && splittedPuyo) {
-    // ctx.fillStyle = TETRIMINO_COLORS[splittedPuyo.splittedColor];
-    // ctx.fillRect(splittedPuyo.splittedX * CELL_SIZE, splittedPuyo.splittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor);
 
-    // ctx.fillStyle = TETRIMINO_COLORS[splittedPuyo.unsplittedColor];
-    // ctx.fillRect(splittedPuyo.unsplittedX * CELL_SIZE, splittedPuyo.unsplittedY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
   }
 
   // draw currentPuyo
   if (currentPuyo) { // <- is this condition necessary?
-    // ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.parentColor];
-    // ctx.fillRect(currentPuyo.parentX * CELL_SIZE, currentPuyo.parentY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
 
     const [childX, childY] = getChildPos(currentPuyo);
-    // ctx.fillStyle = TETRIMINO_COLORS[currentPuyo.childColor];
-    // ctx.fillRect(childX * CELL_SIZE, childY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     drawPuyo(childX, childY, currentPuyo.childColor);
   }
 
@@ -243,7 +240,6 @@ function draw() {
 function update() {
   if (!gameOver) {
     inputHandle();
-    // throttleHandler();
     if (!gameState.isBeingSplitted &&
       !gameState.chainProcessing &&
       canPuyoMoveDown()
@@ -273,13 +269,15 @@ function update() {
 
 // Check if the current piece can move down
 function canPuyoMoveDown(rate = 1.0) {
+  // // TODO: if possible consider other logic
+  // if (!currentPuyo) return false;
+
   const parentX = currentPuyo.parentX;
   const parentY = currentPuyo.parentY;
   const [childX, childY] = getChildPos(currentPuyo);
   const angle = currentPuyo.angle;
 
   // TODO: handle puyo falling on top properly
-  // if (board[BOARD_TOP_EDGE + 1][parentX] !== NO_COLOR || board[BOARD_TOP_EDGE + 1][childX] !== NO_COLOR) { return false; }
   // if (parentY + moveYDiff * rate < Math.floor(parentY) + 1) { return true; }
   if (parentY + moveYDiff * rate < Math.round(parentY)) { return true; }
 
@@ -298,7 +296,7 @@ function canPuyoMoveDown(rate = 1.0) {
     // at first check lock-wait time on any condition
     if (nextY >= BOARD_BOTTOM_EDGE || board[nextY][parentX] !== NO_COLOR || board[nextY][childX] !== NO_COLOR) {
       // must increment lockWaitCount to max in lockpuyo() not here
-      // TODO: smarter logic
+      // TODO: smarter logic this is shit!!!
       if (gameState.lockWaitCount < LOCK_WAIT_TIME - 1) {
         gameState.lockWaitCount++;
         return false;
@@ -358,7 +356,6 @@ function lockCurrentPuyo() {
   const [childX, childY] = getChildPos(currentPuyo);
   board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
   board[childY][childX] = currentPuyo.childColor;
-  // gameState.lockWaitCount = 0;
   return true;
 }
 
@@ -367,6 +364,7 @@ function handleChain() {
     let connectedPuyos = 0;
     const checkedCells = Array.from({ length: BOARD_BOTTOM_EDGE }, () => Array(BOARD_RIGHT_EDGE).fill(false));
     // TODO: don't want to check every cell
+    // but, if ghost chain is enable, this way should be proper?
     for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
       for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
         const savePuyos = [];
@@ -456,7 +454,7 @@ function findFloatingPuyos() {
   // let puyo above vanished ones falls
   for (const lowestPuyo of lowestPuyos) {
     let [lowestX, lowestY] = [...lowestPuyo];
-    for (let aboveY = lowestY - 1; aboveY >= BOARD_TOP_EDGE; aboveY--) {
+    for (let aboveY = lowestY - 1; aboveY >= BOARD_TOP_EDGE - 1; aboveY--) {
       // ignore cells included in allVanishPuyos
       if (allVanishPuyos.some((cur) => cur[0] === lowestX && cur[1] === aboveY)) continue;
       // go check next lowestX
@@ -466,7 +464,6 @@ function findFloatingPuyos() {
       floatingPuyo.posY = aboveY;
       floatingPuyo.color = board[aboveY][lowestX];
       // delegate drawing to floatingpuyo
-      // board[aboveY][lowestX] = NO_COLOR;
       temp_board[aboveY][lowestX] = NO_COLOR;
 
       floatingPuyos.push({ ...floatingPuyo });
@@ -476,7 +473,7 @@ function findFloatingPuyos() {
 
 function letFloatingPuyosFall() {
   for (const floatingPuyo of floatingPuyos) {
-    const nextY = movePuyoDown(floatingPuyo.posY, 6.0);
+    const nextY = movePuyoDown(floatingPuyo.posY, 8.0);
     if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== NO_COLOR) {
       // be careful
       // floatingPuyo.posY = Math.round(nextY);
@@ -498,7 +495,7 @@ function handleSplitting() {
   // TODO: dont be stupid
   const splittedX = splittedPuyo.splittedX;
   const splittedY = splittedPuyo.splittedY;
-  const nextY = movePuyoDown(splittedY, 5.0);
+  const nextY = movePuyoDown(splittedY, 8.0);
 
   // need to verify this condition
   if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][splittedX] !== NO_COLOR) {
@@ -519,8 +516,6 @@ function handleSplitting() {
 
 // Check if the game is over
 function isGameOver() {
-  // TODO: if the middle of top is filled
-  // return board[BOARD_TOP_EDGE].some(cell => cell !== NO_COLOR);
   return board[BOARD_TOP_EDGE][PUYO_BIRTH_POSX] !== NO_COLOR;
 }
 
@@ -533,19 +528,28 @@ function inputHandle() {
 }
 
 function downKeyHandle() {
+  // if (!canTakeInput()) return;
+
   if (keyInputState.isDownKeyPressed) {
-    let keyMoveDownRate = 10.0;
+    let keyMoveDownRate = 15.0;
     // I'm afraid of more than 0.5, which could get this world upside down
     if (keyMoveDownRate * moveYDiff >= 0.5) keyMoveDownRate = 0.5 / moveYDiff;
     if (canPuyoMoveDown(keyMoveDownRate)) {
       currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate);
+    } else if (currentPuyo && canPuyoMoveDown(keyMoveDownRate / 2)) {
+      currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate / 2);
+    } else if (currentPuyo && canPuyoMoveDown(keyMoveDownRate / 4)) {
+      currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate / 4);
     } else {
       // get puyo being able to lock immediately
+      // TODO: find good timing or consider better logic
       gameState.lockWaitCount = LOCK_WAIT_TIME;
     }
   }
 }
 function horKeyhandle() {
+  if (!canTakeInput()) return;
+
   if (keyInputState.isRightKeyPressed) {
     if (canPuyoMoveRight()) {
       currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
@@ -557,14 +561,6 @@ function horKeyhandle() {
     }
   }
 }
-// function rotateKeyHandle() {
-//   if (keyInputState.willRotateCW) {
-//     rotatePuyo(90);
-//   }
-//   if (keyInputState.willRotateACW) {
-//     rotatePuyo(-90);
-//   }
-// }
 
 // Handle keyboard input
 document.addEventListener('keydown', e => {
@@ -579,7 +575,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') {
       keyInputState.isDownKeyPressed = true;
     }
-    if (e.key === 'ArrowUp' || e.key === 'z') {
+    if (e.key === 'z') {
       // keyInputState.willRotateACW = true;
       rotatePuyo(-90);
     }
@@ -589,13 +585,23 @@ document.addEventListener('keydown', e => {
     }
   } else {
     keyInputInit();
-    // keyInputState.willRotateCW = false;
-    // keyInputState.willRotateACW = false;
-    // keyInputState.isDownKeyPressed = false;
-    // keyInputState.isRightKeyPressed = false;
-    // keyInputState.isLeftKeyPressed = false;
   }
 });
+
+// for quickturn
+document.addEventListener('keydown', keyPressedTwice('x', () => {
+  if (quickTurn.isPossible) {
+    quickTurn.willExecute = true;
+    quickTurn.turnCW();
+  }
+}, () => { quickTurn.willExecute = false; }, 1000));
+
+document.addEventListener('keydown', keyPressedTwice('z', () => {
+  if (quickTurn.isPossible) {
+    quickTurn.willExecute = true;
+    quickTurn.turnACW();
+  }
+}, () => { quickTurn.willExecute = false; }, 1000));
 
 document.addEventListener('keyup', e => {
   // if (canTakeInput()) {
@@ -704,6 +710,12 @@ function rotatePuyo(changeAngle) {
   const [rotatedChildX, rotatedChildY] = getChildPos(rotatedPuyo);
   const [currentChildX, currentChildY] = getChildPos(currentPuyo);
 
+  // only skip when angle:90 or 270 in quickturn
+  if (quickTurn.willExecute && (rotatedPuyo.angle === 90 || rotatedPuyo.angle === 270)) {
+    currentPuyo = rotatedPuyo;
+    return;
+  }
+
   // anytime puyo can rotate in this case
   if (rotatedPuyo.angle === 180) {
     currentPuyo = rotatedPuyo;
@@ -727,6 +739,8 @@ function rotatePuyo(changeAngle) {
     } else {
       // stuck and cannot move
       // or quickturn?
+      quickTurn.isPossible = true;
+      // and do nothing here, rotate twice in eventlistener
       return;
     }
   } else if (rotatedPuyo.angle === 270) {
@@ -748,6 +762,8 @@ function rotatePuyo(changeAngle) {
     } else {
       // stuck and cannot move
       // or quickturn?
+      quickTurn.isPossible = true;
+      // and do nothing here, rotate twice in eventlistener
       return;
     }
   } else if (rotatedPuyo.angle === 0) {
@@ -756,7 +772,7 @@ function rotatePuyo(changeAngle) {
       board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== NO_COLOR // ||
       // board[Math.floor(rotatedChildY) + 1][currentChildX] !== NO_COLOR
     ) {
-      rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY);
+      rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.5; // for mawashi??
     }
     currentPuyo = rotatedPuyo;
     return;

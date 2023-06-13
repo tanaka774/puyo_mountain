@@ -62,3 +62,4 @@
 - sometimes puyo is locked where is one up on expected cell
 - is throttle really suited for input handing??? specifically for rotate
    - need to check how delay time is handled
+- in debug, key is left to be held down
