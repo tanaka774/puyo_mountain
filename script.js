@@ -1,3 +1,5 @@
+"use strict";
+
 import throttle from "./util/throttle.js";
 import keyPressedTwice from "./util/keyPressedTwice.js"
 //
@@ -5,7 +7,7 @@ import keyPressedTwice from "./util/keyPressedTwice.js"
 const canvas = document.getElementById('tetrisCanvas');
 const ctx = canvas.getContext('2d');
 const CELL_SIZE = 20;
-// what are used as index are 
+// what is used as index are 
 // x:BOARD_LEFT_EDGE ~ BOARD_RIGHT_EDGE - 1
 // y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
 const BOARD_LEFT_EDGE = 1;
@@ -35,12 +37,12 @@ const basePuyo = {
 };
 
 const getChildPos = (puyo) => {
-  let childX, childY;
-  // TODO: do smarter
-  if (puyo.angle === 0) { childX = puyo.parentX; childY = puyo.parentY + 1; }
-  else if (puyo.angle === 90) { childX = puyo.parentX - 1; childY = puyo.parentY; }
-  else if (puyo.angle === 180) { childX = puyo.parentX; childY = puyo.parentY - 1; }
-  else if (puyo.angle === 270) { childX = puyo.parentX + 1; childY = puyo.parentY; }
+  // TODO: modify returning drawingX during rotating
+  // const parentX = (gameState.isMovingHor) ? movingHorState.drawingX : puyo.parentX;
+  const parentX = puyo.parentX;
+  const diffs = [[0, 1], [-1, 0], [0, -1], [1, 0]];
+  const childX = diffs[(puyo.angle / 90) % 4][0] + parentX;
+  const childY = diffs[(puyo.angle / 90) % 4][1] + puyo.parentY;
   return [childX, childY];
 };
 
@@ -56,6 +58,8 @@ let gameOver = false;
 const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 120;
+const HOR_MOVING_TIME = 5;
+const ROTATING_TIME = 20;
 
 const floatingPuyo = {
   posX: -1,
@@ -85,6 +89,8 @@ const gameState = {
   lockWaitCount: 0,
   isLocked: false,
   isInitialized: false,
+  isMovingHor: false,
+  isRotating: false,
 };
 
 const keyInputState = {
@@ -93,6 +99,12 @@ const keyInputState = {
   isDownKeyPressed: false,
   // willRotateCW: false, // clockwise, +90
   // willRotateACW: false, // anti-clockwise, -90
+}
+
+const movingHorState = {
+  targetX: 0,
+  moveXDiff: 0,
+  drawingX: 0,
 }
 
 const quickTurn = {
@@ -209,10 +221,18 @@ function draw() {
 
   // draw currentPuyo
   if (currentPuyo) { // <- is this condition necessary?
-    drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
+    // draw puyo moving horizontally
+    if (gameState.isMovingHor) {
+      drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
 
-    const [childX, childY] = getChildPos(currentPuyo);
-    drawPuyo(childX, childY, currentPuyo.childColor);
+      const [childX, childY] = getChildPos(currentPuyo);
+      drawPuyo(childX, childY, currentPuyo.childColor);
+    } else {
+      drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
+
+      const [childX, childY] = getChildPos(currentPuyo);
+      drawPuyo(childX, childY, currentPuyo.childColor);
+    }
   }
 
   function drawPuyo(x, y, color) {
@@ -235,30 +255,38 @@ function draw() {
   }
 }
 
+function waitPuyoFix() {
+  // waiting room for posX or angle to reach proper position so that error doesn't happen
+  if (gameState.isMovingHor) movePuyoHor();
+}
+
 
 // Update the game state
 function update() {
   if (!gameOver) {
-    inputHandle();
-    if (!gameState.isBeingSplitted &&
-      !gameState.chainProcessing &&
-      canPuyoMoveDown()
-    ) {
-      currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
-    } else {
-      if (gameState.isBeingSplitted) {
-        handleSplitting();
-
-        if (!gameState.isBeingSplitted) { handleChain(); }
+    if (gameState.isMovingHor || gameState.isRotating) { waitPuyoFix(); }
+    else {
+      inputHandle();
+      if (!gameState.isBeingSplitted &&
+        !gameState.chainProcessing &&
+        canPuyoMoveDown()
+      ) {
+        currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, 1.0);
       } else {
-        if (!gameState.chainProcessing) { gameState.isLocked = lockCurrentPuyo(); }
-        if (gameState.isLocked) { handleChain(); }
-      }
-      if (!gameState.chainProcessing && isGameOver()) {
-        gameOver = true;
-        // alert('Game Over');
-      } else if (gameState.isLocked && !gameState.isBeingSplitted && !gameState.chainProcessing) {
-        beforeNext();
+        if (gameState.isBeingSplitted) {
+          handleSplitting();
+
+          if (!gameState.isBeingSplitted) { handleChain(); }
+        } else {
+          if (!gameState.chainProcessing) { gameState.isLocked = lockCurrentPuyo(); }
+          if (gameState.isLocked) { handleChain(); }
+        }
+        if (!gameState.chainProcessing && isGameOver()) {
+          gameOver = true;
+          // alert('Game Over');
+        } else if (gameState.isLocked && !gameState.isBeingSplitted && !gameState.chainProcessing) {
+          beforeNext();
+        }
       }
     }
     // TODO? record previous pos and animate slide between old and new pos
@@ -521,6 +549,7 @@ function isGameOver() {
 
 function canTakeInput() {
   return !gameOver && !gameState.isBeingSplitted && !gameState.chainProcessing;
+  // return !gameOver && !gameState.isBeingSplitted && !gameState.chainProcessing && !gameState.isMovingHor;
 }
 
 function inputHandle() {
@@ -552,12 +581,14 @@ function horKeyhandle() {
 
   if (keyInputState.isRightKeyPressed) {
     if (canPuyoMoveRight()) {
-      currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, 1.0);
+      currentPuyo.parentX = movePuyoHor_ori(currentPuyo.parentX, 1.0);
+      // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, 1.0);
     }
   }
   if (keyInputState.isLeftKeyPressed) {
     if (canPuyoMoveLeft()) {
-      currentPuyo.parentX = movePuyoHor(currentPuyo.parentX, -1.0);
+      currentPuyo.parentX = movePuyoHor_ori(currentPuyo.parentX, -1.0);
+      // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, -1.0);
     }
   }
 }
@@ -590,14 +621,14 @@ document.addEventListener('keydown', e => {
 
 // for quickturn
 document.addEventListener('keydown', keyPressedTwice('x', () => {
-  if (quickTurn.isPossible) {
+  if (quickTurn.isPossible && currentPuyo) {
     quickTurn.willExecute = true;
     quickTurn.turnCW();
   }
 }, () => { quickTurn.willExecute = false; }, 1000));
 
 document.addEventListener('keydown', keyPressedTwice('z', () => {
-  if (quickTurn.isPossible) {
+  if (quickTurn.isPossible && currentPuyo) {
     quickTurn.willExecute = true;
     quickTurn.turnACW();
   }
@@ -631,8 +662,27 @@ function keyInputInit() {
   keyInputState.isLeftKeyPressed = false;
 }
 
-function movePuyoHor(parentX, direciton) {
-  return parentX + direciton;
+function moveHorStart(parentX, direction) {
+  gameState.isMovingHor = true;
+  movingHorState.targetX = parentX + direction;
+  movingHorState.moveXDiff = direction / HOR_MOVING_TIME;
+  movingHorState.drawingX = parentX;
+
+  return parentX + direction;
+}
+
+function movePuyoHor() {
+  const targetX = movingHorState.targetX;
+  const diff = movingHorState.moveXDiff;
+
+  movingHorState.drawingX += diff;
+  if (Math.abs(targetX - movingHorState.drawingX) < Math.abs(diff) * ((HOR_MOVING_TIME + 1) / HOR_MOVING_TIME)) {
+    movingHorState.drawingX = targetX; // is this necessary?
+    gameState.isMovingHor = false;
+  }
+}
+function movePuyoHor_ori(parentX, direction) {
+  return parentX + direction;
 }
 
 function movePuyoDown(parentY, rate) {
@@ -731,10 +781,13 @@ function rotatePuyo(changeAngle) {
       board[Math.floor(rotatedChildY) + 1][nextX] == NO_COLOR
     ) {
       currentPuyo = rotatedPuyo;
+      debug_puyoCheck();
       return;
     } else if (canPuyoMoveRight(rotatedPuyo)) {
-      rotatedPuyo.parentX = movePuyoHor(rotatedPuyo.parentX, 1.0);
+      // TODO: movestart instead of letting puyo actually move here?
+      rotatedPuyo.parentX = movePuyoHor_ori(rotatedPuyo.parentX, 1.0);
       currentPuyo = rotatedPuyo;
+      // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, 1.0);
       return;
     } else {
       // stuck and cannot move
@@ -754,10 +807,12 @@ function rotatePuyo(changeAngle) {
       // && board[Math.floor(currentChildY) + 1][nextX] == NO_COLOR
     ) {
       currentPuyo = rotatedPuyo;
+      debug_puyoCheck();
       return;
     } else if (canPuyoMoveLeft(rotatedPuyo)) {
-      rotatedPuyo.parentX = movePuyoHor(rotatedPuyo.parentX, -1.0);
+      rotatedPuyo.parentX = movePuyoHor_ori(rotatedPuyo.parentX, -1.0);
       currentPuyo = rotatedPuyo;
+      // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, -1.0);
       return;
     } else {
       // stuck and cannot move
@@ -782,3 +837,9 @@ function rotatePuyo(changeAngle) {
 // Start the game
 init();
 
+function debug_puyoCheck() {
+  const [childX, childY] = getChildPos(currentPuyo);
+  if (childX <= BOARD_LEFT_EDGE - 1 || childX >= BOARD_BOTTOM_EDGE) {
+    console.log("you don't belong here!!!");
+  }
+}

@@ -2,21 +2,28 @@
 - [ ] make smooth animation
   - [x] can move down per a few pixel
   - [ ] can move left/right per one cell but animation is smooth 
-- [ ] handle arrow key input well
-- [ ] rotate properly
+- [x] handle arrow key input well
+- [x] rotate properly
   - need to make it animate while rotating(in teto case, not animating because of applying new piece when rotating)
   - in puyo, animating
-- [ ] handle mino correctly on top
+- [x] handle mino correctly on top
 - [x] ちぎり
 - [x] 連鎖判定
 - [x] 回した時の押し出し
-- [ ] 幽霊（13段目）
-- [ ] remove try-catch after debug
-- [ ] duration before lockpuyo()
+- [x] 幽霊（13段目）
+- [x] remove try-catch after debug
+- [x] duration before lockpuyo()
 - [ ] attach each connecting puyo
 - [ ] chain vanish effect
 - [ ] bouncing effect after puyo falling (till three puyos below?)
+- [ ] remove conditions to check whether puyo doesn't overlap each edge (these should be unnecessary now thanks to wall surrounding with certain number)
+- [ ] show chain numbers
 - [ ] write test code
+### in future
+- [ ] migrate to typescript with class-object
+- [ ] manage each process with appropriate state
+- [ ] store chain info
+- [ ] write document
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
@@ -63,3 +70,8 @@
 - is throttle really suited for input handing??? specifically for rotate
    - need to check how delay time is handled
 - in debug, key is left to be held down
+- moving smooth horizontally is hard
+  - perhaps this isn't need to implement?
+- go rotate animation once
+- **separate actual puyo pos from actual drawing pos**
+- what happens if key input movehor and push by rotate happen at the same time
