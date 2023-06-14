@@ -19,13 +19,13 @@ const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
 const TETRIMINO_COLORS = [
   null,
-  '#FF0D72',
-  '#0DC2FF',
-  '#0DFF72',
-  '#F538FF',
-  '#FF8E0D',
-  '#FFE138',
-  '#3877FF'
+  'rgba(255, 13, 114, 1)', // '#FF0D72' -> 
+  'rgba(13, 194, 255, 1)', // '#0DC2FF' -> 
+  'rgba(13, 255, 114, 1)', // '#0DFF72' -> 
+  'rgba(245, 56, 255, 1)', // '#F538FF' -> 
+  'rgba(255, 142, 13, 1)', // '#FF8E0D' -> 
+  'rgba(255, 225, 56, 1)', // '#FFE138' -> 
+  'rgba(56, 119, 255, 1)', // '#3877FF' -> 
 ];
 
 const basePuyo = {
@@ -123,7 +123,7 @@ function throttleInitializer() {
   return function() {
     if (!initialized) {
       downThrottleHandler = throttle(downKeyHandle, 10); // not affecting with value less than this(10)
-      horThrottleHandler = throttle(horKeyhandle, 60);
+      horThrottleHandler = throttle(horKeyhandle, 90);
       // TODO: perhaps rotate doesn't need to do this(simple addevent is enough?)
       // rotateThrottleHandler = throttle(rotateKeyHandle, 100);
       initialized = true;
@@ -223,10 +223,26 @@ function draw() {
   if (currentPuyo) { // <- is this condition necessary?
     // draw puyo moving horizontally
     if (gameState.isMovingHor) {
-      drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
+      // drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
+
+      drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
+
+      const diffX = movingHorState.targetX - movingHorState.drawingX;
+      const alpha = 0.5;
+      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
+      ctx.fillRect((currentPuyo.parentX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
+      ctx.fillRect((currentPuyo.parentX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
       const [childX, childY] = getChildPos(currentPuyo);
       drawPuyo(childX, childY, currentPuyo.childColor);
+
+      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
+      ctx.fillRect((childX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
+      ctx.fillRect((childX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+      gameState.isMovingHor = false;
     } else {
       drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
 
@@ -252,6 +268,11 @@ function draw() {
     nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 4 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
     nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
+
+  function addAlpha(rgbaCode, alpha) {
+    const res = rgbaCode.split(',')[0] + ',' + rgbaCode.split(',')[1] + ',' + rgbaCode.split(',')[2] + ',' + ` ${alpha.toString()})`;
+    return res;
   }
 }
 
@@ -682,6 +703,10 @@ function movePuyoHor() {
   }
 }
 function movePuyoHor_ori(parentX, direction) {
+  gameState.isMovingHor = true;
+  // movingHorState.moveXDiff = direction / HOR_MOVING_TIME;
+  movingHorState.targetX = parentX + direction;
+  movingHorState.drawingX = parentX;
   return parentX + direction;
 }
 
