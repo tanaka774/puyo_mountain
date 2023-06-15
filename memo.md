@@ -75,3 +75,4 @@
 - go rotate animation once
 - **separate actual puyo pos from actual drawing pos**
 - what happens if key input movehor and push by rotate happen at the same time
+- you need to remember which puyo is connected to each other when drawing connection

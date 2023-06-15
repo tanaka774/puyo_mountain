@@ -59,7 +59,7 @@ const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 120;
 const HOR_MOVING_TIME = 5;
-const ROTATING_TIME = 20;
+const ROTATING_TIME = 5;
 
 const floatingPuyo = {
   posX: -1,
@@ -101,10 +101,15 @@ const keyInputState = {
   // willRotateACW: false, // anti-clockwise, -90
 }
 
-const movingHorState = {
+const movingHorDrawing = {
   targetX: 0,
   moveXDiff: 0,
   drawingX: 0,
+}
+const rotateDrawing = {
+  targetAngle: 0,
+  diffAngle: 0,
+  drawingAngle: 0,
 }
 
 const quickTurn = {
@@ -221,26 +226,31 @@ function draw() {
 
   // draw currentPuyo
   if (currentPuyo) { // <- is this condition necessary?
+    if (gameState.isRotating) {
+
+      gameState.isRotating = false;
+    }
     // draw puyo moving horizontally
     if (gameState.isMovingHor) {
       // drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
 
       drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
 
-      const diffX = movingHorState.targetX - movingHorState.drawingX;
-      const alpha = 0.5;
-      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
-      ctx.fillRect((currentPuyo.parentX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
-      ctx.fillRect((currentPuyo.parentX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      // // TODO: if you do this, it needs more frames
+      // const diffX = movingHorDrawing.targetX - movingHorDrawing.drawingX;
+      // const alpha = 0.5;
+      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
+      // ctx.fillRect((currentPuyo.parentX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
+      // ctx.fillRect((currentPuyo.parentX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
       const [childX, childY] = getChildPos(currentPuyo);
       drawPuyo(childX, childY, currentPuyo.childColor);
 
-      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
-      ctx.fillRect((childX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
-      ctx.fillRect((childX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
+      // ctx.fillRect((childX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
+      // ctx.fillRect((childX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
       gameState.isMovingHor = false;
     } else {
@@ -252,8 +262,55 @@ function draw() {
   }
 
   function drawPuyo(x, y, color) {
-    ctx.fillStyle = TETRIMINO_COLORS[color];
-    ctx.fillRect((x - BOARD_LEFT_EDGE) * CELL_SIZE, (y - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    const drawPosX = (x - BOARD_LEFT_EDGE) * CELL_SIZE;
+    const drawPosY = (y - BOARD_TOP_EDGE) * CELL_SIZE;
+    // ctx.fillStyle = TETRIMINO_COLORS[color];
+    // ctx.fillRect(drawPosX, drawPosY, CELL_SIZE, CELL_SIZE);
+
+    const radiusX = CELL_SIZE * 4 / 9;
+    const radiusY = CELL_SIZE * 3 / 7;
+    const elliX = drawPosX + radiusX + CELL_SIZE / 16;
+    const elliY = drawPosY + radiusY + CELL_SIZE / 10;
+    drawEllipse(elliX, elliY, radiusX, radiusY, TETRIMINO_COLORS[color]);
+    // drawEyes(elliX, elliY);
+  }
+
+  function drawEllipse(X, Y, radiusX, radiusY, color) {
+    // Draw the ellipse
+    ctx.beginPath();
+    ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(150,150,150,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function drawEyes(X, Y) {
+    // Draw the eyes
+    const rate = 1 / 4;
+    const eyeRadiusX = 6 * rate;
+    const eyeRadiusY = 4 * rate;
+    const eyeOffsetX = 15 * rate;
+    const eyeOffsetY = 10 * rate;
+    const eyeColor = 'rgba(20,20,20,0.7)';
+
+    // Left eye
+    ctx.beginPath();
+    ctx.ellipse(X - eyeOffsetX, Y - eyeOffsetY, eyeRadiusX, eyeRadiusY, (-1) * Math.PI / 4, 0, Math.PI * 2);
+    ctx.fillStyle = eyeColor;
+    ctx.fill();
+
+    // Right eye
+    ctx.beginPath();
+    ctx.ellipse(X + eyeOffsetX, Y - eyeOffsetY, eyeRadiusX, eyeRadiusY, Math.PI / 4, 0, Math.PI * 2);
+    ctx.fillStyle = eyeColor;
+    ctx.fill();
+  }
+
+  function addAlpha(rgbaCode, alpha) {
+    const res = rgbaCode.split(',')[0] + ',' + rgbaCode.split(',')[1] + ',' + rgbaCode.split(',')[2] + ',' + ` ${alpha.toString()})`;
+    return res;
   }
 
   // draw nextPuyo and doubleNextPuyo on right-side to board
@@ -268,11 +325,6 @@ function draw() {
     nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 4 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
     nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-  }
-
-  function addAlpha(rgbaCode, alpha) {
-    const res = rgbaCode.split(',')[0] + ',' + rgbaCode.split(',')[1] + ',' + rgbaCode.split(',')[2] + ',' + ` ${alpha.toString()})`;
-    return res;
   }
 }
 
@@ -685,28 +737,28 @@ function keyInputInit() {
 
 function moveHorStart(parentX, direction) {
   gameState.isMovingHor = true;
-  movingHorState.targetX = parentX + direction;
-  movingHorState.moveXDiff = direction / HOR_MOVING_TIME;
-  movingHorState.drawingX = parentX;
+  movingHorDrawing.targetX = parentX + direction;
+  movingHorDrawing.moveXDiff = direction / HOR_MOVING_TIME;
+  movingHorDrawing.drawingX = parentX;
 
   return parentX + direction;
 }
 
 function movePuyoHor() {
-  const targetX = movingHorState.targetX;
-  const diff = movingHorState.moveXDiff;
+  const targetX = movingHorDrawing.targetX;
+  const diff = movingHorDrawing.moveXDiff;
 
-  movingHorState.drawingX += diff;
-  if (Math.abs(targetX - movingHorState.drawingX) < Math.abs(diff) * ((HOR_MOVING_TIME + 1) / HOR_MOVING_TIME)) {
-    movingHorState.drawingX = targetX; // is this necessary?
+  movingHorDrawing.drawingX += diff;
+  if (Math.abs(targetX - movingHorDrawing.drawingX) < Math.abs(diff) * ((HOR_MOVING_TIME + 1) / HOR_MOVING_TIME)) {
+    movingHorDrawing.drawingX = targetX; // is this necessary?
     gameState.isMovingHor = false;
   }
 }
 function movePuyoHor_ori(parentX, direction) {
   gameState.isMovingHor = true;
   // movingHorState.moveXDiff = direction / HOR_MOVING_TIME;
-  movingHorState.targetX = parentX + direction;
-  movingHorState.drawingX = parentX;
+  movingHorDrawing.targetX = parentX + direction;
+  movingHorDrawing.drawingX = parentX;
   return parentX + direction;
 }
 
