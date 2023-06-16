@@ -58,8 +58,8 @@ let gameOver = false;
 const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 120;
-const HOR_MOVING_TIME = 5;
-const ROTATING_TIME = 5;
+const HOR_MOVING_TIME = 3;
+const ROTATING_TIME = 2;
 
 const floatingPuyo = {
   posX: -1,
@@ -105,11 +105,13 @@ const movingHorDrawing = {
   targetX: 0,
   moveXDiff: 0,
   drawingX: 0,
+  drawCount: 0,
 }
 const rotateDrawing = {
-  targetAngle: 0,
+  changeAngle: 0,
   diffAngle: 0,
-  drawingAngle: 0,
+  prevAngle: 0,
+  drawCount: 0,
 }
 
 const quickTurn = {
@@ -202,7 +204,7 @@ function draw() {
     for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
       const cell = board[y][x];
       if (cell !== NO_COLOR) {
-        drawPuyo(x, y, cell)
+        drawPuyo(x, y, TETRIMINO_COLORS[cell])
       }
     }
   }
@@ -211,7 +213,7 @@ function draw() {
   if (gameState.chainProcessing) {
     if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
       for (const floatingPuyo of floatingPuyos) {
-        drawPuyo(floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color);
+        drawPuyo(floatingPuyo.posX, floatingPuyo.posY, TETRIMINO_COLORS[floatingPuyo.color]);
       }
     }
     return;
@@ -219,49 +221,20 @@ function draw() {
 
   // draw splittedPuyo
   if (gameState.isBeingSplitted && splittedPuyo) {
-    drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor);
+    drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, TETRIMINO_COLORS[splittedPuyo.splittedColor]);
 
-    drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
+    drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, TETRIMINO_COLORS[splittedPuyo.unsplittedColor]);
   }
 
   // draw currentPuyo
   if (currentPuyo) { // <- is this condition necessary?
-    if (gameState.isRotating) {
+    drawPuyo(currentPuyo.parentX, currentPuyo.parentY, TETRIMINO_COLORS[currentPuyo.parentColor]);
 
-      gameState.isRotating = false;
-    }
-    // draw puyo moving horizontally
-    if (gameState.isMovingHor) {
-      // drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
-
-      drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
-
-      // // TODO: if you do this, it needs more frames
-      // const diffX = movingHorDrawing.targetX - movingHorDrawing.drawingX;
-      // const alpha = 0.5;
-      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
-      // ctx.fillRect((currentPuyo.parentX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha);
-      // ctx.fillRect((currentPuyo.parentX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (currentPuyo.parentY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-
-      const [childX, childY] = getChildPos(currentPuyo);
-      drawPuyo(childX, childY, currentPuyo.childColor);
-
-      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
-      // ctx.fillRect((childX - (diffX / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      // ctx.fillStyle = addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha);
-      // ctx.fillRect((childX - (diffX * 2 / 3) - BOARD_LEFT_EDGE) * CELL_SIZE, (childY - BOARD_TOP_EDGE) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-
-      gameState.isMovingHor = false;
-    } else {
-      drawPuyo(currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
-
-      const [childX, childY] = getChildPos(currentPuyo);
-      drawPuyo(childX, childY, currentPuyo.childColor);
-    }
+    const [childX, childY] = getChildPos(currentPuyo);
+    drawPuyo(childX, childY, TETRIMINO_COLORS[currentPuyo.childColor]);
   }
 
-  function drawPuyo(x, y, color) {
+  function drawPuyo(x, y, color, willStorke = true) {
     const drawPosX = (x - BOARD_LEFT_EDGE) * CELL_SIZE;
     const drawPosY = (y - BOARD_TOP_EDGE) * CELL_SIZE;
     // ctx.fillStyle = TETRIMINO_COLORS[color];
@@ -271,11 +244,11 @@ function draw() {
     const radiusY = CELL_SIZE * 3 / 7;
     const elliX = drawPosX + radiusX + CELL_SIZE / 16;
     const elliY = drawPosY + radiusY + CELL_SIZE / 10;
-    drawEllipse(elliX, elliY, radiusX, radiusY, TETRIMINO_COLORS[color]);
+    drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke);
     // drawEyes(elliX, elliY);
   }
 
-  function drawEllipse(X, Y, radiusX, radiusY, color) {
+  function drawEllipse(X, Y, radiusX, radiusY, color, willStorke = true) {
     // Draw the ellipse
     ctx.beginPath();
     ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
@@ -283,7 +256,7 @@ function draw() {
     ctx.fill();
     ctx.strokeStyle = 'rgba(150,150,150,0.5)';
     ctx.lineWidth = 2;
-    ctx.stroke();
+    (willStorke) && ctx.stroke();
   }
 
   function drawEyes(X, Y) {
@@ -326,11 +299,53 @@ function draw() {
     nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
     nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
   }
+
+  drawAfterimage();
+
+  function drawAfterimage() {
+    if (gameState.isRotating) {
+      const devideNum = 5;
+      for (let n = 1; n < devideNum; n++) {
+        const angle = rotateDrawing.changeAngle * n / devideNum + rotateDrawing.prevAngle;
+        const rotatingX = currentPuyo.parentX + Math.cos((angle * (-1) + 270) * Math.PI / 180);
+        const rotatingY = currentPuyo.parentY - Math.sin((angle * (-1) + 270) * Math.PI / 180);
+        drawPuyo(rotatingX, rotatingY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], 0.2), false);
+      }
+
+      rotateDrawing.drawCount--;
+      if (rotateDrawing.drawCount <= 0) {
+        gameState.isRotating = false;
+        rotateDrawing.drawCount = ROTATING_TIME;
+      }
+    }
+    // draw puyo moving horizontally
+    if (gameState.isMovingHor) {
+      // drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
+
+      // TODO: if you do this, it needs more frames
+      const diffX = movingHorDrawing.targetX - movingHorDrawing.drawingX;
+      const alpha = 0.2;
+      // only draw circle with color not stroke or eye
+      drawPuyo(currentPuyo.parentX - (diffX / 3), currentPuyo.parentY, addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha), false);
+      drawPuyo(currentPuyo.parentX - (diffX * 2 / 3), currentPuyo.parentY, addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha), false);
+
+      const [childX, childY] = getChildPos(currentPuyo);
+
+      drawPuyo(childX - (diffX / 3), childY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
+      drawPuyo(childX - (diffX * 2 / 3), childY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
+
+      movingHorDrawing.drawCount--;
+      if (movingHorDrawing.drawCount <= 0) {
+        gameState.isMovingHor = false;
+        movingHorDrawing.drawCount = HOR_MOVING_TIME;
+      }
+    }
+  }
 }
 
 function waitPuyoFix() {
   // waiting room for posX or angle to reach proper position so that error doesn't happen
-  if (gameState.isMovingHor) movePuyoHor();
+  // if (gameState.isMovingHor) movePuyoHor();
 }
 
 
@@ -364,6 +379,7 @@ function update() {
     }
     // TODO? record previous pos and animate slide between old and new pos
     draw();
+    // drawAfterimage();
   }
   requestAnimationFrame(update);
 }
@@ -836,17 +852,20 @@ function rotatePuyo(changeAngle) {
   rotatedPuyo.angle = rotatedPuyo.angle === 360 ? 0 : (rotatedPuyo.angle === -90 ? 270 : rotatedPuyo.angle);
   const [rotatedChildX, rotatedChildY] = getChildPos(rotatedPuyo);
   const [currentChildX, currentChildY] = getChildPos(currentPuyo);
+  let canRotate = false;
 
   // only skip when angle:90 or 270 in quickturn
   if (quickTurn.willExecute && (rotatedPuyo.angle === 90 || rotatedPuyo.angle === 270)) {
+    setRotateDrawing(changeAngle, currentPuyo.angle);
     currentPuyo = rotatedPuyo;
     return;
   }
 
   // anytime puyo can rotate in this case
   if (rotatedPuyo.angle === 180) {
-    currentPuyo = rotatedPuyo;
-    return; // ok?
+    // currentPuyo = rotatedPuyo;
+    // return; // ok?
+    canRotate = true;
   } else if (rotatedPuyo.angle === 90) {
     // left is empty? if not, can move right? if not, cannot rotate
     const nextX = rotatedChildX;
@@ -857,15 +876,17 @@ function rotatePuyo(changeAngle) {
       board[Math.floor(rotatedChildY)][nextX] == NO_COLOR &&
       board[Math.floor(rotatedChildY) + 1][nextX] == NO_COLOR
     ) {
-      currentPuyo = rotatedPuyo;
-      debug_puyoCheck();
-      return;
+      // currentPuyo = rotatedPuyo;
+      // debug_puyoCheck();
+      // return;
+      canRotate = true;
     } else if (canPuyoMoveRight(rotatedPuyo)) {
       // TODO: movestart instead of letting puyo actually move here?
       rotatedPuyo.parentX = movePuyoHor_ori(rotatedPuyo.parentX, 1.0);
-      currentPuyo = rotatedPuyo;
-      // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, 1.0);
-      return;
+      // currentPuyo = rotatedPuyo;
+      // // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, 1.0);
+      // return;
+      canRotate = true;
     } else {
       // stuck and cannot move
       // or quickturn?
@@ -883,14 +904,16 @@ function rotatePuyo(changeAngle) {
       board[Math.floor(currentChildY)][nextX] == NO_COLOR
       // && board[Math.floor(currentChildY) + 1][nextX] == NO_COLOR
     ) {
-      currentPuyo = rotatedPuyo;
-      debug_puyoCheck();
-      return;
+      // currentPuyo = rotatedPuyo;
+      // debug_puyoCheck();
+      // return;
+      canRotate = true;
     } else if (canPuyoMoveLeft(rotatedPuyo)) {
       rotatedPuyo.parentX = movePuyoHor_ori(rotatedPuyo.parentX, -1.0);
-      currentPuyo = rotatedPuyo;
-      // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, -1.0);
-      return;
+      // currentPuyo = rotatedPuyo;
+      // // currentPuyo.parentX = moveHorStart(currentPuyo.parentX, -1.0);
+      // return;
+      canRotate = true;
     } else {
       // stuck and cannot move
       // or quickturn?
@@ -904,10 +927,24 @@ function rotatePuyo(changeAngle) {
       board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== NO_COLOR // ||
       // board[Math.floor(rotatedChildY) + 1][currentChildX] !== NO_COLOR
     ) {
+      // TODO: some animation at push up?
       rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.5; // for mawashi??
     }
+    // currentPuyo = rotatedPuyo;
+    // return;
+    canRotate = true;
+  }
+
+  if (canRotate) {
+    setRotateDrawing(changeAngle, currentPuyo.angle);
     currentPuyo = rotatedPuyo;
     return;
+  }
+
+  function setRotateDrawing(changeAngle, prevAngle) {
+    gameState.isRotating = true;
+    rotateDrawing.changeAngle = changeAngle;
+    rotateDrawing.prevAngle = prevAngle;
   }
 }
 

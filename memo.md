@@ -76,3 +76,8 @@
 - **separate actual puyo pos from actual drawing pos**
 - what happens if key input movehor and push by rotate happen at the same time
 - you need to remember which puyo is connected to each other when drawing connection
+- moving things I want to draw but not to change pos (into float)
+  - moving horizontally
+  - rotate
+  - push up when rotatedangle = 0
+- after each chain vanishing, key input is initialized and you cannnot keep being down key left pressed, have to re-press again each time
