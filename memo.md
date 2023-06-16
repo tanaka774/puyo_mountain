@@ -80,4 +80,4 @@
   - moving horizontally
   - rotate
   - push up when rotatedangle = 0
-- after each chain vanishing, key input is initialized and you cannnot keep being down key left pressed, have to re-press again each time
+- after each chain vanishing or splitting, key input is initialized and you cannnot keep being down key left pressed, have to re-press again each time

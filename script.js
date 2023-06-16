@@ -436,6 +436,8 @@ function canPuyoMoveDown(rate = 1.0) {
       // splittedPuyo.unsplittedY = Math.floor(parentY) + 1;
       splittedPuyo.unsplittedY = Math.round(parentY);
       splittedPuyo.unsplittedColor = currentPuyo.parentColor;
+      // TODO: you can lock unsplittedpuyo here
+      lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
       currentPuyo = null;
 
       return false;
@@ -449,6 +451,7 @@ function canPuyoMoveDown(rate = 1.0) {
       // splittedPuyo.unsplittedY = Math.floor(childY) + 1;
       splittedPuyo.unsplittedY = Math.round(childY);
       splittedPuyo.unsplittedColor = currentPuyo.childColor;
+      lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
       currentPuyo = null;
 
       return false;
@@ -471,22 +474,29 @@ function lockCurrentPuyo() {
   // currentPuyo.parentY = 1 + Math.floor(currentPuyo.parentY);
 
   const [childX, childY] = getChildPos(currentPuyo);
-  board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
-  board[childY][childX] = currentPuyo.childColor;
+  // board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
+  // board[childY][childX] = currentPuyo.childColor;
+  lockPuyo(board, currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
+  lockPuyo(board, childX, childY, currentPuyo.childColor);
   return true;
+}
+
+function lockPuyo(board, posX, posY, color) {
+  board[posY][posX] = color;
 }
 
 function handleChain() {
   if (!gameState.chainProcessing) {
-    let connectedPuyos = 0;
+    let connectedPuyoNums = 0;
     const checkedCells = Array.from({ length: BOARD_BOTTOM_EDGE }, () => Array(BOARD_RIGHT_EDGE).fill(false));
     // TODO: don't want to check every cell
     // but, if ghost chain is enable, this way should be proper?
+    // or just checking TOP_EDGE line is enough?
     for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
       for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
         const savePuyos = [];
-        connectedPuyos = checkChain(x, y, checkedCells, board[y][x], savePuyos);
-        if (connectedPuyos >= 4) {
+        connectedPuyoNums = checkChain(x, y, checkedCells, board[y][x], savePuyos);
+        if (connectedPuyoNums >= 4) {
           vanishPuyos.push(savePuyos);
         }
       }
@@ -549,7 +559,8 @@ function erasePuyos() {
       const [x, y] = [...vanishPuyo];
 
       //TODO: consider some effect in vanishing
-      board[y][x] = NO_COLOR;
+      // board[y][x] = NO_COLOR;
+      lockPuyo(board, x, y, NO_COLOR);
     }
   }
 }
@@ -581,7 +592,8 @@ function findFloatingPuyos() {
       floatingPuyo.posY = aboveY;
       floatingPuyo.color = board[aboveY][lowestX];
       // delegate drawing to floatingpuyo
-      temp_board[aboveY][lowestX] = NO_COLOR;
+      // temp_board[aboveY][lowestX] = NO_COLOR;
+      lockPuyo(temp_board, lowestX, aboveY, NO_COLOR);
 
       floatingPuyos.push({ ...floatingPuyo });
     }
@@ -596,7 +608,7 @@ function letFloatingPuyosFall() {
       // floatingPuyo.posY = Math.round(nextY);
       floatingPuyo.posY = Math.floor(nextY);
 
-      board[floatingPuyo.posY][floatingPuyo.posX] = floatingPuyo.color;
+      lockPuyo(board, floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color);
 
       // remove fixed puyo from floatingPuyos(array)
       floatingPuyos =
@@ -620,11 +632,14 @@ function handleSplitting() {
     // TODO: these should be done in lockpuyo(), I guess
     splittedPuyo.splittedY = Math.floor(nextY);
 
-    board[splittedPuyo.splittedY][splittedPuyo.splittedX] = splittedPuyo.splittedColor;
-    board[splittedPuyo.unsplittedY][splittedPuyo.unsplittedX] = splittedPuyo.unsplittedColor;
+    // board[splittedPuyo.splittedY][splittedPuyo.splittedX] = splittedPuyo.splittedColor;
+    // board[splittedPuyo.unsplittedY][splittedPuyo.unsplittedX] = splittedPuyo.unsplittedColor;
+    lockPuyo(board, splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor);
+    // lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
 
     gameState.isBeingSplitted = false;
     splittedPuyo = {};
+    // for beforeNext()
     gameState.isLocked = true;
   } else {
     splittedPuyo.splittedY = nextY;
