@@ -81,3 +81,5 @@
   - rotate
   - push up when rotatedangle = 0
 - after each chain vanishing or splitting, key input is initialized and you cannnot keep being down key left pressed, have to re-press again each time
+- want to update connectedpuyos[] only when new one appears
+- drawGlue() doesn't draw any glue!!!

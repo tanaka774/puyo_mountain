@@ -1,7 +1,8 @@
 "use strict";
 
 import throttle from "./util/throttle.js";
-import keyPressedTwice from "./util/keyPressedTwice.js"
+import keyPressedTwice from "./util/keyPressedTwice.js";
+import { drawEllipse, drawEyes, addAlpha, drawGlueToDown, drawGlueToRight } from "./draw.js";
 //
 // Constants
 const canvas = document.getElementById('tetrisCanvas');
@@ -121,6 +122,25 @@ const quickTurn = {
   turnACW: () => { rotatePuyo(-90); rotatePuyo(-90); },
 }
 
+const connectDrawing = {
+  connectedPuyos: new Set(),
+  addConnectedPuyos: function(x, y, color, dx, dy) {
+    this.connectedPuyos.add(`${x - BOARD_LEFT_EDGE},${y - BOARD_TOP_EDGE},${color}:${dx},${dy}`);
+  },
+  deleteConnectedPuyo: function(x, y) {
+    const modX = x - BOARD_LEFT_EDGE;
+    const modY = y - BOARD_TOP_EDGE;
+    this.connectedPuyos.forEach((elem) => {
+      if (elem.indexOf(`${modX},${modY}`) === 0) {
+        this.connectedPuyos.delete(elem);
+      }
+    })
+  },
+  initConnectedPuyos: function() {
+    this.connectedPuyos.clear();
+  },
+}
+
 // TODO: do smarter
 function throttleInitializer() {
   let downThrottleHandler;
@@ -174,7 +194,7 @@ function getRandomPuyo() {
   const newPuyo = { ...basePuyo };
   newPuyo.parentColor = Math.floor(Math.random() * 4) + 1;
   newPuyo.childColor = Math.floor(Math.random() * 4) + 1;
-  newPuyo.parentX = PUYO_BIRTH_POSX
+  newPuyo.parentX = PUYO_BIRTH_POSX;
   newPuyo.parentY = PUYO_BIRTH_POSY;
   return newPuyo;
 }
@@ -190,7 +210,7 @@ function beforeNext() {
   // TODO: this implementaion is not officially right
   for (let y = 0; y < BOARD_TOP_EDGE - 1; y++) {
     for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
-      board[y][x] = 0;
+      board[y][x] = NO_COLOR;
     }
   }
 }
@@ -207,6 +227,32 @@ function draw() {
         drawPuyo(x, y, TETRIMINO_COLORS[cell])
       }
     }
+  }
+
+  // draw puyo's connecting
+  drawConnecting();
+
+  function drawConnecting() {
+    connectDrawing.connectedPuyos.forEach(elem => {
+      const [x, y, color] = elem.split(':')[0].split(',').map(str => Number.parseInt(str, 10));
+      const [diffX, diffY] = elem.split(':')[1].split(',').map(str => Number.parseInt(str, 10));;
+
+      // TODO: do not declare these variables here
+      const radiusX = CELL_SIZE * 4 / 9;
+      const radiusY = CELL_SIZE * 3 / 7;
+
+      if (diffX === 0 && diffY === 1) {
+        drawGlueToDown(ctx, CELL_SIZE, x, y, x, y + diffY, radiusX, radiusY, TETRIMINO_COLORS[color]);
+      } else if (diffX === 1 && diffY === 0) {
+        drawGlueToRight(ctx, CELL_SIZE, x, y, x + diffX, y, radiusX, radiusY, TETRIMINO_COLORS[color]);
+      } else if (diffX === 0 && diffY === -1) {
+        // need to verify
+        drawGlueToDown(ctx, CELL_SIZE, x, y + diffY, x, y, radiusX, radiusY, TETRIMINO_COLORS[color]);
+      } else if (diffX === -1 && diffY === 0) {
+        // need to verify
+        drawGlueToRight(ctx, CELL_SIZE, x + diffX, y, x, y, radiusX, radiusY, TETRIMINO_COLORS[color]);
+      }
+    })
   }
 
   // draw floating puyos
@@ -244,46 +290,8 @@ function draw() {
     const radiusY = CELL_SIZE * 3 / 7;
     const elliX = drawPosX + radiusX + CELL_SIZE / 16;
     const elliY = drawPosY + radiusY + CELL_SIZE / 10;
-    drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke);
-    // drawEyes(elliX, elliY);
-  }
-
-  function drawEllipse(X, Y, radiusX, radiusY, color, willStorke = true) {
-    // Draw the ellipse
-    ctx.beginPath();
-    ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(150,150,150,0.5)';
-    ctx.lineWidth = 2;
-    (willStorke) && ctx.stroke();
-  }
-
-  function drawEyes(X, Y) {
-    // Draw the eyes
-    const rate = 1 / 4;
-    const eyeRadiusX = 6 * rate;
-    const eyeRadiusY = 4 * rate;
-    const eyeOffsetX = 15 * rate;
-    const eyeOffsetY = 10 * rate;
-    const eyeColor = 'rgba(20,20,20,0.7)';
-
-    // Left eye
-    ctx.beginPath();
-    ctx.ellipse(X - eyeOffsetX, Y - eyeOffsetY, eyeRadiusX, eyeRadiusY, (-1) * Math.PI / 4, 0, Math.PI * 2);
-    ctx.fillStyle = eyeColor;
-    ctx.fill();
-
-    // Right eye
-    ctx.beginPath();
-    ctx.ellipse(X + eyeOffsetX, Y - eyeOffsetY, eyeRadiusX, eyeRadiusY, Math.PI / 4, 0, Math.PI * 2);
-    ctx.fillStyle = eyeColor;
-    ctx.fill();
-  }
-
-  function addAlpha(rgbaCode, alpha) {
-    const res = rgbaCode.split(',')[0] + ',' + rgbaCode.split(',')[1] + ',' + rgbaCode.split(',')[2] + ',' + ` ${alpha.toString()})`;
-    return res;
+    drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
+    // drawEyes(ctx, elliX, elliY);
   }
 
   // draw nextPuyo and doubleNextPuyo on right-side to board
@@ -482,25 +490,13 @@ function lockCurrentPuyo() {
 }
 
 function lockPuyo(board, posX, posY, color) {
+  // TODO: remember x, y value here and use for chain process or something
   board[posY][posX] = color;
 }
 
 function handleChain() {
   if (!gameState.chainProcessing) {
-    let connectedPuyoNums = 0;
-    const checkedCells = Array.from({ length: BOARD_BOTTOM_EDGE }, () => Array(BOARD_RIGHT_EDGE).fill(false));
-    // TODO: don't want to check every cell
-    // but, if ghost chain is enable, this way should be proper?
-    // or just checking TOP_EDGE line is enough?
-    for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
-      for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
-        const savePuyos = [];
-        connectedPuyoNums = checkChain(x, y, checkedCells, board[y][x], savePuyos);
-        if (connectedPuyoNums >= 4) {
-          vanishPuyos.push(savePuyos);
-        }
-      }
-    }
+    findConnectedPuyos();
   }
   if (vanishPuyos.length === 0) { return; }
   if (!gameState.chainProcessing) {
@@ -530,11 +526,32 @@ function handleChain() {
   }
 }
 
+function findConnectedPuyos() {
+  let connectedPuyoNums = 0;
+  const checkedCells = Array.from(
+    { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 5 },
+    () => Array((BOARD_RIGHT_EDGE - BOARD_LEFT_EDGE) + 2).fill(false));
+  connectDrawing.initConnectedPuyos();
+  // TODO: don't want to check every cell, use currentlockpos from lockpuyo()
+  // but, if ghost zone is enable, this way should be proper?
+  // or just checking TOP_EDGE line is enough?
+  for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
+    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
+      if (board[y][x] === NO_COLOR) continue;
+      const savePuyos = [];
+      connectedPuyoNums = checkConnected(x, y, checkedCells, board[y][x], savePuyos);
+      if (connectedPuyoNums >= 4) {
+        vanishPuyos.push(savePuyos);
+      }
+    }
+  }
+}
+
 // check whether there is chain and if so, save those puyos
-function checkChain(x, y, checkedCells, prevCell, savePuyos) {
+function checkConnected(x, y, checkedCells, prevCell, savePuyos) {
   if (checkedCells[y][x] === true) { return 0; }
 
-  let connectedPuyos = 0;
+  let connectedPuyoNums = 0;
   const cell = board[y][x];
   if (cell === NO_COLOR || cell !== prevCell) {
     return 0;
@@ -542,15 +559,29 @@ function checkChain(x, y, checkedCells, prevCell, savePuyos) {
     savePuyos.push([x, y]);
     checkedCells[y][x] = true;
 
-    connectedPuyos++;
+    connectedPuyoNums++;
   }
+  let prevConnectedPuyoNums = connectedPuyoNums;
 
-  if (x - 1 >= BOARD_LEFT_EDGE) connectedPuyos += checkChain(x - 1, y, checkedCells, prevCell, savePuyos);
-  if (x + 1 < BOARD_RIGHT_EDGE) connectedPuyos += checkChain(x + 1, y, checkedCells, prevCell, savePuyos);
-  if (y - 1 >= BOARD_TOP_EDGE) connectedPuyos += checkChain(x, y - 1, checkedCells, prevCell, savePuyos);
-  if (y + 1 < BOARD_BOTTOM_EDGE) connectedPuyos += checkChain(x, y + 1, checkedCells, prevCell, savePuyos);
+  // TODO: really? -> if you check board through from left to right and from top to bottom in every case, you don't need to check x-1 and y-1 here
+  connectedPuyoNums += checkConnected(x + 1, y, checkedCells, prevCell, savePuyos);
+  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 1, 0);
+  prevConnectedPuyoNums = connectedPuyoNums;
 
-  return connectedPuyos;
+  connectedPuyoNums += checkConnected(x, y + 1, checkedCells, prevCell, savePuyos);
+  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, 1);
+  prevConnectedPuyoNums = connectedPuyoNums;
+
+  connectedPuyoNums += checkConnected(x - 1, y, checkedCells, prevCell, savePuyos);
+  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, -1, 0);
+  prevConnectedPuyoNums = connectedPuyoNums;
+
+  // don't check invisible zone
+  if (y - 1 >= BOARD_TOP_EDGE)
+    connectedPuyoNums += checkConnected(x, y - 1, checkedCells, prevCell, savePuyos);
+  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, -1);
+
+  return connectedPuyoNums;
 }
 
 function erasePuyos() {
@@ -559,8 +590,8 @@ function erasePuyos() {
       const [x, y] = [...vanishPuyo];
 
       //TODO: consider some effect in vanishing
-      // board[y][x] = NO_COLOR;
-      lockPuyo(board, x, y, NO_COLOR);
+      board[y][x] = NO_COLOR;
+      connectDrawing.deleteConnectedPuyo(x, y);
     }
   }
 }
@@ -592,10 +623,12 @@ function findFloatingPuyos() {
       floatingPuyo.posY = aboveY;
       floatingPuyo.color = board[aboveY][lowestX];
       // delegate drawing to floatingpuyo
-      // temp_board[aboveY][lowestX] = NO_COLOR;
-      lockPuyo(temp_board, lowestX, aboveY, NO_COLOR);
+      temp_board[aboveY][lowestX] = NO_COLOR;
+      // lockPuyo(temp_board, lowestX, aboveY, NO_COLOR);
 
       floatingPuyos.push({ ...floatingPuyo });
+      // TODO: is this the right place? connecting animation is a bit weird
+      connectDrawing.deleteConnectedPuyo(floatingPuyo.posX, floatingPuyo.posY);
     }
   }
 }
@@ -635,11 +668,10 @@ function handleSplitting() {
     // board[splittedPuyo.splittedY][splittedPuyo.splittedX] = splittedPuyo.splittedColor;
     // board[splittedPuyo.unsplittedY][splittedPuyo.unsplittedX] = splittedPuyo.unsplittedColor;
     lockPuyo(board, splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor);
-    // lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
 
     gameState.isBeingSplitted = false;
     splittedPuyo = {};
-    // for beforeNext()
+    // for beforeNext()?
     gameState.isLocked = true;
   } else {
     splittedPuyo.splittedY = nextY;
