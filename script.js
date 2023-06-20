@@ -84,6 +84,7 @@ let splittedPuyo = {
 
 
 const gameState = {
+  isPaused: false,
   isBeingSplitted: false,
   chainProcessing: false,
   chainVanishWaitCount: 0,
@@ -134,10 +135,53 @@ const connectDrawing = {
       if (elem.indexOf(`${modX},${modY}`) === 0) {
         this.connectedPuyos.delete(elem);
       }
+      const [diffX, diffY] = elem.split(':')[1].split(',').map(str => Number.parseInt(str, 10));
+      if (elem.indexOf(`${modX - diffX},${modY - diffY}`) === 0) {
+        this.connectedPuyos.delete(elem);
+      }
     })
   },
   initConnectedPuyos: function() {
     this.connectedPuyos.clear();
+  },
+}
+
+const recordPuyoSteps = {
+  recordedPuyos: [], // [[x,y,color]]
+  vanishedPuyos: [], // stash vanishpuyos here when chain happens
+  vanishCount: 0,
+  MANIPULATE_PUYO_REC_FLAG: 0, // freefall and splitting
+  VANISH_PUYO_REC_FLAG: -1, // vanish with chain
+  FLOAT_PUYO_REC_FLAG: -2, // about to fall after chain
+  DID_FLOAT_PUYO_REC_FLAG: -3, // after falling
+  record: function(x, y, color, recordFlag) {
+    this.recordedPuyos.push([x, y, color, recordFlag]);
+  },
+  undoPoint: 0,
+  undo: function(board) {
+    const recPuyo = this.recordedPuyos;
+    this.undoPoint = recPuyo.length - 1;
+    while (recPuyo[this.undoPoint][3] !== this.MANIPULATE_PUYO_REC_FLAG) {
+      this.undoPoint--;
+    }
+    if (recPuyo[this.undoPoint][3] === this.MANIPULATE_PUYO_REC_FLAG) {
+      this.undoPoint -= (this.undoPoint > 1) ? 2 : 0;
+    }
+
+    // init board first
+    for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
+      for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
+        board[y][x] = NO_COLOR;
+      }
+    }
+    for (let n = this.undoPoint; n >= 0; n--) {
+      board[recPuyo[n][1]][recPuyo[n][0]] = recPuyo[n][2];
+    }
+  },
+  init: function() {
+    // this.recordedPuyos = [];
+    // this.vanishedPuyos = [];
+    // this.vanishCount = 0;
   },
 }
 
@@ -286,8 +330,10 @@ function draw() {
     // ctx.fillStyle = TETRIMINO_COLORS[color];
     // ctx.fillRect(drawPosX, drawPosY, CELL_SIZE, CELL_SIZE);
 
-    const radiusX = CELL_SIZE * 4 / 9;
-    const radiusY = CELL_SIZE * 3 / 7;
+    const radiusX = CELL_SIZE * 15 / 32;
+    const radiusY = CELL_SIZE * 14 / 32;
+    // const radiusX = CELL_SIZE * 4 / 9;
+    // const radiusY = CELL_SIZE * 3 / 7;
     const elliX = drawPosX + radiusX + CELL_SIZE / 16;
     const elliY = drawPosY + radiusY + CELL_SIZE / 10;
     drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
@@ -359,7 +405,7 @@ function waitPuyoFix() {
 
 // Update the game state
 function update() {
-  if (!gameOver) {
+  if (!gameOver && !gameState.isPaused) {
     if (gameState.isMovingHor || gameState.isRotating) { waitPuyoFix(); }
     else {
       inputHandle();
@@ -387,7 +433,6 @@ function update() {
     }
     // TODO? record previous pos and animate slide between old and new pos
     draw();
-    // drawAfterimage();
   }
   requestAnimationFrame(update);
 }
@@ -445,7 +490,7 @@ function canPuyoMoveDown(rate = 1.0) {
       splittedPuyo.unsplittedY = Math.round(parentY);
       splittedPuyo.unsplittedColor = currentPuyo.parentColor;
       // TODO: you can lock unsplittedpuyo here
-      lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
+      lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
       currentPuyo = null;
 
       return false;
@@ -459,7 +504,7 @@ function canPuyoMoveDown(rate = 1.0) {
       // splittedPuyo.unsplittedY = Math.floor(childY) + 1;
       splittedPuyo.unsplittedY = Math.round(childY);
       splittedPuyo.unsplittedColor = currentPuyo.childColor;
-      lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor);
+      lockPuyo(board, splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, splittedPuyo.unsplittedColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
       currentPuyo = null;
 
       return false;
@@ -471,7 +516,7 @@ function canPuyoMoveDown(rate = 1.0) {
   }
 }
 
-// Lock the current piece in place
+// Lock the current puyo, this is the case splitting not happening
 function lockCurrentPuyo() {
   if (gameState.lockWaitCount < LOCK_WAIT_TIME) {
     gameState.lockWaitCount++;
@@ -484,14 +529,26 @@ function lockCurrentPuyo() {
   const [childX, childY] = getChildPos(currentPuyo);
   // board[currentPuyo.parentY][currentPuyo.parentX] = currentPuyo.parentColor;
   // board[childY][childX] = currentPuyo.childColor;
-  lockPuyo(board, currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor);
-  lockPuyo(board, childX, childY, currentPuyo.childColor);
+  lockPuyo(board, currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
+  lockPuyo(board, childX, childY, currentPuyo.childColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
   return true;
 }
 
-function lockPuyo(board, posX, posY, color) {
+function lockPuyo(board, posX, posY, color, recordFlag) {
   // TODO: remember x, y value here and use for chain process or something
   board[posY][posX] = color;
+
+  recordPuyoSteps.record(posX, posY, color, recordFlag);
+
+  // // record puyo info here
+  // if (color === NO_COLOR) {
+  //   recordPuyoSteps.recordedPuyos = recordPuyoSteps.recordedPuyos.filter(elem => !((elem[0] === posX) && (elem[1] === posY)))
+  //   recordPuyoSteps.vanishedPuyos.push([posX, posY, color]);
+  //   recordPuyoSteps.recordedPuyos.push([-1, recordPuyoSteps.vanishCount]);
+  //   recordPuyoSteps.vanishCount++;
+  // } else {
+  //   recordPuyoSteps.recordedPuyos.push([posX, posY, color]);
+  // }
 }
 
 function handleChain() {
@@ -502,6 +559,7 @@ function handleChain() {
   if (!gameState.chainProcessing) {
     gameState.chainProcessing = true;
     erasePuyos();
+    // TODO: is it possible to call this function not here and not using temp_board?
     findFloatingPuyos();
   }
 
@@ -590,7 +648,9 @@ function erasePuyos() {
       const [x, y] = [...vanishPuyo];
 
       //TODO: consider some effect in vanishing
-      board[y][x] = NO_COLOR;
+      // board[y][x] = NO_COLOR;
+      lockPuyo(board, x, y, NO_COLOR, recordPuyoSteps.VANISH_PUYO_REC_FLAG);
+
       connectDrawing.deleteConnectedPuyo(x, y);
     }
   }
@@ -610,6 +670,7 @@ function findFloatingPuyos() {
     .filter((_, index, ori) => (index === 0 || ori[index - 1][0] !== ori[index][0]));
 
   temp_board = JSON.parse(JSON.stringify(board));
+
   // let puyo above vanished ones falls
   for (const lowestPuyo of lowestPuyos) {
     let [lowestX, lowestY] = [...lowestPuyo];
@@ -623,10 +684,11 @@ function findFloatingPuyos() {
       floatingPuyo.posY = aboveY;
       floatingPuyo.color = board[aboveY][lowestX];
       // delegate drawing to floatingpuyo
-      temp_board[aboveY][lowestX] = NO_COLOR;
-      // lockPuyo(temp_board, lowestX, aboveY, NO_COLOR);
+      // temp_board[aboveY][lowestX] = NO_COLOR;
+      lockPuyo(temp_board, lowestX, aboveY, NO_COLOR, recordPuyoSteps.FLOAT_PUYO_REC_FLAG);
 
       floatingPuyos.push({ ...floatingPuyo });
+
       // TODO: is this the right place? connecting animation is a bit weird
       connectDrawing.deleteConnectedPuyo(floatingPuyo.posX, floatingPuyo.posY);
     }
@@ -641,7 +703,7 @@ function letFloatingPuyosFall() {
       // floatingPuyo.posY = Math.round(nextY);
       floatingPuyo.posY = Math.floor(nextY);
 
-      lockPuyo(board, floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color);
+      lockPuyo(board, floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color, recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG);
 
       // remove fixed puyo from floatingPuyos(array)
       floatingPuyos =
@@ -667,7 +729,7 @@ function handleSplitting() {
 
     // board[splittedPuyo.splittedY][splittedPuyo.splittedX] = splittedPuyo.splittedColor;
     // board[splittedPuyo.unsplittedY][splittedPuyo.unsplittedX] = splittedPuyo.unsplittedColor;
-    lockPuyo(board, splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor);
+    lockPuyo(board, splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
 
     gameState.isBeingSplitted = false;
     splittedPuyo = {};
@@ -998,9 +1060,30 @@ function rotatePuyo(changeAngle) {
 // Start the game
 init();
 
+
+
 function debug_puyoCheck() {
   const [childX, childY] = getChildPos(currentPuyo);
   if (childX <= BOARD_LEFT_EDGE - 1 || childX >= BOARD_BOTTOM_EDGE) {
     console.log("you don't belong here!!!");
   }
 }
+
+addEventListener('keydown', e => {
+  if (e.key === 'D') {
+    console.log('debugdebudguedbuedueg');
+  }
+})
+
+const pauseButton = document.getElementById("pauseButton");
+const undoButton = document.getElementById("undoButton");
+
+pauseButton.addEventListener('click', e => {
+  gameState.isPaused = !gameState.isPaused;
+})
+
+undoButton.addEventListener('click', e => {
+  if (gameState.isPaused || gameOver) {
+    recordPuyoSteps.undo(board);
+  }
+})

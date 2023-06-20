@@ -2,7 +2,7 @@
 - [ ] make smooth animation
   - [x] can move down per a few pixel
   - [ ] can move left/right per one cell but animation is smooth 
-- [x] handle arrow key input well
+- [ ] handle arrow key input well
 - [x] rotate properly
   - need to make it animate while rotating(in teto case, not animating because of applying new piece when rotating)
   - in puyo, animating
@@ -19,6 +19,9 @@
 - [ ] remove conditions to check whether puyo doesn't overlap each edge (these should be unnecessary now thanks to wall surrounding with certain number)
 - [ ] show chain numbers
 - [ ] write test code
+- [ ] consider again the calling position of findfloatingpuyo() and not using temp_board
+- [ ] remember each puyo steps and implement replay
+- [ ] 
 ### in future
 - [ ] migrate to typescript with class-object
 - [ ] manage each process with appropriate state
@@ -83,3 +86,8 @@
 - after each chain vanishing or splitting, key input is initialized and you cannnot keep being down key left pressed, have to re-press again each time
 - want to update connectedpuyos[] only when new one appears
 - drawGlue() doesn't draw any glue!!!
+- for debug, implement replay
+- sometimes connecting glue doesn't disappear for a little time during floating puyo falling-
+- for recording each steps, remember puyos of lockpuyo() and vanishpuyos, and 
+- if you did undo once, you never come back to original board state
+  - only in gameover, you can undo or redo?
