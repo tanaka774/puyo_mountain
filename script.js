@@ -160,6 +160,7 @@ const recordPuyoSteps = {
   undoPoint: 0,
   undo: function(board) {
     const recPuyo = this.recordedPuyos;
+    // TODO: this should be done once after gameover or pause
     this.undoPoint = recPuyo.length - 1;
     while (recPuyo[this.undoPoint][3] !== this.MANIPULATE_PUYO_REC_FLAG) {
       this.undoPoint--;
@@ -183,6 +184,37 @@ const recordPuyoSteps = {
     // this.vanishedPuyos = [];
     // this.vanishCount = 0;
   },
+}
+
+const bounceEffect = {
+  willBounce: false,
+  BOUNCING_TIME: 100,
+  bouncePuyoNum: 3,
+  bouncePuyos: new Set(), // [["x1,y1"], ["x2,y2"], ...]
+  bounceQuantities: 0, // increase by 180 / BOUNCING_TIME
+  start: function(x, y) {
+    this.willBounce = true;
+    for (let n = 0; (n <= this.bouncePuyoNum) && (y + n < BOARD_BOTTOM_EDGE); n++) {
+      this.bouncePuyos.add(`${x},${y + n}`);
+    }
+  },
+  end: function() {
+    this.willBounce = false;
+    this.bounceQuantities = 0;
+    this.bouncePuyos.clear();
+    // TODO: this is shit (dealing with connecting glue not returning)
+    findConnectedPuyos((_) => { /*do nothing*/ });
+  },
+  delete: function(x, y) {
+    [...bounceEffect.bouncePuyos].forEach((elem) => {
+      const posX = parseInt(elem.split(',')[0], 10);
+      const posY = parseInt(elem.split(',')[1], 10);
+      if (x === posX && y === posY) {
+        bounceEffect.bouncePuyos.delete(elem);
+        this.willBounce = false;
+      }
+    })
+  }
 }
 
 // TODO: do smarter
@@ -249,7 +281,8 @@ function beforeNext() {
   doubleNextPuyo = getRandomPuyo();
   gameState.lockWaitCount = 0;
   quickTurn.isPossible = false;
-  // keyInputInit();
+  // TODO: this is for debug
+  keyInputInit();
   // erase puyos more than above BOARD_TOP_EDGE-2
   // TODO: this implementaion is not officially right
   for (let y = 0; y < BOARD_TOP_EDGE - 1; y++) {
@@ -276,6 +309,102 @@ function draw() {
   // draw puyo's connecting
   drawConnecting();
 
+  // draw floating puyos
+  if (gameState.chainProcessing) {
+    if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
+      for (const floatingPuyo of floatingPuyos) {
+        drawPuyo(floatingPuyo.posX, floatingPuyo.posY, TETRIMINO_COLORS[floatingPuyo.color]);
+      }
+    }
+    return; // <- is this necessary?
+  }
+
+  // draw splittedPuyo
+  if (gameState.isBeingSplitted && splittedPuyo) {
+    drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, TETRIMINO_COLORS[splittedPuyo.splittedColor]);
+
+    drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, TETRIMINO_COLORS[splittedPuyo.unsplittedColor]);
+  }
+
+  // draw currentPuyo
+  if (currentPuyo) { // <- is this condition necessary?
+    drawPuyo(currentPuyo.parentX, currentPuyo.parentY, TETRIMINO_COLORS[currentPuyo.parentColor]);
+
+    const [childX, childY] = getChildPos(currentPuyo);
+    drawPuyo(childX, childY, TETRIMINO_COLORS[currentPuyo.childColor]);
+  }
+
+  // draw nextPuyo and doubleNextPuyo on right-side to board
+  if (nextPuyo && doubleNextPuyo) { // <- is this condition necessary?
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.parentColor];
+    // nextPuyoCtx.fillRect((BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.childColor];
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 2 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.parentColor];
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 4 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
+    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
+
+  drawAfterimage();
+
+  function drawPuyo(x, y, color, willStorke = true) {
+    const drawPosX = (x - BOARD_LEFT_EDGE) * CELL_SIZE;
+    const drawPosY = (y - BOARD_TOP_EDGE) * CELL_SIZE;
+
+    const radiusX = CELL_SIZE * 15 / 32;
+    const radiusY = CELL_SIZE * 14 / 32;
+    const elliX = drawPosX + radiusX + CELL_SIZE / 16;
+    const elliY = drawPosY + radiusY + CELL_SIZE / 10;
+    // drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
+    // drawEyes(ctx, elliX, elliY);
+
+    if (bounceEffect.willBounce &&
+      [...bounceEffect.bouncePuyos].some((elem) => {
+        const posX = parseInt(elem.split(',')[0], 10);
+        const posY = parseInt(elem.split(',')[1], 10);
+        return posX === x && posY === y
+      })
+    ) {
+      drawBounce(radiusY, () => { drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke); });
+    } else {
+      drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
+    }
+
+    function drawBounce(radiusY, drawCallback) {
+      // remove connecting first, is using x, y here okay?
+      connectDrawing.deleteConnectedPuyo(x, y);
+
+      // // this is an old way.
+      // const bounceLimit = 4;
+      // const changeRate = Math.sin(bounceEffect.bounceQuantities * Math.PI / 180) / bounceLimit;
+      // const bounceRate = 1 - changeRate;
+      // const yModifier = (BOARD_BOTTOM_EDGE - y) / 10 + 1;
+      // ctx.transform(1, 0, 0, bounceRate, 0, (28) * changeRate * radiusY / yModifier);
+      // drawCallback();
+      // ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      const changeRate = Math.sin(bounceEffect.bounceQuantities * Math.PI / 180) / 5;
+      ctx.save();
+      // TODO: appropriate parameter not behaving differently according to Y
+      ctx.translate(0, elliY + (radiusY / 2) * changeRate);
+      ctx.scale(1, 1 - changeRate);
+      ctx.translate(0, -elliY + radiusY * changeRate);
+      drawCallback();
+      ctx.restore();
+
+      bounceEffect.bounceQuantities = (bounceEffect.bounceQuantities > 180)
+        ? 180
+        : bounceEffect.bounceQuantities + 180 / bounceEffect.BOUNCING_TIME;
+
+      if (bounceEffect.bounceQuantities >= 180) {
+        bounceEffect.end();
+      }
+    }
+  }
+
   function drawConnecting() {
     connectDrawing.connectedPuyos.forEach(elem => {
       const [x, y, color] = elem.split(':')[0].split(',').map(str => Number.parseInt(str, 10));
@@ -298,63 +427,6 @@ function draw() {
       }
     })
   }
-
-  // draw floating puyos
-  if (gameState.chainProcessing) {
-    if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
-      for (const floatingPuyo of floatingPuyos) {
-        drawPuyo(floatingPuyo.posX, floatingPuyo.posY, TETRIMINO_COLORS[floatingPuyo.color]);
-      }
-    }
-    return;
-  }
-
-  // draw splittedPuyo
-  if (gameState.isBeingSplitted && splittedPuyo) {
-    drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, TETRIMINO_COLORS[splittedPuyo.splittedColor]);
-
-    drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, TETRIMINO_COLORS[splittedPuyo.unsplittedColor]);
-  }
-
-  // draw currentPuyo
-  if (currentPuyo) { // <- is this condition necessary?
-    drawPuyo(currentPuyo.parentX, currentPuyo.parentY, TETRIMINO_COLORS[currentPuyo.parentColor]);
-
-    const [childX, childY] = getChildPos(currentPuyo);
-    drawPuyo(childX, childY, TETRIMINO_COLORS[currentPuyo.childColor]);
-  }
-
-  function drawPuyo(x, y, color, willStorke = true) {
-    const drawPosX = (x - BOARD_LEFT_EDGE) * CELL_SIZE;
-    const drawPosY = (y - BOARD_TOP_EDGE) * CELL_SIZE;
-    // ctx.fillStyle = TETRIMINO_COLORS[color];
-    // ctx.fillRect(drawPosX, drawPosY, CELL_SIZE, CELL_SIZE);
-
-    const radiusX = CELL_SIZE * 15 / 32;
-    const radiusY = CELL_SIZE * 14 / 32;
-    // const radiusX = CELL_SIZE * 4 / 9;
-    // const radiusY = CELL_SIZE * 3 / 7;
-    const elliX = drawPosX + radiusX + CELL_SIZE / 16;
-    const elliY = drawPosY + radiusY + CELL_SIZE / 10;
-    drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
-    // drawEyes(ctx, elliX, elliY);
-  }
-
-  // draw nextPuyo and doubleNextPuyo on right-side to board
-  if (nextPuyo && doubleNextPuyo) { // <- is this condition necessary?
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.parentColor];
-    // nextPuyoCtx.fillRect((BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.childColor];
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 2 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.parentColor];
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 4 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-  }
-
-  drawAfterimage();
 
   function drawAfterimage() {
     if (gameState.isRotating) {
@@ -397,6 +469,10 @@ function draw() {
   }
 }
 
+function justLetDraw() {
+  return gameState.isMovingHor || gameState.isRotating || bounceEffect.willBounce;
+}
+
 function waitPuyoFix() {
   // waiting room for posX or angle to reach proper position so that error doesn't happen
   // if (gameState.isMovingHor) movePuyoHor();
@@ -406,7 +482,7 @@ function waitPuyoFix() {
 // Update the game state
 function update() {
   if (!gameOver && !gameState.isPaused) {
-    if (gameState.isMovingHor || gameState.isRotating) { waitPuyoFix(); }
+    if (justLetDraw()) { waitPuyoFix(); }
     else {
       inputHandle();
       if (!gameState.isBeingSplitted &&
@@ -540,20 +616,17 @@ function lockPuyo(board, posX, posY, color, recordFlag) {
 
   recordPuyoSteps.record(posX, posY, color, recordFlag);
 
-  // // record puyo info here
-  // if (color === NO_COLOR) {
-  //   recordPuyoSteps.recordedPuyos = recordPuyoSteps.recordedPuyos.filter(elem => !((elem[0] === posX) && (elem[1] === posY)))
-  //   recordPuyoSteps.vanishedPuyos.push([posX, posY, color]);
-  //   recordPuyoSteps.recordedPuyos.push([-1, recordPuyoSteps.vanishCount]);
-  //   recordPuyoSteps.vanishCount++;
-  // } else {
-  //   recordPuyoSteps.recordedPuyos.push([posX, posY, color]);
-  // }
+  if (color !== NO_COLOR) {
+    bounceEffect.start(posX, posY);
+  } else {
+    // TODO: this dealing is temporary, you should revise these flow
+    bounceEffect.delete(posX, posY);
+  }
 }
 
 function handleChain() {
   if (!gameState.chainProcessing) {
-    findConnectedPuyos();
+    findConnectedPuyos((savePuyos) => vanishPuyos.push(savePuyos));
   }
   if (vanishPuyos.length === 0) { return; }
   if (!gameState.chainProcessing) {
@@ -584,7 +657,7 @@ function handleChain() {
   }
 }
 
-function findConnectedPuyos() {
+function findConnectedPuyos(chainFoundCallback) {
   let connectedPuyoNums = 0;
   const checkedCells = Array.from(
     { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 5 },
@@ -599,7 +672,8 @@ function findConnectedPuyos() {
       const savePuyos = [];
       connectedPuyoNums = checkConnected(x, y, checkedCells, board[y][x], savePuyos);
       if (connectedPuyoNums >= 4) {
-        vanishPuyos.push(savePuyos);
+        // vanishPuyos.push(savePuyos);
+        chainFoundCallback(savePuyos);
       }
     }
   }
@@ -651,6 +725,7 @@ function erasePuyos() {
       // board[y][x] = NO_COLOR;
       lockPuyo(board, x, y, NO_COLOR, recordPuyoSteps.VANISH_PUYO_REC_FLAG);
 
+      // TODO: should do this with callbackl?
       connectDrawing.deleteConnectedPuyo(x, y);
     }
   }

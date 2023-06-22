@@ -91,3 +91,9 @@
 - for recording each steps, remember puyos of lockpuyo() and vanishpuyos, and 
 - if you did undo once, you never come back to original board state
   - only in gameover, you can undo or redo?
+- the reason some of bouncepuyos are left but they aren't on board so they are left forever and stuck in infinite loop when chain happens
+  - their places on board are initialized right after lockpuyo() instead of entering draw loop of limited-time
+  - how can I fix this?
+    - after locking let it entering draw(), and call handlechain() on later frame, for this you should change update() structure about state flow
+  - and I want to bounce before chain puyo is erased
+  should care about gameover?

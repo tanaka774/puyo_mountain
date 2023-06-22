@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="EiSLCvPKQYwdrOFiZbw-" name="Page-1">
-        <mxGraphModel dx="397" dy="484" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="510" dy="616" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -494,12 +494,132 @@
         </mxGraphModel>
     </diagram>
     <diagram id="WfeIcKpP5gtLEjj5vy8I" name="ぷよ譜記録">
-        <mxGraphModel dx="625" dy="476" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="510" dy="616" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="zrupoiRLevFXuB2zjT9L-1" value="lockpuyo()に来たものを記録する&lt;br&gt;0が来た場合は記録から消す&lt;br&gt;消したものは別に保存しておいて、消した" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="zrupoiRLevFXuB2zjT9L-1" value="lockpuyo()にきたものをフラグで判別して一つの配列に保存&lt;br&gt;ポーズ中あるいはゲーム終了時のみにできるようにしないと実装が大変そう" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="111" y="160" width="260" height="100" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="xOZT_YSHxDJmnn3VgYf6" name="各ステートの流れ・旧">
+        <mxGraphModel dx="1732" dy="725" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-1" value="ゲームオーバー" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="1140" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-2" value="ポーズ" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="1080" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-14" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-3" target="j2t0fBMpjSqvD4XHUgws-5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-3" value="未初期化（開始前）" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="300" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-13" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-4" target="j2t0fBMpjSqvD4XHUgws-3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-4" value="メニュー・選択画面" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="200" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-15" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-5" target="j2t0fBMpjSqvD4XHUgws-6">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-5" value="次ぷよの用意&lt;br&gt;（）" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="390" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-16" style="edgeStyle=none;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-6" target="j2t0fBMpjSqvD4XHUgws-8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-21" value="ちぎったら" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="j2t0fBMpjSqvD4XHUgws-16">
+                    <mxGeometry x="0.249" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-17" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-6" target="j2t0fBMpjSqvD4XHUgws-7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-6" value="落下中&lt;br&gt;操作可能" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="490" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-19" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-7" target="j2t0fBMpjSqvD4XHUgws-9">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-29" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-9" target="j2t0fBMpjSqvD4XHUgws-1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="40" y="855"/>
+                            <mxPoint x="40" y="1170"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-30" value="ぷよの発生場所にすでにぷよがあったら&lt;br&gt;（その箇所で連鎖が起きなかったら）" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="j2t0fBMpjSqvD4XHUgws-29">
+                    <mxGeometry x="0.1272" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-7" value="接地" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="700" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-18" style="edgeStyle=none;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-8" target="j2t0fBMpjSqvD4XHUgws-7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-22" value="ちぎり元・先の接地タイミングは別" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="j2t0fBMpjSqvD4XHUgws-18">
+                    <mxGeometry x="-0.1497" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-8" value="ちぎり&lt;br&gt;（ちぎりぷよ落下中）" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="580" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-23" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-9" target="j2t0fBMpjSqvD4XHUgws-10">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-24" value="4つ以上つながってたら" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="j2t0fBMpjSqvD4XHUgws-23">
+                    <mxGeometry x="-0.419" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-28" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-9" target="j2t0fBMpjSqvD4XHUgws-5">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="80" y="840"/>
+                            <mxPoint x="80" y="420"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-9" value="連鎖判定" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="810" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-25" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-10" target="j2t0fBMpjSqvD4XHUgws-11">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-26" value="上部にぷよあったら" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="j2t0fBMpjSqvD4XHUgws-25">
+                    <mxGeometry x="-0.3845" y="2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-10" value="連鎖ぷよ消去" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="910" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-27" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="j2t0fBMpjSqvD4XHUgws-11" target="j2t0fBMpjSqvD4XHUgws-7">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="440" y="1040"/>
+                            <mxPoint x="440" y="730"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-11" value="連鎖ぷよ上のぷよ落下" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="1010" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="j2t0fBMpjSqvD4XHUgws-12" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="1130" width="120" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
