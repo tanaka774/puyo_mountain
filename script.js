@@ -68,10 +68,17 @@ const floatingPuyo = {
   color: -1,
 };
 
-let floatingPuyos = [];
-let vanishPuyos = [];
 // store board status temporarily when vanishing 
 let temp_board = createBoard();
+
+const chainInfo = {
+  floatingPuyos: [],
+  vanishPuyos: [],
+  chainVanishWaitCount: 0,
+  chainCount: 0,
+  virtualChainCount: 0,
+  maxVirtualChainCount: 0,
+}
 
 let splittedPuyo = {
   splittedX: -1,
@@ -87,7 +94,7 @@ const gameState = {
   isPaused: false,
   isBeingSplitted: false,
   chainProcessing: false,
-  chainVanishWaitCount: 0,
+  // chainVanishWaitCount: 0,
   lockWaitCount: 0,
   isLocked: false,
   isInitialized: false,
@@ -188,9 +195,9 @@ const recordPuyoSteps = {
 
 const bounceEffect = {
   willBounce: false,
-  BOUNCING_TIME: 100,
+  BOUNCING_TIME: 10,
   bouncePuyoNum: 3,
-  bouncePuyos: new Set(), // [["x1,y1"], ["x2,y2"], ...]
+  bouncePuyos: new Set(), // ["x1,y1", "x2,y2", ...]
   bounceQuantities: 0, // increase by 180 / BOUNCING_TIME
   start: function(x, y) {
     this.willBounce = true;
@@ -203,7 +210,7 @@ const bounceEffect = {
     this.bounceQuantities = 0;
     this.bouncePuyos.clear();
     // TODO: this is shit (dealing with connecting glue not returning)
-    findConnectedPuyos((_) => { /*do nothing*/ });
+    findConnectedPuyos(board, (_) => { /*do nothing*/ });
   },
   delete: function(x, y) {
     [...bounceEffect.bouncePuyos].forEach((elem) => {
@@ -281,6 +288,7 @@ function beforeNext() {
   doubleNextPuyo = getRandomPuyo();
   gameState.lockWaitCount = 0;
   quickTurn.isPossible = false;
+  chainInfo.chainCount = 0;
   // TODO: this is for debug
   keyInputInit();
   // erase puyos more than above BOARD_TOP_EDGE-2
@@ -290,6 +298,9 @@ function beforeNext() {
       board[y][x] = NO_COLOR;
     }
   }
+
+  // temp
+  detectPossibleChain();
 }
 
 // Draw the game board and current piece
@@ -311,8 +322,8 @@ function draw() {
 
   // draw floating puyos
   if (gameState.chainProcessing) {
-    if (gameState.chainVanishWaitCount >= VANISH_WAIT_TIME) {
-      for (const floatingPuyo of floatingPuyos) {
+    if (chainInfo.chainVanishWaitCount >= VANISH_WAIT_TIME) {
+      for (const floatingPuyo of chainInfo.floatingPuyos) {
         drawPuyo(floatingPuyo.posX, floatingPuyo.posY, TETRIMINO_COLORS[floatingPuyo.color]);
       }
     }
@@ -510,6 +521,9 @@ function update() {
     // TODO? record previous pos and animate slide between old and new pos
     draw();
   }
+
+  // htmlUpdate();
+
   requestAnimationFrame(update);
 }
 
@@ -626,61 +640,67 @@ function lockPuyo(board, posX, posY, color, recordFlag) {
 
 function handleChain() {
   if (!gameState.chainProcessing) {
-    findConnectedPuyos((savePuyos) => vanishPuyos.push(savePuyos));
+    findConnectedPuyos(board, (savePuyos) => {
+      chainInfo.vanishPuyos.push(savePuyos);
+    });
+    if (chainInfo.vanishPuyos.length !== 0) chainInfo.chainCount++;
   }
-  if (vanishPuyos.length === 0) { return; }
+  if (chainInfo.vanishPuyos.length === 0) { return; }
   if (!gameState.chainProcessing) {
     gameState.chainProcessing = true;
-    erasePuyos();
+    erasePuyos(board);
     // TODO: is it possible to call this function not here and not using temp_board?
-    findFloatingPuyos();
+    findFloatingPuyos(board);
   }
 
   // some duration
-  if (gameState.chainVanishWaitCount < VANISH_WAIT_TIME) {
-    gameState.chainVanishWaitCount++;
+  if (chainInfo.chainVanishWaitCount < VANISH_WAIT_TIME) {
+    chainInfo.chainVanishWaitCount++;
     return;
-  } else if (gameState.chainVanishWaitCount === VANISH_WAIT_TIME) {
+  } else if (chainInfo.chainVanishWaitCount === VANISH_WAIT_TIME) {
     board = JSON.parse(JSON.stringify(temp_board));
     temp_board = [];
-    gameState.chainVanishWaitCount++;
+    chainInfo.chainVanishWaitCount++;
     return;
   }
 
-  if (floatingPuyos.length > 0) {
-    letFloatingPuyosFall();
+  if (chainInfo.floatingPuyos.length > 0) {
+    letFloatingPuyosFall(board);
   } else {
     gameState.chainProcessing = false;
-    vanishPuyos = [];
-    gameState.chainVanishWaitCount = 0;
+    chainInfo.vanishPuyos = [];
+    chainInfo.chainVanishWaitCount = 0;
     handleChain();
   }
 }
 
-function findConnectedPuyos(chainFoundCallback) {
+function findConnectedPuyos(board, foundCallback, connectNum = 4, willChangeConnect = true) {
   let connectedPuyoNums = 0;
   const checkedCells = Array.from(
     { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 5 },
     () => Array((BOARD_RIGHT_EDGE - BOARD_LEFT_EDGE) + 2).fill(false));
-  connectDrawing.initConnectedPuyos();
+
+  if (willChangeConnect) connectDrawing.initConnectedPuyos();
+
   // TODO: don't want to check every cell, use currentlockpos from lockpuyo()
   // but, if ghost zone is enable, this way should be proper?
   // or just checking TOP_EDGE line is enough?
+  // now connecting is involved with this function, so this is fine.
   for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
     for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
       if (board[y][x] === NO_COLOR) continue;
       const savePuyos = [];
-      connectedPuyoNums = checkConnected(x, y, checkedCells, board[y][x], savePuyos);
-      if (connectedPuyoNums >= 4) {
-        // vanishPuyos.push(savePuyos);
-        chainFoundCallback(savePuyos);
+      connectedPuyoNums = checkConnected(board, x, y, checkedCells, board[y][x], savePuyos, willChangeConnect);
+      if (connectedPuyoNums >= connectNum) {
+        // chainInfo.vanishPuyos.push(savePuyos);
+        foundCallback(savePuyos);
       }
     }
   }
 }
 
 // check whether there is chain and if so, save those puyos
-function checkConnected(x, y, checkedCells, prevCell, savePuyos) {
+function checkConnected(board, x, y, checkedCells, prevCell, savePuyos, willAddConnect) {
   if (checkedCells[y][x] === true) { return 0; }
 
   let connectedPuyoNums = 0;
@@ -696,28 +716,28 @@ function checkConnected(x, y, checkedCells, prevCell, savePuyos) {
   let prevConnectedPuyoNums = connectedPuyoNums;
 
   // TODO: really? -> if you check board through from left to right and from top to bottom in every case, you don't need to check x-1 and y-1 here
-  connectedPuyoNums += checkConnected(x + 1, y, checkedCells, prevCell, savePuyos);
-  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 1, 0);
+  connectedPuyoNums += checkConnected(board, x + 1, y, checkedCells, prevCell, savePuyos, willAddConnect);
+  if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 1, 0);
   prevConnectedPuyoNums = connectedPuyoNums;
 
-  connectedPuyoNums += checkConnected(x, y + 1, checkedCells, prevCell, savePuyos);
-  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, 1);
+  connectedPuyoNums += checkConnected(board, x, y + 1, checkedCells, prevCell, savePuyos, willAddConnect);
+  if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, 1);
   prevConnectedPuyoNums = connectedPuyoNums;
 
-  connectedPuyoNums += checkConnected(x - 1, y, checkedCells, prevCell, savePuyos);
-  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, -1, 0);
+  connectedPuyoNums += checkConnected(board, x - 1, y, checkedCells, prevCell, savePuyos, willAddConnect);
+  if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, -1, 0);
   prevConnectedPuyoNums = connectedPuyoNums;
 
   // don't check invisible zone
   if (y - 1 >= BOARD_TOP_EDGE)
-    connectedPuyoNums += checkConnected(x, y - 1, checkedCells, prevCell, savePuyos);
-  if (connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, -1);
+    connectedPuyoNums += checkConnected(board, x, y - 1, checkedCells, prevCell, savePuyos, willAddConnect);
+  if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, -1);
 
   return connectedPuyoNums;
 }
 
-function erasePuyos() {
-  for (const temp of vanishPuyos) {
+function erasePuyos(board) {
+  for (const temp of chainInfo.vanishPuyos) {
     for (const vanishPuyo of temp) {
       const [x, y] = [...vanishPuyo];
 
@@ -732,9 +752,10 @@ function erasePuyos() {
 }
 
 // store puyos to fall after chain in order of lower puyo(y is high)
-function findFloatingPuyos() {
+// what happens if ojama puyo exists???
+function findFloatingPuyos(board) {
   const allVanishPuyos = [];
-  for (const temp of vanishPuyos) {
+  for (const temp of chainInfo.vanishPuyos) {
     allVanishPuyos.push(...temp);
   }
 
@@ -762,7 +783,7 @@ function findFloatingPuyos() {
       // temp_board[aboveY][lowestX] = NO_COLOR;
       lockPuyo(temp_board, lowestX, aboveY, NO_COLOR, recordPuyoSteps.FLOAT_PUYO_REC_FLAG);
 
-      floatingPuyos.push({ ...floatingPuyo });
+      chainInfo.floatingPuyos.push({ ...floatingPuyo });
 
       // TODO: is this the right place? connecting animation is a bit weird
       connectDrawing.deleteConnectedPuyo(floatingPuyo.posX, floatingPuyo.posY);
@@ -770,8 +791,8 @@ function findFloatingPuyos() {
   }
 }
 
-function letFloatingPuyosFall() {
-  for (const floatingPuyo of floatingPuyos) {
+function letFloatingPuyosFall(board) {
+  for (const floatingPuyo of chainInfo.floatingPuyos) {
     const nextY = movePuyoDown(floatingPuyo.posY, 8.0);
     if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== NO_COLOR) {
       // be careful
@@ -781,10 +802,82 @@ function letFloatingPuyosFall() {
       lockPuyo(board, floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color, recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG);
 
       // remove fixed puyo from floatingPuyos(array)
-      floatingPuyos =
-        floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
+      chainInfo.floatingPuyos =
+        chainInfo.floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
+
+
     } else {
       floatingPuyo.posY = nextY;
+    }
+  }
+}
+
+function detectPossibleChain() {
+  const threePuyoLumps = [];
+  findConnectedPuyos(board, (savePuyos) => {
+    threePuyoLumps.push(savePuyos);
+  }, 3, false);
+
+  for (const threePuyoLump of threePuyoLumps) {
+    const isExposed = threePuyoLump.some((puyo) => {
+      // TODO: add pattern puyo is surrounded by three each separated puyo
+      const diffs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+      return diffs.some((diff) => board[puyo[1] + diff[1]][puyo[0] + diff[0]] === 0)
+    })
+    if (!isExposed) continue;
+
+    const firstVanish = [threePuyoLump]; // turn into a form of vanishpuyos(double array)
+    const virtualBoard = JSON.parse(JSON.stringify(board));
+    letPuyosFallVirtually(virtualBoard, firstVanish);
+
+    chainInfo.virtualChainCount = 1;
+    chainInfo.virtualChainCount += triggerChainVirtually(virtualBoard);
+    chainInfo.maxVirtualChainCount = Math.max(chainInfo.maxVirtualChainCount, chainInfo.virtualChainCount);
+  }
+
+  function triggerChainVirtually(virtualBoard) {
+    const vanishPuyos = [];
+    let chainCount = 0;
+    findConnectedPuyos(virtualBoard, (savePuyos) => {
+      vanishPuyos.push(savePuyos);
+    }, 4, false);
+
+    if (vanishPuyos.length === 0) return chainCount;
+    else chainCount++;
+
+    letPuyosFallVirtually(virtualBoard, vanishPuyos);
+
+    chainCount += triggerChainVirtually(virtualBoard);
+    return chainCount;
+  }
+
+  function letPuyosFallVirtually(board, vanishPuyos) {
+    const allVanishPuyos = [];
+    for (const temp of vanishPuyos) {
+      allVanishPuyos.push(...temp);
+      for (const vanishPuyo of temp) {
+        const [x, y] = [...vanishPuyo];
+        board[y][x] = 0;
+      }
+    }
+
+    // extract only lowest ones
+    const lowestPuyos = allVanishPuyos
+      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => a[0] - b[0])
+      .filter((_, index, ori) => (index === 0 || ori[index - 1][0] !== ori[index][0]));
+
+    for (const lowestPuyo of lowestPuyos) {
+      let [lowestX, lowestY] = [...lowestPuyo];
+      for (let aboveY = lowestY - 1; aboveY >= BOARD_TOP_EDGE - 1; aboveY--) {
+        if (board[aboveY][lowestX] === 0) continue;
+        for (let dy = 1; dy <= lowestY - aboveY; dy++) {
+          if (board[aboveY + dy][lowestX] === 0) {
+            board[aboveY + dy][lowestX] = board[aboveY + dy - 1][lowestX];
+            board[aboveY + dy - 1][lowestX] = 0;
+          }
+        }
+      }
     }
   }
 }
@@ -1137,18 +1230,18 @@ init();
 
 
 
-function debug_puyoCheck() {
-  const [childX, childY] = getChildPos(currentPuyo);
-  if (childX <= BOARD_LEFT_EDGE - 1 || childX >= BOARD_BOTTOM_EDGE) {
-    console.log("you don't belong here!!!");
-  }
-}
-
 addEventListener('keydown', e => {
   if (e.key === 'D') {
     console.log('debugdebudguedbuedueg');
   }
 })
+
+function htmlUpdate() {
+  const chainNumShow = document.getElementById("chainCount");
+  chainNumShow.textContent = `${chainInfo.chainCount} 連鎖    最大${chainInfo.maxVirtualChainCount}連鎖可能`
+}
+
+setInterval(1000, htmlUpdate);
 
 const pauseButton = document.getElementById("pauseButton");
 const undoButton = document.getElementById("undoButton");

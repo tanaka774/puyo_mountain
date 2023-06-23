@@ -13,7 +13,7 @@
 - [x] 幽霊（13段目）
 - [x] remove try-catch after debug
 - [x] duration before lockpuyo()
-- [ ] attach each connecting puyo
+- [x] attach each connecting puyo
 - [ ] chain vanish effect
 - [ ] bouncing effect after puyo falling (till three puyos below?)
 - [ ] remove conditions to check whether puyo doesn't overlap each edge (these should be unnecessary now thanks to wall surrounding with certain number)
@@ -27,6 +27,11 @@
 - [ ] manage each process with appropriate state
 - [ ] store chain info
 - [ ] write document
+- [ ] detect possible chain
+  - if you are able to make specific numbers of chain, detect it and inform user of that (by let puyo glowing?) 
+- [ ] save all state including board or currentpuyo
+- [ ] consider well ojamapuyo
+- [ ] try out svg or jpeg(png) for drawing
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
@@ -97,3 +102,8 @@
     - after locking let it entering draw(), and call handlechain() on later frame, for this you should change update() structure about state flow
   - and I want to bounce before chain puyo is erased
   should care about gameover?
+- makes bouncing work properly
+- want common function to manage time(frame)
+- in case ojama puyo exists, modify lowest puyos?
+- right after chain process ends, connecting disappears
+- during bounce effect connecting disappears temporarily
