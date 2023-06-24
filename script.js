@@ -60,7 +60,7 @@ const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 120;
 const HOR_MOVING_TIME = 3;
-const ROTATING_TIME = 2;
+const ROTATING_TIME = 3;
 
 const floatingPuyo = {
   posX: -1,
@@ -78,6 +78,7 @@ const chainInfo = {
   chainCount: 0,
   virtualChainCount: 0,
   maxVirtualChainCount: 0,
+  maxTriggerPuyos: [],
 }
 
 let splittedPuyo = {
@@ -327,7 +328,7 @@ function draw() {
         drawPuyo(floatingPuyo.posX, floatingPuyo.posY, TETRIMINO_COLORS[floatingPuyo.color]);
       }
     }
-    return; // <- is this necessary?
+    // return; // <- is this necessary?
   }
 
   // draw splittedPuyo
@@ -441,12 +442,13 @@ function draw() {
 
   function drawAfterimage() {
     if (gameState.isRotating) {
-      const devideNum = 5;
+      const devideNum = 3;
       for (let n = 1; n < devideNum; n++) {
-        const angle = rotateDrawing.changeAngle * n / devideNum + rotateDrawing.prevAngle;
+        const angle = rotateDrawing.changeAngle * (3 / 5 + 2 / 5 * n / devideNum) + rotateDrawing.prevAngle;
         const rotatingX = currentPuyo.parentX + Math.cos((angle * (-1) + 270) * Math.PI / 180);
         const rotatingY = currentPuyo.parentY - Math.sin((angle * (-1) + 270) * Math.PI / 180);
-        drawPuyo(rotatingX, rotatingY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], 0.2), false);
+        const alpha = 0.2 + 0.2 * n / devideNum;
+        drawPuyo(rotatingX, rotatingY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
       }
 
       rotateDrawing.drawCount--;
@@ -457,19 +459,18 @@ function draw() {
     }
     // draw puyo moving horizontally
     if (gameState.isMovingHor) {
-      // drawPuyo(movingHorState.drawingX, currentPuyo.parentY, currentPuyo.parentColor);
-
       // TODO: if you do this, it needs more frames
       const diffX = movingHorDrawing.targetX - movingHorDrawing.drawingX;
-      const alpha = 0.2;
-      // only draw circle with color not stroke or eye
-      drawPuyo(currentPuyo.parentX - (diffX / 3), currentPuyo.parentY, addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha), false);
-      drawPuyo(currentPuyo.parentX - (diffX * 2 / 3), currentPuyo.parentY, addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha), false);
-
       const [childX, childY] = getChildPos(currentPuyo);
-
-      drawPuyo(childX - (diffX / 3), childY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
-      drawPuyo(childX - (diffX * 2 / 3), childY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
+      // only draw circle with color not stroke or eye
+      const devideNum = 3;
+      for (let n = 1; n < devideNum; n++) {
+        const alpha = 0.2 + 0.1 * n / devideNum;
+        if (!(diffX < 0 && currentPuyo.angle === 270))
+          drawPuyo(currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), currentPuyo.parentY, addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha), false);
+        if (!(diffX > 0 && currentPuyo.angle === 90))
+          drawPuyo(childX - (diffX * (2 / 5 * n / devideNum)), childY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
+      }
 
       movingHorDrawing.drawCount--;
       if (movingHorDrawing.drawCount <= 0) {
@@ -477,6 +478,20 @@ function draw() {
         movingHorDrawing.drawCount = HOR_MOVING_TIME;
       }
     }
+  }
+
+  drawTriggerPuyos();
+
+  function drawTriggerPuyos() {
+    if (chainInfo.maxVirtualChainCount < 2) return;
+    chainInfo.maxTriggerPuyos.forEach((elem) => {
+      const drawPosX = (elem[0] - BOARD_LEFT_EDGE) * CELL_SIZE;
+      const drawPosY = (elem[1] - BOARD_TOP_EDGE) * CELL_SIZE;
+
+      ctx.strokeStyle = "gray";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(drawPosX, drawPosY, CELL_SIZE, CELL_SIZE);
+    })
   }
 }
 
@@ -522,7 +537,7 @@ function update() {
     draw();
   }
 
-  // htmlUpdate();
+  htmlUpdate();
 
   requestAnimationFrame(update);
 }
@@ -621,6 +636,9 @@ function lockCurrentPuyo() {
   // board[childY][childX] = currentPuyo.childColor;
   lockPuyo(board, currentPuyo.parentX, currentPuyo.parentY, currentPuyo.parentColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
   lockPuyo(board, childX, childY, currentPuyo.childColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
+
+  currentPuyo = null;
+
   return true;
 }
 
@@ -793,7 +811,7 @@ function findFloatingPuyos(board) {
 
 function letFloatingPuyosFall(board) {
   for (const floatingPuyo of chainInfo.floatingPuyos) {
-    const nextY = movePuyoDown(floatingPuyo.posY, 8.0);
+    const nextY = movePuyoDown(floatingPuyo.posY, 12.0);
     if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== NO_COLOR) {
       // be careful
       // floatingPuyo.posY = Math.round(nextY);
@@ -804,8 +822,6 @@ function letFloatingPuyosFall(board) {
       // remove fixed puyo from floatingPuyos(array)
       chainInfo.floatingPuyos =
         chainInfo.floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
-
-
     } else {
       floatingPuyo.posY = nextY;
     }
@@ -813,26 +829,63 @@ function letFloatingPuyosFall(board) {
 }
 
 function detectPossibleChain() {
-  const threePuyoLumps = [];
+  // init maxcount first
+  chainInfo.maxVirtualChainCount = 0;
+  const triggerPuyosGroups = [];
   findConnectedPuyos(board, (savePuyos) => {
-    threePuyoLumps.push(savePuyos);
-  }, 3, false);
-
-  for (const threePuyoLump of threePuyoLumps) {
-    const isExposed = threePuyoLump.some((puyo) => {
-      // TODO: add pattern puyo is surrounded by three each separated puyo
+    const isExposed = savePuyos.some((puyo) => {
       const diffs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
       return diffs.some((diff) => board[puyo[1] + diff[1]][puyo[0] + diff[0]] === 0)
     })
-    if (!isExposed) continue;
+    if (isExposed) triggerPuyosGroups.push(savePuyos);
+  }, 3, false);
 
-    const firstVanish = [threePuyoLump]; // turn into a form of vanishpuyos(double array)
+  searchBucketShape(board, triggerPuyosGroups);
+
+  // for (const threePuyoLump of threePuyoLumps) {
+  for (const triggerPuyos of triggerPuyosGroups) {
+    const firstVanish = [triggerPuyos]; // turn into a form of vanishpuyos(double array)
     const virtualBoard = JSON.parse(JSON.stringify(board));
     letPuyosFallVirtually(virtualBoard, firstVanish);
 
     chainInfo.virtualChainCount = 1;
     chainInfo.virtualChainCount += triggerChainVirtually(virtualBoard);
-    chainInfo.maxVirtualChainCount = Math.max(chainInfo.maxVirtualChainCount, chainInfo.virtualChainCount);
+    // chainInfo.maxVirtualChainCount = Math.max(chainInfo.maxVirtualChainCount, chainInfo.virtualChainCount);
+    // TODO: save puyos which can trigger max chain
+    if (chainInfo.maxVirtualChainCount < chainInfo.virtualChainCount) {
+      chainInfo.maxVirtualChainCount = chainInfo.virtualChainCount;
+      chainInfo.maxTriggerPuyos = JSON.parse(JSON.stringify(triggerPuyos));
+    }
+  }
+
+  function searchBucketShape(board, triggerPuyos) {
+    // search puyos which can trigger chain not in threesome
+    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
+      for (let y = BOARD_BOTTOM_EDGE - 1; y > BOARD_TOP_EDGE; y--) {
+        if (board[y][x] !== 0 && board[y - 1][x] === 0) {
+          if (board[y - 1][x - 1] === board[y][x] && board[y][x] === board[y - 1][x + 1]) {
+            triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y - 1]]);
+          }
+          else if (board[y - 1][x - 1] === board[y][x]) {
+            if (board[y][x] === board[y][x + 1])
+              triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
+            if (x > BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
+              triggerPuyos.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
+            if (y < BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
+              triggerPuyos.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
+          }
+          else if (board[y - 1][x + 1] === board[y][x]) {
+            if (board[y][x] === board[y][x - 1])
+              triggerPuyos.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
+            if (x < BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
+              triggerPuyos.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
+            if (y < BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
+              triggerPuyos.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
+          }
+          break;
+        }
+      }
+    }
   }
 
   function triggerChainVirtually(virtualBoard) {
@@ -887,7 +940,7 @@ function handleSplitting() {
   // TODO: dont be stupid
   const splittedX = splittedPuyo.splittedX;
   const splittedY = splittedPuyo.splittedY;
-  const nextY = movePuyoDown(splittedY, 8.0);
+  const nextY = movePuyoDown(splittedY, 12.0);
 
   // need to verify this condition
   if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][splittedX] !== NO_COLOR) {
@@ -1241,13 +1294,14 @@ function htmlUpdate() {
   chainNumShow.textContent = `${chainInfo.chainCount} 連鎖    最大${chainInfo.maxVirtualChainCount}連鎖可能`
 }
 
-setInterval(1000, htmlUpdate);
-
 const pauseButton = document.getElementById("pauseButton");
 const undoButton = document.getElementById("undoButton");
 
 pauseButton.addEventListener('click', e => {
   gameState.isPaused = !gameState.isPaused;
+})
+document.addEventListener('keydown', e => {
+  if (e.key === 'P') gameState.isPaused = !gameState.isPaused;
 })
 
 undoButton.addEventListener('click', e => {
