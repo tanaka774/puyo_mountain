@@ -32,6 +32,7 @@
 - [ ] save all state including board or currentpuyo
 - [ ] consider well ojamapuyo
 - [ ] try out svg or jpeg(png) for drawing
+- [ ] AI
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
@@ -107,3 +108,5 @@
 - in case ojama puyo exists, modify lowest puyos?
 - right after chain process ends, connecting disappears
 - during bounce effect connecting disappears temporarily
+- review all parameters again, definitely!!!
+- floating puyos disappears in an instant
