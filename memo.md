@@ -33,6 +33,8 @@
 - [ ] consider well ojamapuyo
 - [ ] try out svg or jpeg(png) for drawing
 - [ ] AI
+- [ ] coop with which they try to achieve specific number of chains. and share their board or connect the edges of theirs?
+- [ ] how to let users play online coop
 
 ## doubtful things
 - after lockPuyo() sometimes puyo color turns into 0(invisible)
@@ -110,3 +112,5 @@
 - during bounce effect connecting disappears temporarily
 - review all parameters again, definitely!!!
 - floating puyos disappears in an instant
+- solve lockwaitcount's ugliness
+- too fast stuck into only-quickturn

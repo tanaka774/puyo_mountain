@@ -3,16 +3,26 @@
 
 <head>
   <title>Tetris</title>
-  <link rel="stylesheet" type="text/css" href="./style.css">
+  <link rel="stylesheet" type="text/css" href="./styles.css">
 </head>
 
 <body>
+  <script type="module" src="script.js"></script>
+
   <div class="canvas-container">
     <canvas id="tetrisCanvas" width="120" height="240"></canvas>
     <canvas id="nextPuyoCanvas" width="40" height="240"></canvas>
   </div>
-  <script type="module" src="script.js"></script>
-    <p id="chainCount"></p>
+
+  <div class="menu-container" id="menu">
+    <h3>メニュー</h3>
+    <button id="gamemode1">ただのシミュレータ</button>
+    <button id="gamemode2">開発予定</button>
+    <button id="quit">Quit Game</button>
+  </div>
+
+  <p id="chainCount"></p>
+
   <button type="button" id="pauseButton">ポーズ</button>
   <button type="button" id="undoButton">戻す</button>
   <button type="button" id="redoButton">進める</button>
