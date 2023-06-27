@@ -1,9 +1,9 @@
-"use strict";
-
-import throttle from "./util/throttle.js";
-import keyPressedTwice from "./util/keyPressedTwice.js";
+import {throttle, keyPressedTwice} from "./util.js";
 import { drawEllipse, drawEyes, addAlpha, drawGlueToDown, drawGlueToRight } from "./draw.js";
 import Menu from "./menu.js"
+
+import conso from "./test.ts";
+conso();
 
 const gameState = {
   OPENING: 'OPENING',
@@ -534,7 +534,7 @@ function gameLoop() {
       break;
     case gameState.UNINIT:
       // execute init()
-      init(() => setState(gameState.PREPARE_NEXT))
+      init(() => setState(gameState.PREPARE_NEXT));
       break;
     case gameState.PREPARE_NEXT:
       // prepare next puyo and init some on board
@@ -625,6 +625,7 @@ function gameLoop() {
       // after this, go back to origianl state
       break;
   }
+
   // TODO: want to modify...
   if (!(currentState === gameState.OPENING ||
     currentState === gameState.MENU ||

@@ -1,4 +1,4 @@
-export default function keyPressedTwice(keyType, callbackInLimit, callbackAlways = null, limit) {
+export function keyPressedTwice(keyType, callbackInLimit, callbackAlways = null, limit) {
   let keyPressed = false;
   let firstKeyPressTime = 0;
   return function(e) {
@@ -16,6 +16,18 @@ export default function keyPressedTwice(keyType, callbackInLimit, callbackAlways
       callbackAlways();
     }
   }
+}
+
+
+export function throttle(callback, delay) {
+  let lastExecution = 0;
+  return function(event = null) {
+    const now = Date.now();
+    if (now - lastExecution >= delay) {
+      callback();
+      lastExecution = now;
+    }
+  };
 }
 
 
