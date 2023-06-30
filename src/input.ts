@@ -5,6 +5,7 @@ import { Move } from "./move.ts"
 import { Game } from "./game.ts"
 import { Current } from "./current.ts"
 import { Board } from "./board"
+import { Rotate } from "./rotate"
 
 
 export class Input {
@@ -13,14 +14,13 @@ export class Input {
   private isLeftKeyPressed = false;
   private isDownKeyPressed = false;
 
-  // private throttleHandler = this.throttleInitializer();
   private throttleHandler;
 
   constructor(
-    // private _game: Game,
     private _board: Board,
     private _current: Current,
     private _move: Move,
+    private _rotate: Rotate,
   ) {
     // TODO: be careful enough for these eventlistener
     document.addEventListener('keydown', e => {
@@ -29,8 +29,8 @@ export class Input {
         if (e.key === 'ArrowLeft') { this.isLeftKeyPressed = true; }
         if (e.key === 'ArrowRight') { this.isRightKeyPressed = true; }
         if (e.key === 'ArrowDown') { this.isDownKeyPressed = true; }
-        if (e.key === 'z') { this._move.rotatePuyo(-90); }
-        if (e.key === 'x') { this._move.rotatePuyo(90); }
+        if (e.key === 'z') { this._rotate.rotatePuyo(this._board, -90); }
+        if (e.key === 'x') { this._rotate.rotatePuyo(this._board, 90); }
       } else {
         this.keyInputInit();
       }
@@ -38,22 +38,22 @@ export class Input {
 
     // for quickturn
     document.addEventListener('keydown', keyPressedTwice('x', () => {
-      if (this._move.quickTurn.isPossible && this._current.currentPuyo) {
-        this._move.quickTurn.willExecute = true;
+      if (this._rotate.quickTurn.isPossible && this._current.currentPuyo) {
+        this._rotate.quickTurn.willExecute = true;
         // quickTurn.turnCW();
-        this._move.rotatePuyo(90);
-        this._move.rotatePuyo(90);
+        this._rotate.rotatePuyo(this._board, 90);
+        this._rotate.rotatePuyo(this._board, 90);
       }
-    }, () => { this._move.quickTurn.willExecute = false; }, 1000));
+    }, () => { this._rotate.quickTurn.willExecute = false; }, 1000));
 
     document.addEventListener('keydown', keyPressedTwice('z', () => {
-      if (this._move.quickTurn.isPossible && this._current.currentPuyo) {
-        this._move.quickTurn.willExecute = true;
+      if (this._rotate.quickTurn.isPossible && this._current.currentPuyo) {
+        this._rotate.quickTurn.willExecute = true;
         // quickTurn.turnACW();
-        this._move.rotatePuyo(-90);
-        this._move.rotatePuyo(-90);
+        this._rotate.rotatePuyo(this._board, -90);
+        this._rotate.rotatePuyo(this._board, -90);
       }
-    }, () => { this._move.quickTurn.willExecute = false; }, 1000));
+    }, () => { this._rotate.quickTurn.willExecute = false; }, 1000));
 
     document.addEventListener('keyup', e => {
       // if (canTakeInput()) {
@@ -111,11 +111,11 @@ export class Input {
       let keyMoveDownRate = 15.0; // TODO: thro into config
       // I'm afraid of more than 0.5, which could get this world upside down
       if (keyMoveDownRate * gameConfig.moveYDiff >= 0.5) keyMoveDownRate = 0.5 / gameConfig.moveYDiff;
-      if (this._move.canPuyoMoveDown(keyMoveDownRate)) {
+      if (this._move.canPuyoMoveDown(this._board, keyMoveDownRate)) {
         this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, keyMoveDownRate);
-      } else if (this._current.currentPuyo && this._move.canPuyoMoveDown(keyMoveDownRate / 2)) {
+      } else if (this._current.currentPuyo && this._move.canPuyoMoveDown(this._board, keyMoveDownRate / 2)) {
         this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, keyMoveDownRate / 2);
-      } else if (this._current.currentPuyo && this._move.canPuyoMoveDown(keyMoveDownRate / 4)) {
+      } else if (this._current.currentPuyo && this._move.canPuyoMoveDown(this._board, keyMoveDownRate / 4)) {
         this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, keyMoveDownRate / 4);
       } else {
         // get puyo being able to lock immediately
@@ -129,13 +129,13 @@ export class Input {
     if (!this.canTakeInput()) return;
 
     if (this.isRightKeyPressed) {
-      if (this._move.canPuyoMoveRight(this._current.currentPuyo)) {
+      if (this._move.canPuyoMoveRight(this._board, this._current.currentPuyo)) {
         this._current.currentPuyo.parentX = this._move.movePuyoHor_ori(this._current.currentPuyo.parentX, 1.0);
         // this._current.currentPuyo.parentX = moveHorStart(this._current.currentPuyo.parentX, 1.0);
       }
     }
     if (this.isLeftKeyPressed) {
-      if (this._move.canPuyoMoveLeft(this._current.currentPuyo)) {
+      if (this._move.canPuyoMoveLeft(this._board, this._current.currentPuyo)) {
         this._current.currentPuyo.parentX = this._move.movePuyoHor_ori(this._current.currentPuyo.parentX, -1.0);
         // this._current.currentPuyo.parentX = moveHorStart(this._current.currentPuyo.parentX, -1.0);
       }
@@ -147,5 +147,4 @@ export class Input {
     this.isRightKeyPressed = false;
     this.isLeftKeyPressed = false;
   }
-
 }

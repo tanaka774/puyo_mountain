@@ -160,29 +160,7 @@ export class Chain {
     }
   }
 
-  letFloatingPuyosFall(
-    board: number[][],
-    // movePuyoDown: (y: number, speed: number) => number,
-  ) {
-    for (const floatingPuyo of this._floatingPuyos) {
-      // const nextY = this.moveFloatingPuyoDown(floatingPuyo.posY, 12.0);
-      const nextY = this.moveFloatingPuyoDown(floatingPuyo.posY, 12.0);
-      if (nextY >= gameConfig.BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== gameConfig.NO_COLOR) {
-        // be careful
-        // floatingPuyo.posY = Math.round(nextY);
-        floatingPuyo.posY = Math.floor(nextY);
-
-        this._board.lockPuyo(board, floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color, recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG);
-
-        // remove fixed puyo from _floatingPuyos(array)
-        this._floatingPuyos =
-          this._floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
-      } else {
-        floatingPuyo.posY = nextY;
-      }
-    }
-  }
-
+  //
   // TODO: this is incomplete
   detectPossibleChain(board) {
     // init maxcount first
@@ -264,9 +242,9 @@ export class Chain {
     return _chainCount;
   }
 
-  letPuyosFallVirtually(board, _vanishPuyos) {
+  letPuyosFallVirtually(board, vanishPuyos) {
     const allVanishPuyos = [];
-    for (const temp of _vanishPuyos) {
+    for (const temp of vanishPuyos) {
       allVanishPuyos.push(...temp);
       for (const vanishPuyo of temp) {
         const [x, y] = [...vanishPuyo];
@@ -294,9 +272,38 @@ export class Chain {
     }
   }
 
-  moveFloatingPuyoDown(parentY, rate) {
-    return parentY + gameConfig.moveYDiff * rate;
-  }
+  // // unused
+  // letFloatingPuyosFall(
+  //   board: number[][],
+  //   // movePuyoDown: (y: number, speed: number) => number,
+  // ) {
+  //   for (const floatingPuyo of this._floatingPuyos) {
+  //     // const nextY = this.moveFloatingPuyoDown(floatingPuyo.posY, 12.0);
+  //     const nextY = this.moveFloatingPuyoDown(floatingPuyo.posY, 12.0);
+  //     if (nextY >= gameConfig.BOARD_BOTTOM_EDGE - 1 ||
+  //       board[Math.floor(nextY) + 1][floatingPuyo.posX] !== gameConfig.NO_COLOR
+  //     ) {
+  //       // be careful
+  //       // floatingPuyo.posY = Math.round(nextY);
+  //       floatingPuyo.posY = Math.floor(nextY);
+  //
+  //       this._board.lockPuyo(board,
+  //         floatingPuyo.posX, floatingPuyo.posY, floatingPuyo.color,
+  //         recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG);
+  //
+  //       // remove fixed puyo from _floatingPuyos(array)
+  //       this._floatingPuyos =
+  //         this._floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
+  //     } else {
+  //       floatingPuyo.posY = nextY;
+  //     }
+  //   }
+  // }
+
+  // moveFloatingPuyoDown(parentY, rate) {
+  //   // TODO: should be less than 1
+  //   return parentY + gameConfig.moveYDiff * rate;
+  // }
 
   get connectedPuyos() { return this._connectedPuyos; }
 
@@ -336,11 +343,9 @@ export class Chain {
   initVanishPuyos() { this._vanishPuyos = []; }
 
   get floatingPuyos() { return this._floatingPuyos; }
+  set floatingPuyos(puyos: baseSinglePuyo[]) { this._floatingPuyos = puyos; }
 
   get maxVirtualChainCount() { return this._maxVirtualChainCount; }
   get maxTriggerPuyos() { return this._maxTriggerPuyos; }
 
-  // setCallback(lockPuyo: (board, x, y, color, recordFlag) => void) {
-  //   this._lockPuyo = lockPuyo;
-  // }
 }

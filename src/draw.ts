@@ -1,12 +1,12 @@
 import { gameConfig } from "./config.ts"
 import { gameState } from "./state.ts"
-import { Game } from "./game.ts"
 import { Split } from "./split.ts"
 import { Move } from "./move.ts"
 import { Chain } from "./chain.ts"
 import { Board } from "./board.ts"
 import { Current } from "./current.ts"
 import { Bounce } from "./bounce.ts"
+import { Rotate } from "./rotate"
 
 
 export class DrawWithCanvas {
@@ -24,11 +24,11 @@ export class DrawWithCanvas {
   private nextPuyoCtx: CanvasRenderingContext2D;
 
   constructor(
-    // private _game: Game,
     private _bounce: Bounce,
     private _board: Board,
     private _current: Current,
     private _move: Move,
+    private _rotate: Rotate,
     private _split: Split,
     private _chain: Chain,
     mainCanvasName: string,
@@ -51,18 +51,11 @@ export class DrawWithCanvas {
       }
     }
 
-    // this.draw puyo's connecting
     this.drawConnecting();
 
-    // this.draw floating puyos
-    // TODO: modify this condition (or remove)
-    // if (currentState === gameState.FALLING_ABOVE_CHAIN) {
-    //   if (chainInfo.chainVanishWaitCount >= gameConfig.VANISH_WAIT_TIME) {
     for (const floatingPuyo of this._chain.floatingPuyos) {
       this.drawPuyo(floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
     }
-    //   }
-    // }
 
     // this.draw splittedPuyo
     // TODO: modify this condition (or remove)
@@ -182,20 +175,20 @@ export class DrawWithCanvas {
     // after other state than MANIP like SPLIT, it enters this in certain condition
     if (!this._current.currentPuyo) return;
 
-    if (this._move.rotateDrawing.isRotating) {
+    if (this._rotate.rotateDrawing.isRotating) {
       const devideNum = 3;
       for (let n = 1; n < devideNum; n++) {
-        const angle = this._move.rotateDrawing.changeAngle * (3 / 5 + 2 / 5 * n / devideNum) + this._move.rotateDrawing.prevAngle;
+        const angle = this._rotate.rotateDrawing.changeAngle * (3 / 5 + 2 / 5 * n / devideNum) + this._rotate.rotateDrawing.prevAngle;
         const rotatingX = this._current.currentPuyo.parentX + Math.cos((angle * (-1) + 270) * Math.PI / 180);
         const rotatingY = this._current.currentPuyo.parentY - Math.sin((angle * (-1) + 270) * Math.PI / 180);
         const alpha = 0.2 + 0.2 * n / devideNum;
         this.drawPuyo(rotatingX, rotatingY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
-      this._move.rotateDrawing.drawCount--;
-      if (this._move.rotateDrawing.drawCount <= 0) {
-        this._move.rotateDrawing.isRotating = false;
-        this._move.rotateDrawing.drawCount = gameConfig.ROTATING_TIME;
+      this._rotate.rotateDrawing.drawCount--;
+      if (this._rotate.rotateDrawing.drawCount <= 0) {
+        this._rotate.rotateDrawing.isRotating = false;
+        this._rotate.rotateDrawing.drawCount = gameConfig.ROTATING_TIME;
       }
     }
     // this.draw puyo moving horizontally
