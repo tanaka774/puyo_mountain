@@ -1,4 +1,4 @@
-export default class Menu {
+export class Menu {
   constructor() {
     this.buttons = document.querySelectorAll('.menu-container button');
     this.selectedIndex = 0;

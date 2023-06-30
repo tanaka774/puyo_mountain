@@ -1,6 +1,7 @@
-import {throttle, keyPressedTwice} from "./util.js";
+import { throttle, keyPressedTwice } from "./util.js";
 import { drawEllipse, drawEyes, addAlpha, drawGlueToDown, drawGlueToRight } from "./draw.js";
 import Menu from "./menu.js"
+import { gameConfig } from "./config.ts"
 
 import conso from "./test.ts";
 conso();
@@ -29,47 +30,19 @@ function setState(state) {
   }
 }
 
-// Constants
 const canvas = document.getElementById('tetrisCanvas');
 const ctx = canvas.getContext('2d');
-const CELL_SIZE = 20;
-// what is used as index are 
-// x:BOARD_LEFT_EDGE ~ BOARD_RIGHT_EDGE - 1
-// y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
-const BOARD_LEFT_EDGE = 1;
-const BOARD_RIGHT_EDGE = BOARD_LEFT_EDGE + canvas.width / CELL_SIZE;// - 1;
-const BOARD_TOP_EDGE = 4;
-const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + canvas.height / CELL_SIZE;// - 1;
-const NO_COLOR = 0;
-const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1;
-const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
-const TETRIMINO_COLORS = [
-  null,
-  'rgba(255, 13, 114, 1)', // '#FF0D72' -> 
-  'rgba(13, 194, 255, 1)', // '#0DC2FF' -> 
-  'rgba(13, 255, 114, 1)', // '#0DFF72' -> 
-  'rgba(245, 56, 255, 1)', // '#F538FF' -> 
-  'rgba(255, 142, 13, 1)', // '#FF8E0D' -> 
-  'rgba(255, 225, 56, 1)', // '#FFE138' -> 
-  'rgba(56, 119, 255, 1)', // '#3877FF' -> 
-];
-
 let board = [];
 let currentPuyo = null;
 let nextPuyo = null;
 let doubleNextPuyo = null;
 const nextPuyoCanvas = document.getElementById('nextPuyoCanvas');
 const nextPuyoCtx = nextPuyoCanvas.getContext('2d');
-const moveYDiff = 0.015;
-const VANISH_WAIT_TIME = 30;
-const LOCK_WAIT_TIME = 120;
-const HOR_MOVING_TIME = 3;
-const ROTATING_TIME = 3;
 
 
 const basePuyo = {
-  parentX: PUYO_BIRTH_POSX,
-  parentY: PUYO_BIRTH_POSY,
+  parentX: gameConfig.PUYO_BIRTH_POSX,
+  parentY: gameConfig.PUYO_BIRTH_POSY,
   parentColor: 1,
   childColor: 2,
   angle: 0,
@@ -146,11 +119,11 @@ const quickTurn = {
 const connectDrawing = {
   connectedPuyos: new Set(),
   addConnectedPuyos: function(x, y, color, dx, dy) {
-    this.connectedPuyos.add(`${x - BOARD_LEFT_EDGE},${y - BOARD_TOP_EDGE},${color}:${dx},${dy}`);
+    this.connectedPuyos.add(`${x - gameConfig.BOARD_LEFT_EDGE},${y - gameConfig.BOARD_TOP_EDGE},${color}:${dx},${dy}`);
   },
   deleteConnectedPuyo: function(x, y) {
-    const modX = x - BOARD_LEFT_EDGE;
-    const modY = y - BOARD_TOP_EDGE;
+    const modX = x - gameConfig.BOARD_LEFT_EDGE;
+    const modY = y - gameConfig.BOARD_TOP_EDGE;
     this.connectedPuyos.forEach((elem) => {
       if (elem.indexOf(`${modX},${modY}`) === 0) {
         this.connectedPuyos.delete(elem);
@@ -190,9 +163,9 @@ const recordPuyoSteps = {
     }
 
     // init board first
-    for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
-      for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
-        board[y][x] = NO_COLOR;
+    for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
+      for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+        board[y][x] = gameConfig.NO_COLOR;
       }
     }
     for (let n = this.undoPoint; n >= 0; n--) {
@@ -214,7 +187,7 @@ const bounceEffect = {
   bounceQuantities: 0, // increase by 180 / BOUNCING_TIME
   start: function(x, y) {
     this.willBounce = true;
-    for (let n = 0; (n <= this.bouncePuyoNum) && (y + n < BOARD_BOTTOM_EDGE); n++) {
+    for (let n = 0; (n <= this.bouncePuyoNum) && (y + n < gameConfig.BOARD_BOTTOM_EDGE); n++) {
       this.bouncePuyos.add(`${x},${y + n}`);
     }
   },
@@ -271,14 +244,14 @@ function init(setNextState) {
 function createBoard() {
   const WALL_NUMBER = 99;
   const board = Array.from(
-    { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 5 },
-    () => Array((BOARD_RIGHT_EDGE - BOARD_LEFT_EDGE) + 2).fill(NO_COLOR));
-  for (let y = 0; y <= BOARD_BOTTOM_EDGE; y++) {
-    board[y][BOARD_LEFT_EDGE - 1] = WALL_NUMBER;
-    board[y][BOARD_RIGHT_EDGE] = WALL_NUMBER;
+    { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + 5 },
+    () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + 2).fill(gameConfig.NO_COLOR));
+  for (let y = 0; y <= gameConfig.BOARD_BOTTOM_EDGE; y++) {
+    board[y][gameConfig.BOARD_LEFT_EDGE - 1] = WALL_NUMBER;
+    board[y][gameConfig.BOARD_RIGHT_EDGE] = WALL_NUMBER;
   }
-  for (let x = BOARD_LEFT_EDGE - 1; x <= BOARD_RIGHT_EDGE; x++) {
-    board[BOARD_BOTTOM_EDGE][x] = WALL_NUMBER;
+  for (let x = gameConfig.BOARD_LEFT_EDGE - 1; x <= gameConfig.BOARD_RIGHT_EDGE; x++) {
+    board[gameConfig.BOARD_BOTTOM_EDGE][x] = WALL_NUMBER;
   }
   // returning reference is okay?
   return board;
@@ -288,8 +261,8 @@ function getRandomPuyo() {
   const newPuyo = { ...basePuyo };
   newPuyo.parentColor = Math.floor(Math.random() * 4) + 1;
   newPuyo.childColor = Math.floor(Math.random() * 4) + 1;
-  newPuyo.parentX = PUYO_BIRTH_POSX;
-  newPuyo.parentY = PUYO_BIRTH_POSY;
+  newPuyo.parentX = gameConfig.PUYO_BIRTH_POSX;
+  newPuyo.parentY = gameConfig.PUYO_BIRTH_POSY;
   return newPuyo;
 }
 
@@ -302,11 +275,11 @@ function beforeNext(setNextState) {
   chainInfo.chainCount = 0;
   // TODO: this is for debug
   keyInputInit();
-  // erase puyos more than above BOARD_TOP_EDGE-2
+  // erase puyos more than above gameConfig.BOARD_TOP_EDGE-2
   // TODO: this implementaion is not officially right
-  for (let y = 0; y < BOARD_TOP_EDGE - 1; y++) {
-    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
-      board[y][x] = NO_COLOR;
+  for (let y = 0; y < gameConfig.BOARD_TOP_EDGE - 1; y++) {
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      board[y][x] = gameConfig.NO_COLOR;
     }
   }
 
@@ -317,11 +290,11 @@ function beforeNext(setNextState) {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
-    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
+  for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
       const cell = board[y][x];
-      if (cell !== NO_COLOR) {
-        drawPuyo(x, y, TETRIMINO_COLORS[cell])
+      if (cell !== gameConfig.NO_COLOR) {
+        drawPuyo(x, y, gameConfig.PUYO_COLORS[cell])
       }
     }
   }
@@ -332,9 +305,9 @@ function draw() {
   // draw floating puyos
   // TODO: modify this condition (or remove)
   if (currentState === gameState.FALLING_ABOVE_CHAIN) {
-    if (chainInfo.chainVanishWaitCount >= VANISH_WAIT_TIME) {
+    if (chainInfo.chainVanishWaitCount >= gameConfig.VANISH_WAIT_TIME) {
       for (const floatingPuyo of chainInfo.floatingPuyos) {
-        drawPuyo(floatingPuyo.posX, floatingPuyo.posY, TETRIMINO_COLORS[floatingPuyo.color]);
+        drawPuyo(floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
       }
     }
   }
@@ -344,31 +317,31 @@ function draw() {
   if (currentState === gameState.SPLITTING ||
     (currentState === gameState.JUST_DRAWING && prevState === gameState.SPLITTING)
   ) {
-    drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, TETRIMINO_COLORS[splittedPuyo.splittedColor]);
+    drawPuyo(splittedPuyo.splittedX, splittedPuyo.splittedY, gameConfig.PUYO_COLORS[splittedPuyo.splittedColor]);
 
-    drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, TETRIMINO_COLORS[splittedPuyo.unsplittedColor]);
+    drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, gameConfig.PUYO_COLORS[splittedPuyo.unsplittedColor]);
   }
 
   // draw currentPuyo
   if (currentPuyo) {
-    drawPuyo(currentPuyo.parentX, currentPuyo.parentY, TETRIMINO_COLORS[currentPuyo.parentColor]);
+    drawPuyo(currentPuyo.parentX, currentPuyo.parentY, gameConfig.PUYO_COLORS[currentPuyo.parentColor]);
 
     const [childX, childY] = getChildPos(currentPuyo);
-    drawPuyo(childX, childY, TETRIMINO_COLORS[currentPuyo.childColor]);
+    drawPuyo(childX, childY, gameConfig.PUYO_COLORS[currentPuyo.childColor]);
   }
 
   // draw nextPuyo and doubleNextPuyo on right-side to board
   if (nextPuyo && doubleNextPuyo) { // <- is this condition necessary?
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.parentColor];
-    // nextPuyoCtx.fillRect((BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[nextPuyo.childColor];
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 2 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[nextPuyo.parentColor];
+    // nextPuyoCtx.fillRect((gameConfig.BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+    nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[nextPuyo.childColor];
+    nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 2 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
 
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.parentColor];
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 4 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    nextPuyoCtx.fillStyle = TETRIMINO_COLORS[doubleNextPuyo.childColor];
-    nextPuyoCtx.fillRect(0.3 * CELL_SIZE, 5 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[doubleNextPuyo.parentColor];
+    nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 4 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+    nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[doubleNextPuyo.childColor];
+    nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 5 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
   }
 
   drawAfterimage();
@@ -378,13 +351,13 @@ function draw() {
 
 
   function drawPuyo(x, y, color, willStorke = true) {
-    const drawPosX = (x - BOARD_LEFT_EDGE) * CELL_SIZE;
-    const drawPosY = (y - BOARD_TOP_EDGE) * CELL_SIZE;
+    const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
+    const drawPosY = (y - gameConfig.BOARD_TOP_EDGE) * gameConfig.CELL_SIZE;
 
-    const radiusX = CELL_SIZE * 15 / 32;
-    const radiusY = CELL_SIZE * 14 / 32;
-    const elliX = drawPosX + radiusX + CELL_SIZE / 16;
-    const elliY = drawPosY + radiusY + CELL_SIZE / 10;
+    const radiusX = gameConfig.CELL_SIZE * 15 / 32;
+    const radiusY = gameConfig.CELL_SIZE * 14 / 32;
+    const elliX = drawPosX + radiusX + gameConfig.CELL_SIZE / 16;
+    const elliY = drawPosY + radiusY + gameConfig.CELL_SIZE / 10;
     // drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
     // drawEyes(ctx, elliX, elliY);
 
@@ -408,7 +381,7 @@ function draw() {
       // const bounceLimit = 4;
       // const changeRate = Math.sin(bounceEffect.bounceQuantities * Math.PI / 180) / bounceLimit;
       // const bounceRate = 1 - changeRate;
-      // const yModifier = (BOARD_BOTTOM_EDGE - y) / 10 + 1;
+      // const yModifier = (gameConfig.BOARD_BOTTOM_EDGE - y) / 10 + 1;
       // ctx.transform(1, 0, 0, bounceRate, 0, (28) * changeRate * radiusY / yModifier);
       // drawCallback();
       // ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -438,25 +411,25 @@ function draw() {
       const [diffX, diffY] = elem.split(':')[1].split(',').map(str => Number.parseInt(str, 10));;
 
       // TODO: do not declare these variables here
-      const radiusX = CELL_SIZE * 4 / 9;
-      const radiusY = CELL_SIZE * 3 / 7;
+      const radiusX = gameConfig.CELL_SIZE * 4 / 9;
+      const radiusY = gameConfig.CELL_SIZE * 3 / 7;
 
       if (diffX === 0 && diffY === 1) {
-        drawGlueToDown(ctx, CELL_SIZE, x, y, x, y + diffY, radiusX, radiusY, TETRIMINO_COLORS[color]);
+        drawGlueToDown(ctx, gameConfig.CELL_SIZE, x, y, x, y + diffY, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
       } else if (diffX === 1 && diffY === 0) {
-        drawGlueToRight(ctx, CELL_SIZE, x, y, x + diffX, y, radiusX, radiusY, TETRIMINO_COLORS[color]);
+        drawGlueToRight(ctx, gameConfig.CELL_SIZE, x, y, x + diffX, y, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
       } else if (diffX === 0 && diffY === -1) {
         // need to verify
-        drawGlueToDown(ctx, CELL_SIZE, x, y + diffY, x, y, radiusX, radiusY, TETRIMINO_COLORS[color]);
+        drawGlueToDown(ctx, gameConfig.CELL_SIZE, x, y + diffY, x, y, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
       } else if (diffX === -1 && diffY === 0) {
         // need to verify
-        drawGlueToRight(ctx, CELL_SIZE, x + diffX, y, x, y, radiusX, radiusY, TETRIMINO_COLORS[color]);
+        drawGlueToRight(ctx, gameConfig.CELL_SIZE, x + diffX, y, x, y, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
       }
     })
   }
 
   function drawAfterimage() {
-    // after other state than MANIP like SPLIT, it enters this function
+    // after other state than MANIP like SPLIT, it enters this function in certain condition
     if (!currentPuyo) return;
 
     if (rotateDrawing.isRotating) {
@@ -466,13 +439,13 @@ function draw() {
         const rotatingX = currentPuyo.parentX + Math.cos((angle * (-1) + 270) * Math.PI / 180);
         const rotatingY = currentPuyo.parentY - Math.sin((angle * (-1) + 270) * Math.PI / 180);
         const alpha = 0.2 + 0.2 * n / devideNum;
-        drawPuyo(rotatingX, rotatingY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
+        drawPuyo(rotatingX, rotatingY, addAlpha(gameConfig.PUYO_COLORS[currentPuyo.childColor], alpha), false);
       }
 
       rotateDrawing.drawCount--;
       if (rotateDrawing.drawCount <= 0) {
         rotateDrawing.isRotating = false;
-        rotateDrawing.drawCount = ROTATING_TIME;
+        rotateDrawing.drawCount = gameConfig.ROTATING_TIME;
       }
     }
     // draw puyo moving horizontally
@@ -485,15 +458,15 @@ function draw() {
       for (let n = 1; n < devideNum; n++) {
         const alpha = 0.2 + 0.1 * n / devideNum;
         if (!(diffX < 0 && currentPuyo.angle === 270))
-          drawPuyo(currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), currentPuyo.parentY, addAlpha(TETRIMINO_COLORS[currentPuyo.parentColor], alpha), false);
+          drawPuyo(currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), currentPuyo.parentY, addAlpha(gameConfig.PUYO_COLORS[currentPuyo.parentColor], alpha), false);
         if (!(diffX > 0 && currentPuyo.angle === 90))
-          drawPuyo(childX - (diffX * (2 / 5 * n / devideNum)), childY, addAlpha(TETRIMINO_COLORS[currentPuyo.childColor], alpha), false);
+          drawPuyo(childX - (diffX * (2 / 5 * n / devideNum)), childY, addAlpha(gameConfig.PUYO_COLORS[currentPuyo.childColor], alpha), false);
       }
 
       movingHorDrawing.drawCount--;
       if (movingHorDrawing.drawCount <= 0) {
         movingHorDrawing.isMovingHor = false;
-        movingHorDrawing.drawCount = HOR_MOVING_TIME;
+        movingHorDrawing.drawCount = gameConfig.HOR_MOVING_TIME;
       }
     }
   }
@@ -504,12 +477,12 @@ function draw() {
     ) return;
 
     chainInfo.maxTriggerPuyos.forEach((elem) => {
-      const drawPosX = (elem[0] - BOARD_LEFT_EDGE) * CELL_SIZE;
-      const drawPosY = (elem[1] - BOARD_TOP_EDGE) * CELL_SIZE;
+      const drawPosX = (elem[0] - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
+      const drawPosY = (elem[1] - gameConfig.BOARD_TOP_EDGE) * gameConfig.CELL_SIZE;
 
       ctx.strokeStyle = "gray";
       ctx.lineWidth = 2;
-      ctx.strokeRect(drawPosX, drawPosY, CELL_SIZE, CELL_SIZE);
+      ctx.strokeRect(drawPosX, drawPosY, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
     })
   }
 }
@@ -592,10 +565,10 @@ function gameLoop() {
       // TODO: this should be called just once as enter function
       // erasePuyos(board);
 
-      if (chainInfo.chainVanishWaitCount < VANISH_WAIT_TIME) {
+      if (chainInfo.chainVanishWaitCount < gameConfig.VANISH_WAIT_TIME) {
         chainInfo.chainVanishWaitCount++;
         // this state again
-      } else if (chainInfo.chainVanishWaitCount === VANISH_WAIT_TIME) {
+      } else if (chainInfo.chainVanishWaitCount === gameConfig.VANISH_WAIT_TIME) {
         chainInfo.chainVanishWaitCount++;
         findFloatingPuyos(board);
         setState(gameState.FALLING_ABOVE_CHAIN);
@@ -644,21 +617,21 @@ function gameLoop() {
 }
 
 function canPuyoMoveDown(
+  rate = 1.0,
   setNextState = () => setState(gameState.SPLITTING),
-  rate = 1.0
 ) {
   const parentX = currentPuyo.parentX;
   const parentY = currentPuyo.parentY;
   const [childX, childY] = getChildPos(currentPuyo);
   const angle = currentPuyo.angle;
 
-  if (parentY + moveYDiff * rate < Math.round(parentY)) { return true; }
+  if (parentY + gameConfig.moveYDiff * rate < Math.round(parentY)) { return true; }
 
   if (angle === 0 || angle === 180) {
     const downY = angle === 0 ? childY : parentY;
     // const nextY = Math.floor(downY) + 2;
     const nextY = Math.round(downY) + 1;
-    if (nextY >= BOARD_BOTTOM_EDGE || board[nextY][parentX] !== NO_COLOR) {
+    if (nextY >= gameConfig.BOARD_BOTTOM_EDGE || board[nextY][parentX] !== gameConfig.NO_COLOR) {
       return false;
     }
     return true;
@@ -667,10 +640,10 @@ function canPuyoMoveDown(
     const nextY = Math.round(parentY) + 1;
 
     // at first check lock-wait time on any condition
-    if (nextY >= BOARD_BOTTOM_EDGE || board[nextY][parentX] !== NO_COLOR || board[nextY][childX] !== NO_COLOR) {
+    if (nextY >= gameConfig.BOARD_BOTTOM_EDGE || board[nextY][parentX] !== gameConfig.NO_COLOR || board[nextY][childX] !== gameConfig.NO_COLOR) {
       // must increment lockWaitCount to max in lockpuyo() not here
       // TODO: smarter logic this is shit!!!
-      if (lockingInfo.lockWaitCount < LOCK_WAIT_TIME - 1) {
+      if (lockingInfo.lockWaitCount < gameConfig.LOCK_WAIT_TIME - 1) {
         lockingInfo.lockWaitCount++;
         return false;
       }
@@ -679,10 +652,10 @@ function canPuyoMoveDown(
       return true;
     }
 
-    if (nextY >= BOARD_BOTTOM_EDGE || (board[nextY][parentX] !== NO_COLOR && board[nextY][childX] !== NO_COLOR)) {
+    if (nextY >= gameConfig.BOARD_BOTTOM_EDGE || (board[nextY][parentX] !== gameConfig.NO_COLOR && board[nextY][childX] !== gameConfig.NO_COLOR)) {
       // ちぎり無（のはず）
       return false;
-    } else if (board[nextY][parentX] !== NO_COLOR) {
+    } else if (board[nextY][parentX] !== gameConfig.NO_COLOR) {
       // 子側でちぎり（のはず）
       setNextState();
       splittedPuyo.splittedX = childX;
@@ -697,7 +670,7 @@ function canPuyoMoveDown(
       currentPuyo = null;
 
       return false;
-    } else if (board[nextY][childX] !== NO_COLOR) {
+    } else if (board[nextY][childX] !== gameConfig.NO_COLOR) {
       // 親側でちぎり（のはず）
       setNextState();
       splittedPuyo.splittedX = parentX;
@@ -711,7 +684,7 @@ function canPuyoMoveDown(
       currentPuyo = null;
 
       return false;
-    } else if (nextY >= BOARD_BOTTOM_EDGE) {
+    } else if (nextY >= gameConfig.BOARD_BOTTOM_EDGE) {
       // ちぎり無（のはず）
       return false;
     }
@@ -721,7 +694,7 @@ function canPuyoMoveDown(
 
 // Lock the current puyo, this is the case splitting not happening
 function lockCurrentPuyo() {
-  if (lockingInfo.lockWaitCount < LOCK_WAIT_TIME) {
+  if (lockingInfo.lockWaitCount < gameConfig.LOCK_WAIT_TIME) {
     lockingInfo.lockWaitCount++;
     return false;
   }
@@ -744,7 +717,7 @@ function lockPuyo(board, posX, posY, color, recordFlag) {
 
   recordPuyoSteps.record(posX, posY, color, recordFlag);
 
-  if (color !== NO_COLOR) {
+  if (color !== gameConfig.NO_COLOR) {
     bounceEffect.start(posX, posY);
   } else {
     // TODO: this dealing is temporary, you should revise these flow
@@ -755,8 +728,8 @@ function lockPuyo(board, posX, posY, color, recordFlag) {
 function findConnectedPuyos(board, foundCallback, connectNum = 4, willChangeConnect = true) {
   let connectedPuyoNums = 0;
   const checkedCells = Array.from(
-    { length: (BOARD_BOTTOM_EDGE - BOARD_TOP_EDGE) + 5 },
-    () => Array((BOARD_RIGHT_EDGE - BOARD_LEFT_EDGE) + 2).fill(false));
+    { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + 5 },
+    () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + 2).fill(false));
 
   if (willChangeConnect) connectDrawing.initConnectedPuyos();
 
@@ -764,9 +737,9 @@ function findConnectedPuyos(board, foundCallback, connectNum = 4, willChangeConn
   // but, if ghost zone is enable, this way should be proper?
   // or just checking TOP_EDGE line is enough?
   // now connecting is involved with this function, so this is fine.
-  for (let y = BOARD_TOP_EDGE; y < BOARD_BOTTOM_EDGE; y++) {
-    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
-      if (board[y][x] === NO_COLOR) continue;
+  for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      if (board[y][x] === gameConfig.NO_COLOR) continue;
       const savePuyos = [];
       connectedPuyoNums = checkConnected(board, x, y, checkedCells, board[y][x], savePuyos, willChangeConnect);
       if (connectedPuyoNums >= connectNum) {
@@ -782,7 +755,7 @@ function checkConnected(board, x, y, checkedCells, prevCell, savePuyos, willAddC
 
   let connectedPuyoNums = 0;
   const cell = board[y][x];
-  if (cell === NO_COLOR || cell !== prevCell) {
+  if (cell === gameConfig.NO_COLOR || cell !== prevCell) {
     return 0;
   } else if (cell === prevCell) {
     savePuyos.push([x, y]);
@@ -806,7 +779,7 @@ function checkConnected(board, x, y, checkedCells, prevCell, savePuyos, willAddC
   prevConnectedPuyoNums = connectedPuyoNums;
 
   // don't check invisible zone
-  if (y - 1 >= BOARD_TOP_EDGE)
+  if (y - 1 >= gameConfig.BOARD_TOP_EDGE)
     connectedPuyoNums += checkConnected(board, x, y - 1, checkedCells, prevCell, savePuyos, willAddConnect);
   if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) connectDrawing.addConnectedPuyos(x, y, cell, 0, -1);
 
@@ -820,7 +793,7 @@ function erasePuyos(board) {
 
       // TODO: consider some effect in vanishing
       // and consider ojama puyo
-      lockPuyo(board, x, y, NO_COLOR, recordPuyoSteps.VANISH_PUYO_REC_FLAG);
+      lockPuyo(board, x, y, gameConfig.NO_COLOR, recordPuyoSteps.VANISH_PUYO_REC_FLAG);
 
       // TODO: should do this with callbackl?
       connectDrawing.deleteConnectedPuyo(x, y);
@@ -845,17 +818,17 @@ function findFloatingPuyos(board) {
   // let puyo above vanished ones falls
   for (const lowestPuyo of lowestPuyos) {
     let [lowestX, lowestY] = [...lowestPuyo];
-    for (let aboveY = lowestY - 1; aboveY >= BOARD_TOP_EDGE - 1; aboveY--) {
+    for (let aboveY = lowestY - 1; aboveY >= gameConfig.BOARD_TOP_EDGE - 1; aboveY--) {
       // ignore cells included in allVanishPuyos
       if (allVanishPuyos.some((cur) => cur[0] === lowestX && cur[1] === aboveY)) continue;
       // go check next lowestX
-      if (board[aboveY][lowestX] === NO_COLOR) break;
+      if (board[aboveY][lowestX] === gameConfig.NO_COLOR) break;
 
       floatingPuyo.posX = lowestX;
       floatingPuyo.posY = aboveY;
       floatingPuyo.color = board[aboveY][lowestX];
       // delegate drawing to floatingpuyo
-      lockPuyo(board, lowestX, aboveY, NO_COLOR, recordPuyoSteps.FLOAT_PUYO_REC_FLAG);
+      lockPuyo(board, lowestX, aboveY, gameConfig.NO_COLOR, recordPuyoSteps.FLOAT_PUYO_REC_FLAG);
 
       chainInfo.floatingPuyos.push({ ...floatingPuyo });
 
@@ -868,7 +841,7 @@ function findFloatingPuyos(board) {
 function letFloatingPuyosFall(board) {
   for (const floatingPuyo of chainInfo.floatingPuyos) {
     const nextY = movePuyoDown(floatingPuyo.posY, 12.0);
-    if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== NO_COLOR) {
+    if (nextY >= gameConfig.BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][floatingPuyo.posX] !== gameConfig.NO_COLOR) {
       // be careful
       // floatingPuyo.posY = Math.round(nextY);
       floatingPuyo.posY = Math.floor(nextY);
@@ -914,8 +887,8 @@ function detectPossibleChain() {
 
   function searchBucketShape(board, triggerPuyos) {
     // search puyos which can trigger chain not in threesome
-    for (let x = BOARD_LEFT_EDGE; x < BOARD_RIGHT_EDGE; x++) {
-      for (let y = BOARD_BOTTOM_EDGE - 1; y > BOARD_TOP_EDGE; y--) {
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y > gameConfig.BOARD_TOP_EDGE; y--) {
         if (board[y][x] !== 0 && board[y - 1][x] === 0) {
           // TODO: need more shape
           if (board[y - 1][x - 1] === board[y][x] && board[y][x] === board[y - 1][x + 1]) {
@@ -924,21 +897,21 @@ function detectPossibleChain() {
           else if (board[y - 1][x - 1] === board[y][x]) {
             if (board[y][x] === board[y][x + 1])
               triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
-            if (x > BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
+            if (x > gameConfig.BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
               triggerPuyos.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
-            if (y < BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
+            if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
               triggerPuyos.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
-            if (y > BOARD_TOP_EDGE && board[y][x] === board[y - 2][x - 1])
+            if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x - 1])
               triggerPuyos.push([[x - 1, y - 1], [x, y], [x - 1, y - 2]]);
           }
           else if (board[y - 1][x + 1] === board[y][x]) {
             if (board[y][x] === board[y][x - 1])
               triggerPuyos.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
-            if (x < BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
+            if (x < gameConfig.BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
               triggerPuyos.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
-            if (y < BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
+            if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
               triggerPuyos.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
-            if (y > BOARD_TOP_EDGE && board[y][x] === board[y - 2][x + 1])
+            if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x + 1])
               triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y - 2]]);
           }
           break;
@@ -981,7 +954,7 @@ function detectPossibleChain() {
 
     for (const lowestPuyo of lowestPuyos) {
       let [lowestX, lowestY] = [...lowestPuyo];
-      for (let aboveY = lowestY - 1; aboveY >= BOARD_TOP_EDGE - 1; aboveY--) {
+      for (let aboveY = lowestY - 1; aboveY >= gameConfig.BOARD_TOP_EDGE - 1; aboveY--) {
         if (board[aboveY][lowestX] === 0) continue;
         for (let dy = 1; dy <= lowestY - aboveY; dy++) {
           if (board[aboveY + dy][lowestX] === 0) {
@@ -1002,7 +975,7 @@ function handleSplitting(setNextState) {
   const nextY = movePuyoDown(splittedY, 12.0);
 
   // need to verify this condition
-  if (nextY >= BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][splittedX] !== NO_COLOR) {
+  if (nextY >= gameConfig.BOARD_BOTTOM_EDGE - 1 || board[Math.floor(nextY) + 1][splittedX] !== gameConfig.NO_COLOR) {
     splittedPuyo.splittedY = Math.floor(nextY);
 
     lockPuyo(board, splittedPuyo.splittedX, splittedPuyo.splittedY, splittedPuyo.splittedColor, recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG);
@@ -1015,7 +988,7 @@ function handleSplitting(setNextState) {
 }
 
 function isGameOver() {
-  return board[BOARD_TOP_EDGE][PUYO_BIRTH_POSX] !== NO_COLOR;
+  return board[gameConfig.BOARD_TOP_EDGE][gameConfig.PUYO_BIRTH_POSX] !== gameConfig.NO_COLOR;
 }
 
 function canTakeInput() {
@@ -1032,7 +1005,7 @@ function downKeyHandle() {
   if (keyInputState.isDownKeyPressed) {
     let keyMoveDownRate = 15.0;
     // I'm afraid of more than 0.5, which could get this world upside down
-    if (keyMoveDownRate * moveYDiff >= 0.5) keyMoveDownRate = 0.5 / moveYDiff;
+    if (keyMoveDownRate * gameConfig.moveYDiff >= 0.5) keyMoveDownRate = 0.5 / gameConfig.moveYDiff;
     if (canPuyoMoveDown(keyMoveDownRate)) {
       currentPuyo.parentY = movePuyoDown(currentPuyo.parentY, keyMoveDownRate);
     } else if (currentPuyo && canPuyoMoveDown(keyMoveDownRate / 2)) {
@@ -1042,7 +1015,7 @@ function downKeyHandle() {
     } else {
       // get puyo being able to lock immediately
       // TODO: find good timing or consider better logic
-      lockingInfo.lockWaitCount = LOCK_WAIT_TIME;
+      lockingInfo.lockWaitCount = gameConfig.LOCK_WAIT_TIME;
     }
   }
 }
@@ -1115,7 +1088,7 @@ function keyInputInit() {
 function moveHorStart(parentX, direction) {
   movingHorDrawing.isMovingHor = true;
   movingHorDrawing.targetX = parentX + direction;
-  movingHorDrawing.moveXDiff = direction / HOR_MOVING_TIME;
+  movingHorDrawing.moveXDiff = direction / gameConfig.HOR_MOVING_TIME;
   movingHorDrawing.drawingX = parentX;
 
   return parentX + direction;
@@ -1126,7 +1099,7 @@ function movePuyoHor() {
   const diff = movingHorDrawing.moveXDiff;
 
   movingHorDrawing.drawingX += diff;
-  if (Math.abs(targetX - movingHorDrawing.drawingX) < Math.abs(diff) * ((HOR_MOVING_TIME + 1) / HOR_MOVING_TIME)) {
+  if (Math.abs(targetX - movingHorDrawing.drawingX) < Math.abs(diff) * ((gameConfig.HOR_MOVING_TIME + 1) / gameConfig.HOR_MOVING_TIME)) {
     movingHorDrawing.drawingX = targetX; // is this necessary?
     movingHorDrawing.isMovingHor = false;
   }
@@ -1140,7 +1113,7 @@ function movePuyoHor_ori(parentX, direction) {
 }
 
 function movePuyoDown(parentY, rate) {
-  return parentY + moveYDiff * rate;
+  return parentY + gameConfig.moveYDiff * rate;
 }
 
 // Check if the current piece can move left
@@ -1153,20 +1126,20 @@ function canPuyoMoveLeft(puyo = currentPuyo) {
   if (angle === 90 || angle === 270) {
     const leftX = angle === 90 ? childX : parentX;
     const nextX = leftX - 1;
-    // if (nextX < BOARD_LEFT_EDGE || board[Math.floor(parentY)][nextX] !== NO_COLOR || board[Math.round(parentY)][nextX] !== NO_COLOR) {
-    if (nextX < BOARD_LEFT_EDGE || board[Math.floor(parentY)][nextX] !== NO_COLOR || board[Math.floor(parentY) + 1][nextX] !== NO_COLOR) {
+    // if (nextX < gameConfig.BOARD_LEFT_EDGE || board[Math.floor(parentY)][nextX] !== gameConfig.NO_COLOR || board[Math.round(parentY)][nextX] !== gameConfig.NO_COLOR) {
+    if (nextX < gameConfig.BOARD_LEFT_EDGE || board[Math.floor(parentY)][nextX] !== gameConfig.NO_COLOR || board[Math.floor(parentY) + 1][nextX] !== gameConfig.NO_COLOR) {
       return false;
     }
     return true;
   } else if (angle === 0 || angle === 180) {
     const nextX = Math.round(parentX) - 1;
     // **one condition below is unnecessary
-    if (nextX < BOARD_LEFT_EDGE ||
-      board[Math.floor(parentY)][nextX] !== NO_COLOR ||
-      board[Math.floor(parentY) + 1][nextX] !== NO_COLOR ||
-      board[Math.floor(childY)][nextX] !== NO_COLOR ||
+    if (nextX < gameConfig.BOARD_LEFT_EDGE ||
+      board[Math.floor(parentY)][nextX] !== gameConfig.NO_COLOR ||
+      board[Math.floor(parentY) + 1][nextX] !== gameConfig.NO_COLOR ||
+      board[Math.floor(childY)][nextX] !== gameConfig.NO_COLOR ||
       // TODO: if childY is integer this is bad
-      board[Math.floor(childY) + 1][nextX] !== NO_COLOR
+      board[Math.floor(childY) + 1][nextX] !== gameConfig.NO_COLOR
     ) {
       return false;
     }
@@ -1184,20 +1157,20 @@ function canPuyoMoveRight(puyo = currentPuyo) {
   if (angle === 90 || angle === 270) {
     const rightX = angle === 270 ? childX : parentX;
     const nextX = rightX + 1;
-    // if (nextX >= BOARD_WIDTH || board[Math.floor(parentY)][nextX] !== NO_COLOR || board[Math.round(parentY)][nextX] !== NO_COLOR) {
-    if (nextX >= BOARD_RIGHT_EDGE || board[Math.floor(parentY)][nextX] !== NO_COLOR || board[Math.floor(parentY) + 1][nextX] !== NO_COLOR) {
+    // if (nextX >= gameConfig.BOARD_WIDTH || board[Math.floor(parentY)][nextX] !== gameConfig.NO_COLOR || board[Math.round(parentY)][nextX] !== gameConfig.NO_COLOR) {
+    if (nextX >= gameConfig.BOARD_RIGHT_EDGE || board[Math.floor(parentY)][nextX] !== gameConfig.NO_COLOR || board[Math.floor(parentY) + 1][nextX] !== gameConfig.NO_COLOR) {
       return false;
     }
     return true;
   } else if (angle === 0 || angle === 180) {
     const nextX = Math.round(parentX) + 1;
     // **one condition below is unnecessary
-    if (nextX >= BOARD_RIGHT_EDGE ||
-      board[Math.floor(parentY)][nextX] !== NO_COLOR ||
-      // board[Math.round(parentY)][nextX] !== NO_COLOR ||
-      board[Math.floor(parentY) + 1][nextX] !== NO_COLOR ||
-      board[Math.floor(childY)][nextX] !== NO_COLOR ||
-      board[Math.floor(childY) + 1][nextX] !== NO_COLOR
+    if (nextX >= gameConfig.BOARD_RIGHT_EDGE ||
+      board[Math.floor(parentY)][nextX] !== gameConfig.NO_COLOR ||
+      // board[Math.round(parentY)][nextX] !== gameConfig.NO_COLOR ||
+      board[Math.floor(parentY) + 1][nextX] !== gameConfig.NO_COLOR ||
+      board[Math.floor(childY)][nextX] !== gameConfig.NO_COLOR ||
+      board[Math.floor(childY) + 1][nextX] !== gameConfig.NO_COLOR
     ) {
       return false;
     }
@@ -1226,12 +1199,12 @@ function rotatePuyo(changeAngle) {
   } else if (rotatedPuyo.angle === 90) {
     // left is empty? if not, can move right? if not, cannot rotate
     const nextX = rotatedChildX;
-    if (nextX >= BOARD_LEFT_EDGE &&
-      // currentChildY + 1 < BOARD_HEIGHT &&
-      board[Math.floor(currentChildY)][nextX] == NO_COLOR &&
-      // board[Math.floor(currentChildY) + 1][nextX] == NO_COLOR &&
-      board[Math.floor(rotatedChildY)][nextX] == NO_COLOR &&
-      board[Math.floor(rotatedChildY) + 1][nextX] == NO_COLOR
+    if (nextX >= gameConfig.BOARD_LEFT_EDGE &&
+      // currentChildY + 1 < gameConfig.BOARD_HEIGHT &&
+      board[Math.floor(currentChildY)][nextX] == gameConfig.NO_COLOR &&
+      // board[Math.floor(currentChildY) + 1][nextX] == gameConfig.NO_COLOR &&
+      board[Math.floor(rotatedChildY)][nextX] == gameConfig.NO_COLOR &&
+      board[Math.floor(rotatedChildY) + 1][nextX] == gameConfig.NO_COLOR
     ) {
       canRotate = true;
     } else if (canPuyoMoveRight(rotatedPuyo)) {
@@ -1248,12 +1221,12 @@ function rotatePuyo(changeAngle) {
   } else if (rotatedPuyo.angle === 270) {
     // right is empty? if not, can move left? if not, cannot rotate
     const nextX = rotatedChildX;
-    if (nextX < BOARD_RIGHT_EDGE &&
-      // currentChildY + 1 < BOARD_HEIGHT &&
-      board[Math.floor(rotatedChildY)][nextX] == NO_COLOR &&
-      board[Math.floor(rotatedChildY) + 1][nextX] == NO_COLOR &&
-      board[Math.floor(currentChildY)][nextX] == NO_COLOR
-      // && board[Math.floor(currentChildY) + 1][nextX] == NO_COLOR
+    if (nextX < gameConfig.BOARD_RIGHT_EDGE &&
+      // currentChildY + 1 < gameConfig.BOARD_HEIGHT &&
+      board[Math.floor(rotatedChildY)][nextX] == gameConfig.NO_COLOR &&
+      board[Math.floor(rotatedChildY) + 1][nextX] == gameConfig.NO_COLOR &&
+      board[Math.floor(currentChildY)][nextX] == gameConfig.NO_COLOR
+      // && board[Math.floor(currentChildY) + 1][nextX] == gameConfig.NO_COLOR
     ) {
       canRotate = true;
     } else if (canPuyoMoveLeft(rotatedPuyo)) {
@@ -1268,9 +1241,9 @@ function rotatePuyo(changeAngle) {
     }
   } else if (rotatedPuyo.angle === 0) {
     // if there is something below, push up by one cell
-    if (rotatedChildY >= BOARD_BOTTOM_EDGE - 1 || //<- is this ok? need to check
-      board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== NO_COLOR // ||
-      // board[Math.floor(rotatedChildY) + 1][currentChildX] !== NO_COLOR
+    if (rotatedChildY >= gameConfig.BOARD_BOTTOM_EDGE - 1 || //<- is this ok? need to check
+      board[Math.floor(rotatedChildY) + 1][rotatedChildX] !== gameConfig.NO_COLOR // ||
+      // board[Math.floor(rotatedChildY) + 1][currentChildX] !== gameConfig.NO_COLOR
     ) {
       // TODO: some animation at push up?
       rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.5; // for mawashi??
