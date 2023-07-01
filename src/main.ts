@@ -24,7 +24,7 @@ function main() {
   const chain = new Chain(board);
   const move = new Move(current, split);
   const rotate = new Rotate(current, move);
-  const mountain = new Mountain(board, move, chain, 10, Difficulty.EASY);
+  const mountain = new Mountain(board, move, chain, 4, Difficulty.EASY);
   const input = new Input(board, current, move, rotate);
   const draw = new DrawWithCanvas(bounce, board, current, move, rotate, split, chain, mountain, 'tetrisCanvas', 'nextPuyoCanvas');
   const game = new Game(menu, bounce, board, current, move, rotate,

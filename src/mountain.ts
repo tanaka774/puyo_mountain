@@ -115,7 +115,6 @@ export class Mountain {
 
   private subChangeExcessPuyo(chainablePuyos) {
     for (const temp of chainablePuyos) {
-      // for (const chainablePuyo of temp) {
       for (let n = 0; n < temp.length; n++) {
         const chainablePuyo = temp[n];
         const x = chainablePuyo[0];
@@ -182,7 +181,10 @@ export class Mountain {
   isClearGame() { }
 
 
-  initVariability() { this._variability = Array.from({ length: gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE }).fill(0) as number[]; }
+  initVariability() {
+    this._variability =
+      Array.from({ length: gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE }).fill(0) as number[];
+  }
   initSeedPuyos() { this._seedPuyos = []; }
   initVirtualboard() { this._virtualBoard = this._board.createBoard(); }
   initFloatingSeedPuyos() { this._floatingSeedPuyos = []; }
@@ -195,4 +197,7 @@ export class Mountain {
 
   get floatingSeedPuyos() { return this._floatingSeedPuyos; }
   set floatingSeedPuyos(puyos: baseSinglePuyo[]) { this._floatingSeedPuyos = puyos; }
+
+  get targetChainNum() { return this._targetChainNum; }
+  incrementTargetChainNum() { this._targetChainNum++; }
 }

@@ -155,6 +155,14 @@ export class Game {
         } else {
           if (!this.isGameOver()) gameState.setState(gameState.PREPARE_NEXT);
           else gameState.setState(gameState.GAMEOVER);
+
+
+          // TODO: don't confuse mountain process like this
+          if (this._chain.chainCount >= this._mountain.targetChainNum) {
+            gameState.setState(gameState.GENE_SEED_PUYOS);
+            this._mountain.incrementTargetChainNum();
+            this._chain.initConnectedPuyos();
+          }
         }
 
         // chainfindfunction(
@@ -227,6 +235,9 @@ export class Game {
   }
 
   htmlUpdate() {
+    // TODO: consider performance by this
+    const targetChainNumShow = document.getElementById("targetChainCount");
+    targetChainNumShow.textContent = `${this._mountain.targetChainNum} 連鎖せよ！`
     const chainNumShow = document.getElementById("chainCount");
     chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
   }
