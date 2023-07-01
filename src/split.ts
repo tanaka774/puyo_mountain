@@ -1,4 +1,4 @@
-import { baseSinglePuyo, setSinglePuyo } from "./puyo.ts"
+import { baseSinglePuyo, setSinglePuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
 import { Board } from "./board";

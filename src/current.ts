@@ -1,4 +1,4 @@
-import { baseManiPuyo } from "./puyo.ts"
+import { baseManiPuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
 import { gameState } from "./state.ts"

@@ -19,7 +19,7 @@ export interface baseManiPuyo {
   parentY: number;
   parentColor: number;
   childColor: number;
-  angle: number;
+  angle: 0 | 90 | 180 | 270;
 }
 
 export function setManiPuyo(puyo: baseManiPuyo, parentX, parentY, parentColor, childColor, angle) {
@@ -29,3 +29,5 @@ export function setManiPuyo(puyo: baseManiPuyo, parentX, parentY, parentColor, c
   puyo.childColor = childColor;
   puyo.angle = angle;
 }
+
+// export type = Angle: 0 | 90 | 180 | 270;

@@ -1,4 +1,4 @@
-import { baseManiPuyo } from "./puyo.ts"
+import { baseManiPuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
 import { gameState } from "./state.ts"
@@ -12,6 +12,7 @@ import { DrawWithCanvas } from "./draw.ts"
 import { Input } from "./input"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate.ts"
+import { Mountain } from "./mountain"
 
 export class Game {
   constructor(
@@ -25,13 +26,14 @@ export class Game {
     private _chain: Chain,
     private _input: Input,
     private _draw: DrawWithCanvas,
+    private _mountain: Mountain,
   ) {
   }
 
   init(setNextState) {
-    this._board.createBoard();
+    if (!this._board.board) this._board.board = this._board.createBoard();
     // beforeNext();
-    this._draw.draw();
+    // this._draw.draw();
     setNextState();
   }
 
@@ -68,6 +70,34 @@ export class Game {
         // open menu
         // if game start is pressed, go UNINIT
         break;
+      case gameState.GENE_SEED_PUYOS:
+        this._mountain.decideVariablilty();
+        this._mountain.generateSeedPuyos();
+        this._mountain.changeExcessPuyo();
+        this._mountain.setFloatingSeedPuyos();
+        this._board.board = this._board.createBoard();
+        gameState.setState(gameState.FALLING_SEED_PUYOS);
+        break;
+      case gameState.FALLING_SEED_PUYOS:
+        this._mountain.floatingSeedPuyos.forEach(floatingSeedPuyo => {
+          this._move.letSinglePuyoFall(this._board,
+            floatingSeedPuyo,
+            recordPuyoSteps.SEED_PUYO_REC_FLAG,
+            () => {
+              // remove fixed puyo from _floatingPuyos(array)
+              this._mountain.floatingSeedPuyos =
+                this._mountain.floatingSeedPuyos.filter(
+                  (cur) => !(cur["posX"] === floatingSeedPuyo.posX &&
+                    cur["posY"] === floatingSeedPuyo.posY));
+            }
+          )
+        });
+
+        if (this._mountain.floatingSeedPuyos.length === 0) {
+          gameState.setState(gameState.UNINIT);
+          this._mountain.init();
+        }
+        break;
       case gameState.UNINIT:
         this.init(() => gameState.setState(gameState.PREPARE_NEXT));
         break;
@@ -81,6 +111,7 @@ export class Game {
           this._move.canPuyoMoveDown(this._board)
         ) {
           this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, 1.0);
+
         } else {
           // TODO: I don't wanna do this! should be done in canMovePuyoDown()
           if (gameState.currentState !== gameState.SPLITTING) {
@@ -96,9 +127,6 @@ export class Game {
         }
         break;
       case gameState.SPLITTING:
-        // this._split.letSplittedPuyoFall(
-        //   () => gameState.setState(gameState.CHAIN_FINDING)
-        // );
         this._move.letSinglePuyoFall(this._board,
           this._split.splittedPuyo,
           recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG,
@@ -146,11 +174,9 @@ export class Game {
           this._chain.incrementChainVanishWaitCount();
           this._chain.findFloatingPuyos(this._board.board);
           gameState.setState(gameState.FALLING_ABOVE_CHAIN);
-          // findFloatingPuyos(() => gameState.setState(gameState.FALLING_ABOVE_CHAIN));
         }
         break;
       case gameState.FALLING_ABOVE_CHAIN:
-        // letFloaintgPuyosFall(() => gameState.setState(gameState.CHAIN_FINDING));
         this._chain.floatingPuyos.forEach(floatingPuyo => {
           this._move.letSinglePuyoFall(this._board,
             floatingPuyo,
@@ -187,17 +213,11 @@ export class Game {
         break;
     }
 
-    // TODO: want to modify...
-    if (!(gameState.currentState === gameState.OPENING ||
-      gameState.currentState === gameState.MENU ||
-      gameState.currentState === gameState.UNINIT ||
-      gameState.currentState === gameState.PAUSING
-    ))
-      this._draw.draw();
+    this._draw.draw();
 
     this.htmlUpdate();
-    requestAnimationFrame(() => this.gameLoop(this));
 
+    requestAnimationFrame(() => this.gameLoop(this));
   }
 
   beforeStateCheck() {

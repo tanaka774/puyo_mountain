@@ -1,7 +1,7 @@
 import { gameConfig } from "./config.ts"
 import { gameState } from "./state.ts"
 import { Game } from "./game.ts"
-import { baseManiPuyo, baseSinglePuyo } from "./puyo.ts"
+import { baseManiPuyo, baseSinglePuyo } from "./types.ts"
 import { Split } from "./split.ts"
 import { Current } from "./current.ts"
 import { Board } from "./board.ts"
@@ -174,6 +174,7 @@ export class Move {
     }
   }
 
+  // TODO: this should be separated, so that this returns true or false of canfall
   letSinglePuyoFall(
     _board: Board,
     singlePuyo: baseSinglePuyo,

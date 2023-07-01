@@ -1,7 +1,8 @@
 export class Menu {
-    private buttons: NodeListOf<HTMLButtonElement>;
-    private selectedIndex:number;
-    private setNextState: ()=> void;
+  private buttons: NodeListOf<HTMLButtonElement>;
+  private selectedIndex: number;
+  private setStateMode1: () => void;
+  private setStateMode2: () => void;
 
   constructor() {
     this.buttons = document.querySelectorAll('.menu-container button');
@@ -78,11 +79,13 @@ export class Menu {
         // Action for Game Mode 1
         console.log('Game Mode 1 selected');
         willCloseMenu = true;
+        this.setStateMode1();
         break;
       case 1:
         // Action for Game Mode 2
         console.log('Game Mode 2 selected');
         willCloseMenu = true;
+        this.setStateMode2();
         break;
       case 2:
         // Action for Quit Game
@@ -93,13 +96,15 @@ export class Menu {
         break;
     }
     if (willCloseMenu) {
-      this.setNextState();
 
       const menuDiv = document.getElementById("menu") as HTMLDivElement;
       menuDiv.remove();
     }
   }
 
-  setSetNextState(setState) { this.setNextState = setState; }
+  setCallback(setStateMode1, setStateMode2) {
+    this.setStateMode1 = setStateMode1;
+    this.setStateMode2 = setStateMode2;
+  }
 }
 

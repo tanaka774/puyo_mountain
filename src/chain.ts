@@ -1,13 +1,10 @@
-import { baseSinglePuyo } from "./puyo.ts"
+import { baseSinglePuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
-import { Game } from "./game.ts"
-import { Move } from "./move.ts"
 import { Board } from "./board"
 
 
 export class Chain {
-  private floatingPuyo: baseSinglePuyo;
   private _floatingPuyos: baseSinglePuyo[];
   private _vanishPuyos: number[][];
   private _chainVanishWaitCount: number;
@@ -16,21 +13,9 @@ export class Chain {
   private _maxVirtualChainCount: number;
   private _maxTriggerPuyos: number[][];
   private _connectedPuyos: Set<String>;
-  // private _lockPuyo: (board, x, y, color, recordFlag) => void;
 
   constructor(
     private _board: Board,
-    // private _game: Game,
-    // private _move: Move,
-    // private _floatingPuyos: floatingPuyo[],
-    // _floatingPuyos: baseSinglePuyo[],
-    // private _vanishPuyos: number[][],
-    // private _chainVanishWaitCount: number,
-    // private _chainCount: number,
-    // private _virtualChainCount: number,
-    // private _maxVirtualChainCount: number,
-    // private _maxTriggerPuyos: number[][],
-    // private _connectedPuyos: Set<String>,
   ) {
     this._floatingPuyos = [];
     this._vanishPuyos = [];
@@ -42,7 +27,12 @@ export class Chain {
     this._connectedPuyos = new Set();
   }
 
-  findConnectedPuyos(board, foundCallback, connectNum = 4, willChangeConnect = true) {
+  findConnectedPuyos(
+    board: number[][],
+    foundCallback: (puyos: number[]) => void,
+    connectNum = 4,
+    willChangeConnect = true
+  ) {
     let connectedPuyoNums = 0;
     const checkedCells = Array.from(
       { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + 5 },
@@ -67,7 +57,10 @@ export class Chain {
     }
   }
 
-  checkConnected(board, x, y, checkedCells, prevCell, savePuyos, willAddConnect) {
+  checkConnected(
+    board: number[][], x: number, y: number,
+    checkedCells: boolean[][], prevCell: number, savePuyos: number[][], willAddConnect: boolean
+  ) {
     if (checkedCells[y][x] === true) { return 0; }
 
     let connectedPuyoNums = 0;
@@ -103,7 +96,7 @@ export class Chain {
     return connectedPuyoNums;
   }
 
-  erasePuyos(board) {
+  erasePuyos(board: number[][]) {
     for (const temp of this._vanishPuyos) {
       for (const vanishPuyo of temp) {
         // const [x, y] = [...vanishPuyo];
@@ -122,7 +115,7 @@ export class Chain {
 
   // store puyos to fall after chain in order of lower puyo(y is high)
   // what happens if ojama puyo exists???
-  findFloatingPuyos(board) {
+  findFloatingPuyos(board: number[][]) {
     const allVanishPuyos = [];
     for (const temp of this._vanishPuyos) {
       allVanishPuyos.push(...temp);
@@ -160,9 +153,9 @@ export class Chain {
     }
   }
 
-  //
+
   // TODO: this is incomplete
-  detectPossibleChain(board) {
+  detectPossibleChain(board: number[][]) {
     // init maxcount first
     this._maxVirtualChainCount = 0;
     const triggerPuyosGroups = [];
@@ -188,10 +181,9 @@ export class Chain {
         this._maxTriggerPuyos = JSON.parse(JSON.stringify(triggerPuyos));
       }
     }
-
   }
 
-  searchBucketShape(board, triggerPuyos) {
+  searchBucketShape(board: number[][], triggerPuyos: number[][][]) {
     // search puyos which can trigger chain not in threesome
     for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
       for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y > gameConfig.BOARD_TOP_EDGE; y--) {
@@ -226,28 +218,30 @@ export class Chain {
     }
   }
 
-  triggerChainVirtually(virtualBoard) {
-    const _vanishPuyos = [];
-    let _chainCount = 0;
+  triggerChainVirtually(virtualBoard: number[][]) {
+    const vanishPuyos = [];
+    let chainCount = 0;
     this.findConnectedPuyos(virtualBoard, (savePuyos) => {
-      _vanishPuyos.push(savePuyos);
+      vanishPuyos.push(savePuyos);
     }, 4, false);
 
-    if (_vanishPuyos.length === 0) return _chainCount;
-    else _chainCount++;
+    if (vanishPuyos.length === 0) return chainCount;
+    else chainCount++;
 
-    this.letPuyosFallVirtually(virtualBoard, _vanishPuyos);
+    this.letPuyosFallVirtually(virtualBoard, vanishPuyos);
 
-    _chainCount += this.triggerChainVirtually(virtualBoard);
-    return _chainCount;
+    chainCount += this.triggerChainVirtually(virtualBoard);
+    return chainCount;
   }
 
-  letPuyosFallVirtually(board, vanishPuyos) {
+  letPuyosFallVirtually(board: number[][], vanishPuyos: number[][]) {
     const allVanishPuyos = [];
     for (const temp of vanishPuyos) {
       allVanishPuyos.push(...temp);
       for (const vanishPuyo of temp) {
-        const [x, y] = [...vanishPuyo];
+        // const [x, y] = [...vanishPuyo];
+        const x = vanishPuyo[0];
+        const y = vanishPuyo[1];
         board[y][x] = 0;
       }
     }
@@ -308,6 +302,7 @@ export class Chain {
   get connectedPuyos() { return this._connectedPuyos; }
 
   addConnectedPuyos(x, y, color, dx, dy) {
+    // TODO: store x or y as it is not modfiying value
     this._connectedPuyos.add(`${x - gameConfig.BOARD_LEFT_EDGE},${y - gameConfig.BOARD_TOP_EDGE},${color}:${dx},${dy}`);
   }
 

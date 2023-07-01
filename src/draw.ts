@@ -7,15 +7,10 @@ import { Board } from "./board.ts"
 import { Current } from "./current.ts"
 import { Bounce } from "./bounce.ts"
 import { Rotate } from "./rotate"
+import { Mountain } from "./mountain"
 
 
 export class DrawWithCanvas {
-  // const canvas = document.getElementById('tetrisCanvas');
-  // const ctx = canvas.getContext('2d');
-  //
-  // const nextPuyoCanvas = document.getElementById('nextPuyoCanvas');
-  // const nextPuyoCtx = nextPuyoCanvas.getContext('2d');
-
   private mainCanvas: HTMLCanvasElement;
   // TODO: type should be nullable?
   private ctx: CanvasRenderingContext2D;
@@ -31,6 +26,7 @@ export class DrawWithCanvas {
     private _rotate: Rotate,
     private _split: Split,
     private _chain: Chain,
+    private _mountain: Mountain,
     mainCanvasName: string,
     nextPuyoCanvasName: string,
   ) {
@@ -42,30 +38,31 @@ export class DrawWithCanvas {
 
   draw() {
     this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-    for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
-      for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
-        const cell = this._board.board[y][x];
-        if (cell !== gameConfig.NO_COLOR) {
-          this.drawPuyo(x, y, gameConfig.PUYO_COLORS[cell])
+
+    if (this._board.board) {
+      for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
+        for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+          const cell = this._board.board[y][x];
+          if (cell !== gameConfig.NO_COLOR) {
+            this.drawPuyo(x, y, gameConfig.PUYO_COLORS[cell])
+          }
         }
       }
     }
 
     this.drawConnecting();
 
+    for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
+      this.drawPuyo(floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
+    }
+
     for (const floatingPuyo of this._chain.floatingPuyos) {
       this.drawPuyo(floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
     }
 
     // this.draw splittedPuyo
-    // TODO: modify this condition (or remove)
-    if (gameState.currentState === gameState.SPLITTING ||
-      (gameState.currentState === gameState.JUST_DRAWING &&
-        gameState.prevState === gameState.SPLITTING)
-    ) {
+    if (this._split.splittedPuyo) {
       this.drawPuyo(this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
-      // TODO: is this necessary??? already should be locked on board
-      // this.drawPuyo(splittedPuyo.unsplittedX, splittedPuyo.unsplittedY, gameConfig.PUYO_COLORS[splittedPuyo.unsplittedColor]);
     }
 
     // this.draw currentPuyo

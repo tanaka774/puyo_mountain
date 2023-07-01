@@ -1,7 +1,7 @@
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
 import { gameState } from "./state.ts"
-import { baseManiPuyo } from "./puyo.ts"
+import { baseManiPuyo } from "./types.ts"
 import { Bounce } from "./bounce";
 
 export class Board {
@@ -31,7 +31,7 @@ export class Board {
     }
     // returning reference is okay?
     // return board;
-    this._board = board;
+    return board;
   }
 
   lockPuyo(board, posX, posY, color, recordFlag) {
@@ -49,6 +49,7 @@ export class Board {
   }
 
   get board() { return this._board; }
+  set board(board: number[][]) { this._board = board; }
 
   get lockWaitCount() { return this._lockWaitCount; }
   initLockWaitCount() { this._lockWaitCount = 0; }
