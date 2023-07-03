@@ -8,6 +8,9 @@ export class Current {
   private _currentPuyo: baseManiPuyo;
   private _nextPuyo: baseManiPuyo;
   private _doubleNextPuyo: baseManiPuyo;
+  private _versatilePuyo: baseManiPuyo;
+  private _isBeingVPuyoUsed: boolean;
+  private _hasVPuyoUsed: boolean;
 
   constructor(
     private _board: Board,
@@ -15,6 +18,34 @@ export class Current {
     this._currentPuyo = null;
     this._nextPuyo = null;
     this._doubleNextPuyo = null;
+    this._versatilePuyo = null;
+    this._isBeingVPuyoUsed = false;
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'c') {
+        if (gameState.currentState !== gameState.MANIPULATING ||
+          this._hasVPuyoUsed || !this._versatilePuyo
+        ) return;
+
+        this._versatilePuyo.parentColor = (this._versatilePuyo.parentColor) % 4 + 1;
+        this._versatilePuyo.childColor = (this._versatilePuyo.childColor) % 4 + 1;
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (gameState.currentState === gameState.MANIPULATING && e.key === 'd') {
+        if (this._hasVPuyoUsed) return;
+
+        // is this copy ok???
+        this._currentPuyo.parentX = gameConfig.PUYO_BIRTH_POSX;
+        this._currentPuyo.parentY = gameConfig.PUYO_BIRTH_POSY;
+        const temp = this._currentPuyo;
+        this._currentPuyo = this._versatilePuyo;
+        this._versatilePuyo = temp;
+        this._isBeingVPuyoUsed = true;
+        this._hasVPuyoUsed = true;
+      }
+    });
   }
 
   getRandomPuyo() {
@@ -29,9 +60,18 @@ export class Current {
   }
 
   newPuyoSet() {
-    this._currentPuyo = (gameState.prevState !== gameState.UNINIT) ? this._nextPuyo : this.getRandomPuyo();
+    if (this._isBeingVPuyoUsed) {
+      this._currentPuyo = this._versatilePuyo;
+      this._versatilePuyo = null;
+      this._isBeingVPuyoUsed = false;
+    } else {
+      this._currentPuyo = (gameState.prevState !== gameState.UNINIT)
+        ? this._nextPuyo
+        : this.getRandomPuyo();
+    }
     this._nextPuyo = (this._nextPuyo !== null) ? this._doubleNextPuyo : this.getRandomPuyo();
     this._doubleNextPuyo = this.getRandomPuyo();
+
   }
 
   getChildPos(puyo: baseManiPuyo) {
@@ -69,5 +109,16 @@ export class Current {
 
   get nextPuyo() { return this._nextPuyo; }
   get doubleNextPuyo() { return this._doubleNextPuyo; }
+  get versatilePuyo() { return this._versatilePuyo; }
+  initVPuyo() {
+    this._hasVPuyoUsed = false;
 
+    this._versatilePuyo = {
+      parentColor: 1,
+      childColor: 1,
+      parentX: gameConfig.PUYO_BIRTH_POSX,
+      parentY: gameConfig.PUYO_BIRTH_POSY,
+      angle: 0,
+    }
+  }
 }

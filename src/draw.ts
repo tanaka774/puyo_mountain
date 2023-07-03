@@ -87,6 +87,19 @@ export class DrawWithCanvas {
       this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 5 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
     }
 
+    // TODO: if null, some drawing effect
+    if (this._current.versatilePuyo) {
+      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.versatilePuyo.parentColor];
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 8 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.versatilePuyo.childColor];
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 9 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+    } else {
+      this.nextPuyoCtx.fillStyle = 'white';
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 8 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      this.nextPuyoCtx.fillStyle = 'white';
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 9 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+    }
+
     this.drawAfterimage();
 
     this.drawTriggerPuyos();

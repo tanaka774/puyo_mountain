@@ -95,6 +95,7 @@ export class Game {
         if (this._mountain.floatingSeedPuyos.length === 0) {
           gameState.setState(gameState.UNINIT);
           this._mountain.init();
+          this._current.initVPuyo();
           this._htmlHandle.initTimer();
         }
         break;
@@ -172,6 +173,7 @@ export class Game {
             this._mountain.addUnnecessaryVanishPuyoNum(this._chain.vanishPuyoNum);
           }
           this._chain.initVanishPuyoNum();
+
         }
 
         // chainfindfunction(
@@ -235,14 +237,6 @@ export class Game {
     if (this._bounce.willBounce &&
       (gameState.currentState !== gameState.FALLING_ABOVE_CHAIN)
     ) gameState.setState(gameState.JUST_DRAWING);
-  }
-
-  htmlUpdate() {
-    // TODO: consider performance by this
-    const targetChainNumShow = document.getElementById("targetChainCount");
-    targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖せよ！`
-    const chainNumShow = document.getElementById("chainCount");
-    chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
   }
 
   isGameOver() {
