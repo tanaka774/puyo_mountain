@@ -19,6 +19,8 @@ export class Mountain {
   private _currentTargetChainNum: number;
   private _currentTargetChainIndex: number;
   private _targetChainNums: number[][];
+  private _validVanishPuyoNum: number;
+  private _unnecessaryVanishPuyoNum: number;
   private _variability: number[]; // rough seedpuyo numbers of each Column
   private _currentLevel: number;
   private _elapsedTime: number; // consider its type
@@ -38,6 +40,8 @@ export class Mountain {
     this.init();
     this._phase = 1;
     this._everyPhaseEnds = false;
+    this._validVanishPuyoNum = 0;
+    this._unnecessaryVanishPuyoNum = 0;
     this.initTargetChain();
   }
 
@@ -231,4 +235,9 @@ export class Mountain {
   }
 
   get everyPhaseEnds() { return this._everyPhaseEnds; }
+
+  get validVanishPuyoNum() { return this._validVanishPuyoNum; }
+  get unnecessaryVanishPuyoNum() { return this._unnecessaryVanishPuyoNum; }
+  addValidVanishPuyoNum(val: number) { this._validVanishPuyoNum += val; }
+  addUnnecessaryVanishPuyoNum(val: number) { this._unnecessaryVanishPuyoNum += val; }
 }

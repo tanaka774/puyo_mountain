@@ -95,6 +95,7 @@ export class Game {
         if (this._mountain.floatingSeedPuyos.length === 0) {
           gameState.setState(gameState.UNINIT);
           this._mountain.init();
+          this._htmlHandle.initTimer();
         }
         break;
       case gameState.UNINIT:
@@ -152,18 +153,25 @@ export class Game {
           gameState.setState(gameState.CHAIN_VANISHING);
           this._chain.erasePuyos(this._board.board); // temp here, should go into VANISHING
         } else {
-          if (!this.isGameOver()) gameState.setState(gameState.PREPARE_NEXT);
+          if (!this.isGameOver()) {
+            gameState.setState(gameState.PREPARE_NEXT);
+          }
           else gameState.setState(gameState.GAMEOVER);
 
 
           // TODO: don't confuse mountain process like this
           if (this._chain.chainCount >= this._mountain.currentTargetChainNum) {
             gameState.setState(gameState.GENE_SEED_PUYOS);
+            this._mountain.addValidVanishPuyoNum(this._mountain.currentTargetChainNum * 4);
             this._mountain.nextTargetChain();
             this._chain.initConnectedPuyos();
             if (this._mountain.everyPhaseEnds)
               gameState.setState(gameState.GAMEOVER);
+          } else {
+            // if no chain happens, just 0 is added
+            this._mountain.addUnnecessaryVanishPuyoNum(this._chain.vanishPuyoNum);
           }
+          this._chain.initVanishPuyoNum();
         }
 
         // chainfindfunction(

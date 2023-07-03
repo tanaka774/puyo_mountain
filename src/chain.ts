@@ -8,6 +8,7 @@ import conso from "../sample/oldjs/test";
 export class Chain {
   private _floatingPuyos: baseSinglePuyo[];
   private _vanishPuyos: number[][];
+  private _vanishPuyoNum: number;
   private _chainVanishWaitCount: number;
   private _chainCount: number;
   private _virtualChainCount: number;
@@ -20,6 +21,7 @@ export class Chain {
   ) {
     this._floatingPuyos = [];
     this._vanishPuyos = [];
+    this._vanishPuyoNum = 0;
     this._chainVanishWaitCount = 0;
     this._chainCount = 0;
     this._virtualChainCount = 0;
@@ -160,6 +162,8 @@ export class Chain {
     // init maxcount first
     this._maxVirtualChainCount = 0;
     const triggerPuyosGroup = [];
+
+    // find 3 connected and exposed
     this.findConnectedPuyos(board, (savePuyos) => {
       const isExposed = savePuyos.some((puyo) => {
         const diffs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
@@ -431,9 +435,14 @@ export class Chain {
   incrementChainVanishWaitCount() { this._chainVanishWaitCount++; }
   initChainVanishWaitCount() { this._chainVanishWaitCount = 0; }
 
-  addVanishPuyos(savePuyos: number[]) { this._vanishPuyos.push(savePuyos); }
+  addVanishPuyos(savePuyos: number[]) {
+    this._vanishPuyos.push(savePuyos);
+    this._vanishPuyoNum += savePuyos.length;
+  }
   get vanishPuyos() { return this._vanishPuyos; }
   initVanishPuyos() { this._vanishPuyos = []; }
+  get vanishPuyoNum() { return this._vanishPuyoNum; }
+  initVanishPuyoNum() { this._vanishPuyoNum = 0; }
 
   get floatingPuyos() { return this._floatingPuyos; }
   set floatingPuyos(puyos: baseSinglePuyo[]) { this._floatingPuyos = puyos; }
