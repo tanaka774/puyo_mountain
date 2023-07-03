@@ -1,7 +1,8 @@
-import { baseSinglePuyo } from "./types.ts"
+import { baseManiPuyo, baseSinglePuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
 import { Board } from "./board"
+import conso from "../sample/oldjs/test";
 
 
 export class Chain {
@@ -29,7 +30,7 @@ export class Chain {
 
   findConnectedPuyos(
     board: number[][],
-    foundCallback: (puyos: number[]) => void,
+    foundCallback: (puyos: number[][]) => void,
     connectNum = 4,
     willChangeConnect = true
   ) {
@@ -47,7 +48,7 @@ export class Chain {
     for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
       for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
         if (board[y][x] === gameConfig.NO_COLOR) continue;
-        const savePuyos = [];
+        const savePuyos: number[][] = [];
         connectedPuyoNums = this.checkConnected(board, x, y, checkedCells, board[y][x], savePuyos, willChangeConnect);
         if (connectedPuyoNums >= connectNum) {
           // this._vanishPuyos.push(savePuyos);
@@ -155,23 +156,32 @@ export class Chain {
 
 
   // TODO: this is incomplete
-  detectPossibleChain(board: number[][]) {
+  detectPossibleChain(board: number[][], currentPuyo: baseManiPuyo) {
     // init maxcount first
     this._maxVirtualChainCount = 0;
-    const triggerPuyosGroups = [];
+    const triggerPuyosGroup = [];
     this.findConnectedPuyos(board, (savePuyos) => {
       const isExposed = savePuyos.some((puyo) => {
         const diffs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
         return diffs.some((diff) => board[puyo[1] + diff[1]][puyo[0] + diff[0]] === 0)
       })
-      if (isExposed) triggerPuyosGroups.push(savePuyos);
+      if (isExposed) triggerPuyosGroup.push(savePuyos);
     }, 3, false);
 
-    this.searchBucketShape(board, triggerPuyosGroups);
+    this.searchIgnitionHole(board, triggerPuyosGroup);
+    this.searchWithCurrentPuyo(board, triggerPuyosGroup, currentPuyo);
 
-    for (const triggerPuyos of triggerPuyosGroups) {
-      const firstVanish = [triggerPuyos]; // turn into a form of vanishpuyos(double array)
+    for (let triggerPuyos of triggerPuyosGroup) {
       const virtualBoard = JSON.parse(JSON.stringify(board));
+      triggerPuyos.forEach(triggerPuyo => {
+        if (triggerPuyo.length > 2) {
+          // this is related to currentpuyo search, write on virtualBoard and delete
+          virtualBoard[triggerPuyo[1]][triggerPuyo[0]] = triggerPuyo[2];
+          triggerPuyos = triggerPuyos.filter((puyo) => !(puyo[0] === triggerPuyo[0] && puyo[1] === triggerPuyo[1]));
+        }
+      });
+
+      const firstVanish = [triggerPuyos]; // turn into a form of vanishpuyos(double array)
       this.letPuyosFallVirtually(virtualBoard, firstVanish);
 
       this._virtualChainCount = 1;
@@ -183,34 +193,122 @@ export class Chain {
     }
   }
 
-  searchBucketShape(board: number[][], triggerPuyos: number[][][]) {
+  searchWithCurrentPuyo(board: number[][], triggerPuyosGroup/*: number[][] | number[][][]*/, currentPuyo: baseManiPuyo) {
+    const lowestPoss = [];
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE; y--) {
+        if (board[y][x] !== 0) continue;
+        lowestPoss.push([x, y]);
+        break;
+      }
+    }
+
+    lowestPoss.forEach((curLowestPos, index, ori) => {
+      const lx = curLowestPos[0];
+      const ly = curLowestPos[1];
+      // put on puyo vertically
+      this.putOnCurrentPuyoVirtually(board, triggerPuyosGroup,
+        lx, ly, currentPuyo.parentColor, lx, ly - 1, currentPuyo.childColor);
+
+      if (currentPuyo.parentColor !== currentPuyo.childColor)
+        this.putOnCurrentPuyoVirtually(board, triggerPuyosGroup,
+          lx, ly, currentPuyo.childColor, lx, ly - 1, currentPuyo.parentColor);
+
+      // put on puyo horizontally
+      if (index === lowestPoss.length - 1) return;
+      const nextlx = ori[index + 1][0];
+      const nextly = ori[index + 1][1];
+
+      this.putOnCurrentPuyoVirtually(board, triggerPuyosGroup,
+        lx, ly, currentPuyo.parentColor, nextlx, nextly, currentPuyo.childColor);
+
+      if (currentPuyo.parentColor !== currentPuyo.childColor)
+        this.putOnCurrentPuyoVirtually(board, triggerPuyosGroup,
+          lx, ly, currentPuyo.childColor, nextlx, nextly, currentPuyo.parentColor);
+    })
+  }
+
+  private putOnCurrentPuyoVirtually(board: number[][], triggerPuyosGroup,
+    x1, y1, color1, x2, y2, color2
+  ) {
+    let tempBoard = JSON.parse(JSON.stringify(board));
+
+    tempBoard[y1][x1] = color1;
+    tempBoard[y2][x2] = color2;
+
+    this.findConnectedPuyos(tempBoard, (savePuyos) => {
+      const existsPuyo1 = savePuyos.some((puyo) => puyo[0] === x1 && puyo[1] === y1);
+      const existsPuyo2 = savePuyos.some((puyo) => puyo[0] === x2 && puyo[1] === y2);
+
+      if (existsPuyo1 && existsPuyo2) {
+        savePuyos = savePuyos.filter((puyo) => !(puyo[0] === x1 && puyo[1] === y1));
+        savePuyos = savePuyos.filter((puyo) => !(puyo[0] === x2 && puyo[1] === y2));
+        savePuyos.push([x1, y1, color1]);
+        savePuyos.push([x2, y2, color2]);
+      } else if (existsPuyo1) {
+        savePuyos = savePuyos.filter((puyo) => !(puyo[0] === x1 && puyo[1] === y1));
+        savePuyos.push([x2, y2, color2]);
+      } else if (existsPuyo2) {
+        savePuyos = savePuyos.filter((puyo) => !(puyo[0] === x2 && puyo[1] === y2));
+        savePuyos.push([x1, y1, color1]);
+      }
+      triggerPuyosGroup.push(savePuyos);
+    }, 4, false);
+  }
+
+  // TODO: give it on some thoughts for doing recursively. and need unittest for this.
+  searchIgnitionHole(board: number[][], triggerPuyosGroup: number[][][]) {
     // search puyos which can trigger chain not in threesome
     for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
       for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y > gameConfig.BOARD_TOP_EDGE; y--) {
-        if (board[y][x] !== 0 && board[y - 1][x] === 0) {
+        if (board[y][x] !== 0 &&
+          board[y - 1][x] === 0 &&
+          (board[y][x] === board[y - 1][x - 1] || board[y][x] === board[y - 1][x + 1]) // temp, need to improve
+        ) {
           // TODO: need more shape
           if (board[y - 1][x - 1] === board[y][x] && board[y][x] === board[y - 1][x + 1]) {
-            triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y - 1]]);
+            triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 1]]);
           }
           else if (board[y - 1][x - 1] === board[y][x]) {
             if (board[y][x] === board[y][x + 1])
-              triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
+              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
             if (x > gameConfig.BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
-              triggerPuyos.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
+              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
             if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
-              triggerPuyos.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
+              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
             if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x - 1])
-              triggerPuyos.push([[x - 1, y - 1], [x, y], [x - 1, y - 2]]);
+              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 1, y - 2]]);
           }
           else if (board[y - 1][x + 1] === board[y][x]) {
             if (board[y][x] === board[y][x - 1])
-              triggerPuyos.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
+              triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
             if (x < gameConfig.BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
-              triggerPuyos.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
+              triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
             if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
-              triggerPuyos.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
+              triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
             if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x + 1])
-              triggerPuyos.push([[x - 1, y - 1], [x, y], [x + 1, y - 2]]);
+              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 2]]);
+          }
+          break;
+        }
+
+        if (board[y][x] === 0 &&
+          board[y + 1][x] !== 0 &&
+          board[y][x - 1] !== 0 &&
+          board[y][x - 1] === board[y][x + 1]
+        ) {
+          if (x - 2 >= gameConfig.BOARD_LEFT_EDGE && board[y][x - 2] === board[y][x - 1]) {
+            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 2, y]]);
+          } else if (x + 2 < gameConfig.BOARD_RIGHT_EDGE && board[y][x + 1] === board[y][x + 2]) {
+            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 2, y]]);
+          } else if (board[y][x - 1] === board[y - 1][x - 1]) {
+            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y - 1]]);
+          } else if (board[y][x + 1] === board[y - 1][x + 1]) {
+            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y - 1]]);
+          } else if (board[y][x - 1] === board[y + 1][x - 1]) {
+            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y + 1]]);
+          } else if (board[y][x + 1] === board[y + 1][x + 1]) {
+            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y + 1]]);
           }
           break;
         }

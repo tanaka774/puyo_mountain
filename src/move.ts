@@ -54,6 +54,7 @@ export class Move {
         // must increment lockWaitCount to max in lockpuyo() not here
         // check lockwaitcount
         if (_board.checkLockWaitCount(gameConfig.LOCK_WAIT_TIME - 1)) {
+          // _board.incrementLockWaitCount();
           return false;
         }
       } else {
@@ -174,7 +175,7 @@ export class Move {
     }
   }
 
-  // TODO: this should be separated, so that this returns true or false of canfall
+  // TODO: really? -> this should be separated, so that this returns true or false of canfall
   letSinglePuyoFall(
     _board: Board,
     singlePuyo: baseSinglePuyo,

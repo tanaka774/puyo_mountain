@@ -15,24 +15,30 @@ export enum Difficulty {
 export class Mountain {
   private _seedPuyos: baseSinglePuyo[];
   private _floatingSeedPuyos: baseSinglePuyo[];
-  private _currentDifficulty: Difficulty;
-  private _targetChainNum: number;
-  private _unnecessaryChains: number;
+  // private _currentDifficulty: Difficulty;
+  private _currentTargetChainNum: number;
+  private _currentTargetChainIndex: number;
+  private _targetChainNums: number[][];
   private _variability: number[]; // rough seedpuyo numbers of each Column
   private _currentLevel: number;
   private _elapsedTime: number; // consider its type
   private _virtualBoard: number[][];
+  private _phase: number;
+  private _totalChainNum: number;
+  private _unnecessaryChainNum: number;
+  private _everyPhaseEnds: boolean;
 
   constructor(
     private _board: Board,
     private _move: Move,
     private _chain: Chain,
-    targetChainNum: number,
-    difficulty: Difficulty,
+    // difficulty: Difficulty,
   ) {
-    this._targetChainNum = targetChainNum;
-    this._currentDifficulty = difficulty;
+    // this._currentDifficulty = difficulty;
     this.init();
+    this._phase = 1;
+    this._everyPhaseEnds = false;
+    this.initTargetChain();
   }
 
   generateSeedPuyos() {
@@ -52,8 +58,8 @@ export class Mountain {
 
   decideVariablilty() {
     // TODO: may change according to difficulty? this is test now!
-    const divider = 3;
-    const seedPuyoNum = this._targetChainNum * 4 / divider;
+    const divider = 2 + (2 - this._phase / this._targetChainNums.length);
+    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     // TODO: need to limit side range
     const distributionNum = Math.floor(Math.random() * (boardWidth - 2)) + 2;
@@ -180,6 +186,12 @@ export class Mountain {
 
   isClearGame() { }
 
+  initTargetChain() {
+    this._targetChainNums =
+      [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]];
+    this._currentTargetChainIndex = 0;
+    this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
+  }
 
   initVariability() {
     this._variability =
@@ -198,6 +210,25 @@ export class Mountain {
   get floatingSeedPuyos() { return this._floatingSeedPuyos; }
   set floatingSeedPuyos(puyos: baseSinglePuyo[]) { this._floatingSeedPuyos = puyos; }
 
-  get targetChainNum() { return this._targetChainNum; }
-  incrementTargetChainNum() { this._targetChainNum++; }
+  get currentTargetChainNum() { return this._currentTargetChainNum; }
+  nextTargetChain() {
+    if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex &&
+      this._targetChainNums.length === this._phase
+    ) {
+      // this is the end of game
+      this._currentTargetChainNum = 99;
+      this._everyPhaseEnds = true;
+      return;
+    }
+    if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex) {
+      this._phase++;
+      this._currentTargetChainIndex = 0;
+    } else {
+      this._currentTargetChainIndex++;
+    }
+
+    this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
+  }
+
+  get everyPhaseEnds() { return this._everyPhaseEnds; }
 }

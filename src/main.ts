@@ -14,6 +14,7 @@ import { Board } from "./board.ts"
 import { Current } from "./current.ts"
 import { Rotate } from "./rotate.ts"
 import { Difficulty, Mountain } from "./mountain"
+import { HtmlHandle } from "./htmlHandle"
 
 function main() {
   const menu = new Menu();
@@ -24,11 +25,13 @@ function main() {
   const chain = new Chain(board);
   const move = new Move(current, split);
   const rotate = new Rotate(current, move);
-  const mountain = new Mountain(board, move, chain, 4, Difficulty.EASY);
+  const mountain = new Mountain(board, move, chain);
   const input = new Input(board, current, move, rotate);
-  const draw = new DrawWithCanvas(bounce, board, current, move, rotate, split, chain, mountain, 'tetrisCanvas', 'nextPuyoCanvas');
+  const draw = new DrawWithCanvas(bounce, board, current, move, rotate,
+    split, chain, mountain, 'tetrisCanvas', 'nextPuyoCanvas');
+  const htmlHandle = new HtmlHandle(chain, mountain);
   const game = new Game(menu, bounce, board, current, move, rotate,
-    split, chain, input, draw, mountain);
+    split, chain, input, draw, mountain, htmlHandle);
 
   setCallback();
 

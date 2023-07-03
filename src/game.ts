@@ -13,6 +13,7 @@ import { Input } from "./input"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate.ts"
 import { Mountain } from "./mountain"
+import { HtmlHandle } from "./htmlHandle"
 
 export class Game {
   constructor(
@@ -27,6 +28,7 @@ export class Game {
     private _input: Input,
     private _draw: DrawWithCanvas,
     private _mountain: Mountain,
+    private _htmlHandle: HtmlHandle,
   ) {
   }
 
@@ -52,7 +54,7 @@ export class Game {
       }
     }
 
-    this._chain.detectPossibleChain(this._board.board);
+    this._chain.detectPossibleChain(this._board.board, this._current.currentPuyo);
 
     setNextState();
   }
@@ -68,7 +70,6 @@ export class Game {
         break;
       case gameState.MENU:
         // open menu
-        // if game start is pressed, go UNINIT
         break;
       case gameState.GENE_SEED_PUYOS:
         this._mountain.decideVariablilty();
@@ -84,11 +85,9 @@ export class Game {
             floatingSeedPuyo,
             recordPuyoSteps.SEED_PUYO_REC_FLAG,
             () => {
-              // remove fixed puyo from _floatingPuyos(array)
+              // remove fixed puyo from _floatingseedPuyos(array)
               this._mountain.floatingSeedPuyos =
-                this._mountain.floatingSeedPuyos.filter(
-                  (cur) => !(cur["posX"] === floatingSeedPuyo.posX &&
-                    cur["posY"] === floatingSeedPuyo.posY));
+                this._mountain.floatingSeedPuyos.filter((cur) => !(cur["posX"] === floatingSeedPuyo.posX && cur["posY"] === floatingSeedPuyo.posY));
             }
           )
         });
@@ -132,7 +131,7 @@ export class Game {
           recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG,
           () => {
             this._split.splittedPuyo = null;
-            gameState.setState(gameState.CHAIN_FINDING)
+            gameState.setState(gameState.CHAIN_FINDING);
           }
         )
         break;
@@ -158,10 +157,12 @@ export class Game {
 
 
           // TODO: don't confuse mountain process like this
-          if (this._chain.chainCount >= this._mountain.targetChainNum) {
+          if (this._chain.chainCount >= this._mountain.currentTargetChainNum) {
             gameState.setState(gameState.GENE_SEED_PUYOS);
-            this._mountain.incrementTargetChainNum();
+            this._mountain.nextTargetChain();
             this._chain.initConnectedPuyos();
+            if (this._mountain.everyPhaseEnds)
+              gameState.setState(gameState.GAMEOVER);
           }
         }
 
@@ -192,17 +193,11 @@ export class Game {
             () => {
               // remove fixed puyo from _floatingPuyos(array)
               this._chain.floatingPuyos =
-                this._chain.floatingPuyos.filter(
-                  (cur) => !(cur["posX"] === floatingPuyo.posX &&
-                    cur["posY"] === floatingPuyo.posY));
+                this._chain.floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
             }
           )
         });
 
-        // if (this._chain.floatingPuyos.length > 0) {
-        //   this._chain.letFloatingPuyosFall(this._board.board);
-        //   // this state again
-        // } else {
         if (this._chain.floatingPuyos.length === 0) {
           gameState.setState(gameState.CHAIN_FINDING);
           this._chain.initVanishPuyos();
@@ -223,7 +218,7 @@ export class Game {
 
     this._draw.draw();
 
-    this.htmlUpdate();
+    this._htmlHandle.htmlUpdate();
 
     requestAnimationFrame(() => this.gameLoop(this));
   }
@@ -237,7 +232,7 @@ export class Game {
   htmlUpdate() {
     // TODO: consider performance by this
     const targetChainNumShow = document.getElementById("targetChainCount");
-    targetChainNumShow.textContent = `${this._mountain.targetChainNum} 連鎖せよ！`
+    targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖せよ！`
     const chainNumShow = document.getElementById("chainCount");
     chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
   }
