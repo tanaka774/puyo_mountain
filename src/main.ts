@@ -62,6 +62,10 @@ function main() {
       () => gameState.setState(gameState.UNINIT),
       () => gameState.setState(gameState.GENE_SEED_PUYOS),
     );
+
+    current.setCallback(
+      () => chain.detectPossibleChain(board.board, current.currentPuyo)
+    );
   }
 }
 

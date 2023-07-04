@@ -50,7 +50,7 @@ export class DrawWithCanvas {
     this.ctx.fillRect(40, 40, 20, 20);
 
     if (this._board.board) {
-      for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
+      for (let y = gameConfig.BOARD_TOP_EDGE - 1; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
         for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
           const cell = this._board.board[y][x];
           if (cell !== gameConfig.NO_COLOR) {
@@ -61,13 +61,13 @@ export class DrawWithCanvas {
 
       // ghost zone
       // for (let y = gameConfig.BOARD_GHOST_ZONE; y < gameConfig.BOARD_TOP_EDGE; y++) {
-      for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
-        const y = gameConfig.BOARD_GHOST_ZONE + 1;
-        const cell = this._board.board[y][x];
-        if (cell !== gameConfig.NO_COLOR) {
-          this.drawPuyo(x, y, this.addAlpha(gameConfig.PUYO_COLORS[cell], 0.5))
-        }
-      }
+      // for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      //   const y = gameConfig.BOARD_GHOST_ZONE + 1;
+      //   const cell = this._board.board[y][x];
+      //   if (cell !== gameConfig.NO_COLOR) {
+      //     this.drawPuyo(x, y, this.addAlpha(gameConfig.PUYO_COLORS[cell], 0.5))
+      //   }
+      // }
       // }
     }
   }
@@ -98,13 +98,13 @@ export class DrawWithCanvas {
       this.drawPuyo(childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
     }
 
-    this.drawNextBoard(this._current.nextPuyo, 1);
-    this.drawNextBoard(this._current.doubleNextPuyo, 4);
-    this.drawNextBoard(this._current.versatilePuyo, 8);
-
     this.drawAfterimage();
 
     this.drawTriggerPuyos();
+
+    this.drawNextBoard(this._current.nextPuyo, 1);
+    this.drawNextBoard(this._current.doubleNextPuyo, 4);
+    this.drawNextBoard(this._current.versatilePuyo, 9);
   }
 
   // temp
@@ -134,6 +134,11 @@ export class DrawWithCanvas {
     // this.drawEllipse(this.ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
     // this.drawEyes(this.ctx, elliX, elliY);
 
+    // if in ghost zone, add transparency
+    if (y <= gameConfig.BOARD_TOP_EDGE - 0.5) {
+      color = this.addAlpha(color, 0.5);
+    }
+
     if (this._bounce.willBounce &&
       [...this._bounce.bouncePuyos].some((elem: string) => {
         const posX = parseInt(elem.split(',')[0], 10);
@@ -141,7 +146,9 @@ export class DrawWithCanvas {
         return posX === x && posY === y
       })
     ) {
-      this.drawBounce(x, y, radiusY, elliY, () => { this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke); });
+      this.drawBounce(x, y, radiusY, elliY,
+        () => { this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke); }
+      );
     } else {
       this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke);
     }

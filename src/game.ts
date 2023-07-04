@@ -72,12 +72,12 @@ export class Game {
         // open menu
         break;
       case gameState.GENE_SEED_PUYOS:
+        this._current.initPuyos();
+        this._board.board = this._board.createBoard();
         this._mountain.decideVariablilty();
         this._mountain.generateSeedPuyos();
         this._mountain.changeExcessPuyo();
         this._mountain.setFloatingSeedPuyos();
-        this._board.board = this._board.createBoard();
-        this._current.initPuyos();
         gameState.setState(gameState.FALLING_SEED_PUYOS);
         break;
       case gameState.FALLING_SEED_PUYOS:

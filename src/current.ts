@@ -11,6 +11,7 @@ export class Current {
   private _versatilePuyo: baseManiPuyo;
   private _isBeingVPuyoUsed: boolean;
   private _hasVPuyoUsed: boolean;
+  private _afterVPuyoSwitching: () => void;
 
   constructor(
     private _board: Board,
@@ -48,6 +49,8 @@ export class Current {
         this._versatilePuyo = temp;
         this._isBeingVPuyoUsed = true;
         this._hasVPuyoUsed = true;
+
+        this._afterVPuyoSwitching();
       }
     });
   }
@@ -133,5 +136,9 @@ export class Current {
       parentY: gameConfig.PUYO_BIRTH_POSY,
       angle: 0,
     }
+  }
+
+  setCallback(afterVPuyoSwitching: () => void) {
+    this._afterVPuyoSwitching = afterVPuyoSwitching;
   }
 }
