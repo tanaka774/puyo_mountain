@@ -13,7 +13,7 @@ import { Bounce } from "./bounce.ts"
 import { Board } from "./board.ts"
 import { Current } from "./current.ts"
 import { Rotate } from "./rotate.ts"
-import { Difficulty, Mountain } from "./mountain"
+import { Difficulty, GameMode, Mountain } from "./mountain"
 import { HtmlHandle } from "./htmlHandle"
 
 function main() {
@@ -60,7 +60,16 @@ function main() {
 
     menu.setCallback(
       () => gameState.setState(gameState.UNINIT),
-      () => gameState.setState(gameState.GENE_SEED_PUYOS),
+      () => {
+        gameState.setState(gameState.GENE_SEED_PUYOS);
+        mountain.setGameMode(GameMode.ARCADE);
+        mountain.initTargetChain();
+      },
+      () => {
+        gameState.setState(gameState.GENE_SEED_PUYOS);
+        mountain.setGameMode(GameMode.ENDURANCE);
+        mountain.initTargetChain();
+      }
     );
 
     current.setCallback(

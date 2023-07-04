@@ -85,11 +85,7 @@ export class Game {
           this._move.letSinglePuyoFall(this._board,
             floatingSeedPuyo,
             recordPuyoSteps.SEED_PUYO_REC_FLAG,
-            () => {
-              // remove fixed puyo from _floatingseedPuyos(array)
-              this._mountain.floatingSeedPuyos =
-                this._mountain.floatingSeedPuyos.filter((cur) => !(cur["posX"] === floatingSeedPuyo.posX && cur["posY"] === floatingSeedPuyo.posY));
-            }
+            () => { this._mountain.deleteFloatingSeedPuyos(floatingSeedPuyo); }
           )
         });
 
@@ -201,11 +197,7 @@ export class Game {
           this._move.letSinglePuyoFall(this._board,
             floatingPuyo,
             recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG,
-            () => {
-              // remove fixed puyo from _floatingPuyos(array)
-              this._chain.floatingPuyos =
-                this._chain.floatingPuyos.filter((cur) => !(cur["posX"] === floatingPuyo.posX && cur["posY"] === floatingPuyo.posY));
-            }
+            () => { this._chain.deleteFloatingPuyos(floatingPuyo); }
           )
         });
 

@@ -3,6 +3,7 @@ export class Menu {
   private selectedIndex: number;
   private setStateMode1: () => void;
   private setStateMode2: () => void;
+  private setStateMode3: () => void;
 
   constructor() {
     this.buttons = document.querySelectorAll('.menu-container button');
@@ -76,21 +77,16 @@ export class Menu {
     let willCloseMenu = false;
     switch (index) {
       case 0:
-        // Action for Game Mode 1
-        console.log('Game Mode 1 selected');
         willCloseMenu = true;
         this.setStateMode1();
         break;
       case 1:
-        // Action for Game Mode 2
-        console.log('Game Mode 2 selected');
         willCloseMenu = true;
         this.setStateMode2();
         break;
       case 2:
-        // Action for Quit Game
-        console.log('Quit game');
         willCloseMenu = true;
+        this.setStateMode3();
         break;
       default:
         break;
@@ -102,9 +98,10 @@ export class Menu {
     }
   }
 
-  setCallback(setStateMode1, setStateMode2) {
+  setCallback(setStateMode1, setStateMode2, setStateMode3) {
     this.setStateMode1 = setStateMode1;
     this.setStateMode2 = setStateMode2;
+    this.setStateMode3 = setStateMode3;
   }
 }
 

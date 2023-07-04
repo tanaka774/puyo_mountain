@@ -1,5 +1,5 @@
 import { Chain } from "./chain";
-import { Mountain } from "./mountain";
+import { GameMode, Mountain } from "./mountain";
 import { gameState } from "./state";
 
 
@@ -35,7 +35,11 @@ export class HtmlHandle {
   }
 
   htmlUpdate() {
-    this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 　 フェーズ ${this._mountain.phase}`
+    if (this._mountain.currentMode === GameMode.ARCADE) {
+      this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 　 フェーズ ${this._mountain.phase}`
+    } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
+      this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 現在 ${this._mountain.totalChainNum} / ${this._mountain.enduranceChainNum}`
+    }
     this._chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
   }

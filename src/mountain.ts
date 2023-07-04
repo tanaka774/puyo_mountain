@@ -1,7 +1,6 @@
 import { gameConfig } from "./config";
 import { Chain } from "./chain";
 import { Move } from "./move";
-import conso from "../sample/oldjs/test";
 import { baseSinglePuyo } from "./types";
 import { Board } from "./board";
 
@@ -10,6 +9,10 @@ export enum Difficulty {
   EASY,
   NORMAL,
   HARD
+}
+
+export enum GameMode {
+  ARCADE, ENDURANCE,
 }
 
 export class Mountain {
@@ -29,6 +32,8 @@ export class Mountain {
   private _totalChainNum: number;
   private _unnecessaryChainNum: number;
   private _everyPhaseEnds: boolean;
+  private _currentMode: GameMode;
+  private _enduranceChainNum: number;
 
   constructor(
     private _board: Board,
@@ -42,7 +47,7 @@ export class Mountain {
     this._everyPhaseEnds = false;
     this._validVanishPuyoNum = 0;
     this._unnecessaryVanishPuyoNum = 0;
-    this.initTargetChain();
+    // this.initTargetChain();
   }
 
   generateSeedPuyos() {
@@ -62,7 +67,9 @@ export class Mountain {
 
   decideVariablilty() {
     // TODO: may change according to difficulty? this is test now!
-    const divider = 2 + (2 - this._phase / this._targetChainNums.length);
+    const divider = (this._currentMode === GameMode.ARCADE)
+      ? 2 + (2 - this._phase / this._targetChainNums.length)
+      : 3;
     const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     // TODO: need to limit side range
@@ -89,7 +96,6 @@ export class Mountain {
       } else {
         this._variability[randomIndex] = puyoNum;
       }
-
     }
 
     // prevent seedpuyo from filling birth puyo pos
@@ -191,10 +197,19 @@ export class Mountain {
   isClearGame() { }
 
   initTargetChain() {
-    this._targetChainNums =
-      [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]];
-    this._currentTargetChainIndex = 0;
-    this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
+    if (this._currentMode === GameMode.ARCADE) {
+      this._targetChainNums = [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]]
+      this._currentTargetChainIndex = 0;
+      this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
+    } else if (this._currentMode === GameMode.ENDURANCE) {
+      // this._targetChainNums = [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]]
+      // this._currentTargetChainIndex = 0;
+      // TODO: temp,
+      this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
+      this._enduranceChainNum = 500;
+    }
+    //common
+    this._totalChainNum = 0;
   }
 
   initVariability() {
@@ -213,17 +228,38 @@ export class Mountain {
 
   get floatingSeedPuyos() { return this._floatingSeedPuyos; }
   set floatingSeedPuyos(puyos: baseSinglePuyo[]) { this._floatingSeedPuyos = puyos; }
+  // TODO: make common method as floatingpuyo
+  deleteFloatingSeedPuyos(floatingSeedPuyo: baseSinglePuyo) {
+    this._floatingSeedPuyos =
+      this._floatingSeedPuyos.filter(
+        (cur) => !(cur["posX"] === floatingSeedPuyo.posX && cur["posY"] === floatingSeedPuyo.posY)
+      );
+  }
 
   get currentTargetChainNum() { return this._currentTargetChainNum; }
   nextTargetChain() {
+    // TODO: separate function according to gamemode
+    // temp, for endurance
+    if (this._currentMode === GameMode.ENDURANCE) {
+      this._totalChainNum += this._currentTargetChainNum;
+      if (this._totalChainNum >= this._enduranceChainNum) {
+        this._everyPhaseEnds = true;
+        return;
+      }
+      this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
+      return;
+    }
+
+    // for ARCADE
     if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex &&
       this._targetChainNums.length === this._phase
     ) {
-      // this is the end of game
+      // end of game
       this._currentTargetChainNum = 99;
       this._everyPhaseEnds = true;
       return;
     }
+
     if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex) {
       this._phase++;
       this._currentTargetChainIndex = 0;
@@ -241,4 +277,10 @@ export class Mountain {
   get unnecessaryVanishPuyoNum() { return this._unnecessaryVanishPuyoNum; }
   addValidVanishPuyoNum(val: number) { this._validVanishPuyoNum += val; }
   addUnnecessaryVanishPuyoNum(val: number) { this._unnecessaryVanishPuyoNum += val; }
+
+  setGameMode(mode: GameMode) { this._currentMode = mode; }
+  get currentMode() { return this._currentMode; }
+
+  get totalChainNum() { return this._totalChainNum; }
+  get enduranceChainNum() { return this._enduranceChainNum; }
 }
