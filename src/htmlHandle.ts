@@ -35,7 +35,7 @@ export class HtmlHandle {
   }
 
   htmlUpdate() {
-    this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖せよ！`
+    this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 　 フェーズ ${this._mountain.phase}`
     this._chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
   }

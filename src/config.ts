@@ -8,8 +8,9 @@ const CELL_SIZE = 20;
 // y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
 const BOARD_LEFT_EDGE = 1;
 const BOARD_RIGHT_EDGE = BOARD_LEFT_EDGE + canvas.width / CELL_SIZE;// - 1;
+const BOARD_GHOST_ZONE = 2; // untransparent zone above top
 const BOARD_TOP_EDGE = 4;
-const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + canvas.height / CELL_SIZE;// - 1;
+const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + canvas.height / CELL_SIZE - BOARD_GHOST_ZONE;// - 1;
 const NO_COLOR = 0;
 const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1;
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
@@ -33,6 +34,7 @@ export const gameConfig = Object.freeze({
   CELL_SIZE,
   BOARD_LEFT_EDGE,
   BOARD_RIGHT_EDGE,
+  BOARD_GHOST_ZONE,
   BOARD_TOP_EDGE,
   BOARD_BOTTOM_EDGE,
   NO_COLOR,

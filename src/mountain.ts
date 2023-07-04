@@ -234,6 +234,7 @@ export class Mountain {
     this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
   }
 
+  get phase() { return this._phase; }
   get everyPhaseEnds() { return this._everyPhaseEnds; }
 
   get validVanishPuyoNum() { return this._validVanishPuyoNum; }

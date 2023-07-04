@@ -95,7 +95,11 @@ export class Rotate {
         // _board.board[Math.floor(rotatedChildY) + 1][currentChildX] !== gameConfig.NO_COLOR
       ) {
         // TODO: some animation at push up?
-        rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.5; // for mawashi??
+        if (rotatedPuyo.parentY < 2) {
+          rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.1; // for mawashi??
+        } else {
+          rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.5; // for mawashi??
+        }
       }
       canRotate = true;
     }

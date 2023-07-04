@@ -20,6 +20,7 @@ export class Current {
     this._doubleNextPuyo = null;
     this._versatilePuyo = null;
     this._isBeingVPuyoUsed = false;
+    this._hasVPuyoUsed = false;
 
     document.addEventListener('keydown', e => {
       if (e.key === 'c') {
@@ -33,12 +34,15 @@ export class Current {
     });
 
     document.addEventListener('keydown', e => {
-      if (gameState.currentState === gameState.MANIPULATING && e.key === 'd') {
-        if (this._hasVPuyoUsed) return;
+      if (e.key === 'd') {
+        if (gameState.currentState !== gameState.MANIPULATING &&
+          this._hasVPuyoUsed
+        ) return;
 
         // is this copy ok???
         this._currentPuyo.parentX = gameConfig.PUYO_BIRTH_POSX;
         this._currentPuyo.parentY = gameConfig.PUYO_BIRTH_POSY;
+        this._currentPuyo.angle = 0;
         const temp = this._currentPuyo;
         this._currentPuyo = this._versatilePuyo;
         this._versatilePuyo = temp;
@@ -68,9 +72,9 @@ export class Current {
       this._currentPuyo = (gameState.prevState !== gameState.UNINIT)
         ? this._nextPuyo
         : this.getRandomPuyo();
+      this._nextPuyo = (this._nextPuyo !== null) ? this._doubleNextPuyo : this.getRandomPuyo();
+      this._doubleNextPuyo = this.getRandomPuyo();
     }
-    this._nextPuyo = (this._nextPuyo !== null) ? this._doubleNextPuyo : this.getRandomPuyo();
-    this._doubleNextPuyo = this.getRandomPuyo();
 
   }
 
@@ -109,8 +113,17 @@ export class Current {
 
   get nextPuyo() { return this._nextPuyo; }
   get doubleNextPuyo() { return this._doubleNextPuyo; }
+
+  initPuyos() {
+    this._currentPuyo = null;
+    this._nextPuyo = null;
+    this._doubleNextPuyo = null;
+    this._versatilePuyo = null;
+  }
+
   get versatilePuyo() { return this._versatilePuyo; }
   initVPuyo() {
+    this._isBeingVPuyoUsed = false;
     this._hasVPuyoUsed = false;
 
     this._versatilePuyo = {

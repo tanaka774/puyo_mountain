@@ -77,6 +77,7 @@ export class Game {
         this._mountain.changeExcessPuyo();
         this._mountain.setFloatingSeedPuyos();
         this._board.board = this._board.createBoard();
+        this._current.initPuyos();
         gameState.setState(gameState.FALLING_SEED_PUYOS);
         break;
       case gameState.FALLING_SEED_PUYOS:

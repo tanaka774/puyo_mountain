@@ -1,3 +1,4 @@
+import { baseManiPuyo } from "./types"
 import { gameConfig } from "./config.ts"
 import { gameState } from "./state.ts"
 import { Split } from "./split.ts"
@@ -36,8 +37,17 @@ export class DrawWithCanvas {
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
   }
 
-  draw() {
-    this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+  drawMainBoard() {
+    // TODO: use CELL_SIZE
+    this.ctx.fillStyle = 'rgba(160,160,160,0.8)';
+    this.ctx.fillRect(0, 0, this.mainCanvas.width, 20);
+    this.ctx.fillStyle = 'rgba(200,200,200,0.8)';
+    this.ctx.fillRect(0, 20, this.mainCanvas.width, 40);
+    this.ctx.fillStyle = 'rgba(240,240,240,0.8)';
+    this.ctx.fillRect(0, 40, this.mainCanvas.width, 240);
+    // this.ctx.fillStyle = 'rgba(240,90,90,0.2)';
+    this.ctx.fillStyle = 'lightpink';
+    this.ctx.fillRect(40, 40, 20, 20);
 
     if (this._board.board) {
       for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
@@ -48,7 +58,24 @@ export class DrawWithCanvas {
           }
         }
       }
+
+      // ghost zone
+      // for (let y = gameConfig.BOARD_GHOST_ZONE; y < gameConfig.BOARD_TOP_EDGE; y++) {
+      for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+        const y = gameConfig.BOARD_GHOST_ZONE + 1;
+        const cell = this._board.board[y][x];
+        if (cell !== gameConfig.NO_COLOR) {
+          this.drawPuyo(x, y, this.addAlpha(gameConfig.PUYO_COLORS[cell], 0.5))
+        }
+      }
+      // }
     }
+  }
+
+  draw() {
+    this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+
+    this.drawMainBoard();
 
     this.drawConnecting();
 
@@ -60,12 +87,10 @@ export class DrawWithCanvas {
       this.drawPuyo(floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
     }
 
-    // this.draw splittedPuyo
     if (this._split.splittedPuyo) {
       this.drawPuyo(this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
     }
 
-    // this.draw currentPuyo
     if (this._current.currentPuyo) {
       this.drawPuyo(this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor]);
 
@@ -73,42 +98,34 @@ export class DrawWithCanvas {
       this.drawPuyo(childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
     }
 
-    // this.draw nextPuyo and doubleNextPuyo on right-side to board
-    if (this._current.nextPuyo && this._current.doubleNextPuyo) { // <- is this condition necessary?
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.nextPuyo.parentColor];
-      // nextPuyothis.ctx.fillRect((gameConfig.BOARD_WIDTH) * CELL_SIZE, 1 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.nextPuyo.childColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 2 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.doubleNextPuyo.parentColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 4 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.doubleNextPuyo.childColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 5 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-    }
-
-    // TODO: if null, some drawing effect
-    if (this._current.versatilePuyo) {
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.versatilePuyo.parentColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 8 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[this._current.versatilePuyo.childColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 9 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-    } else {
-      this.nextPuyoCtx.fillStyle = 'white';
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 8 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      this.nextPuyoCtx.fillStyle = 'white';
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, 9 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-    }
+    this.drawNextBoard(this._current.nextPuyo, 1);
+    this.drawNextBoard(this._current.doubleNextPuyo, 4);
+    this.drawNextBoard(this._current.versatilePuyo, 8);
 
     this.drawAfterimage();
 
     this.drawTriggerPuyos();
   }
 
+  // temp
+  private drawNextBoard(puyo: baseManiPuyo, y1) {
+    if (puyo) {
+      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.parentColor];
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.childColor];
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, (y1 + 1) * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+    } else {
+      this.nextPuyoCtx.fillStyle = 'white';
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      this.nextPuyoCtx.fillStyle = 'white';
+      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, (y1 + 1) * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+    }
+  }
+
 
   drawPuyo(x, y, color, willStorke = true) {
     const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
-    const drawPosY = (y - gameConfig.BOARD_TOP_EDGE) * gameConfig.CELL_SIZE;
+    const drawPosY = (y - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
 
     const radiusX = gameConfig.CELL_SIZE * 15 / 32;
     const radiusY = gameConfig.CELL_SIZE * 14 / 32;
@@ -160,8 +177,11 @@ export class DrawWithCanvas {
 
   drawConnecting() {
     this._chain.connectedPuyos.forEach(elem => {
-      const [x, y, color] = elem.split(':')[0].split(',').map(str => Number.parseInt(str, 10));
+      const [oriX, oriY, color] = elem.split(':')[0].split(',').map(str => Number.parseInt(str, 10));
       const [diffX, diffY] = elem.split(':')[1].split(',').map(str => Number.parseInt(str, 10));;
+
+      const x = oriX - gameConfig.BOARD_LEFT_EDGE;
+      const y = oriY - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE;
 
       // TODO: do not declare these variables here
       const radiusX = gameConfig.CELL_SIZE * 4 / 9;
@@ -231,7 +251,7 @@ export class DrawWithCanvas {
 
     this._chain.maxTriggerPuyos.forEach((elem) => {
       const drawPosX = (elem[0] - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
-      const drawPosY = (elem[1] - gameConfig.BOARD_TOP_EDGE) * gameConfig.CELL_SIZE;
+      const drawPosY = (elem[1] - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
 
       this.ctx.strokeStyle = "gray";
       this.ctx.lineWidth = 2;

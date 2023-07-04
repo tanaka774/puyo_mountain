@@ -405,12 +405,13 @@ export class Chain {
 
   addConnectedPuyos(x, y, color, dx, dy) {
     // TODO: store x or y as it is not modfiying value
-    this._connectedPuyos.add(`${x - gameConfig.BOARD_LEFT_EDGE},${y - gameConfig.BOARD_TOP_EDGE},${color}:${dx},${dy}`);
+    // this._connectedPuyos.add(`${x - gameConfig.BOARD_LEFT_EDGE},${y - gameConfig.BOARD_TOP_EDGE},${color}:${dx},${dy}`);
+    this._connectedPuyos.add(`${x},${y},${color}:${dx},${dy}`);
   }
 
   deleteConnectedPuyo(x, y) {
-    const modX = x - gameConfig.BOARD_LEFT_EDGE;
-    const modY = y - gameConfig.BOARD_TOP_EDGE;
+    const modX = x// - gameConfig.BOARD_LEFT_EDGE;
+    const modY = y// - gameConfig.BOARD_TOP_EDGE;
     this._connectedPuyos.forEach((elem) => {
       if (elem.indexOf(`${modX},${modY}`) === 0) {
         this._connectedPuyos.delete(elem);
