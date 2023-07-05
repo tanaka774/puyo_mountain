@@ -98,7 +98,8 @@ export class DrawWithCanvas {
       this.drawPuyo(childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
     }
 
-    this.drawAfterimage();
+    // this.drawAfterimageHor();
+    this.drawAfterimageRotate();
 
     this.drawTriggerPuyos();
 
@@ -208,7 +209,7 @@ export class DrawWithCanvas {
     })
   }
 
-  drawAfterimage() {
+  drawAfterimageRotate() {
     // after other state than MANIP like SPLIT, it enters this in certain condition
     if (!this._current.currentPuyo) return;
 
@@ -228,7 +229,9 @@ export class DrawWithCanvas {
         this._rotate.rotateDrawing.drawCount = gameConfig.ROTATING_TIME;
       }
     }
-    // this.draw puyo moving horizontally
+  }
+
+  drawAfterimageHor() {
     if (this._move.movingHorDrawing.isMovingHor) {
       // TODO: if you do this, it needs more frames
       const diffX = this._move.movingHorDrawing.targetX - this._move.movingHorDrawing.drawingX;

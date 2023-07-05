@@ -30,4 +30,27 @@ export function throttle(callback, delay) {
   };
 }
 
+export function throttleEX(callback, firstDelay, sequenceDelay, resetTime) {
+  let lastExecution = 0;
+  let firstOccured = false;
+  let secondOccured = false;
+  return function(event = null) {
+    const now = Date.now();
+    const elapsedTime = now - lastExecution;
+    if (elapsedTime >= resetTime) {
+      firstOccured = false;
+      secondOccured = false;
+    }
+
+    if (elapsedTime >= firstDelay) {
+      callback();
+      lastExecution = now;
+      if (firstOccured) secondOccured = true;
+      firstOccured = true;
+    } else if (secondOccured && elapsedTime >= sequenceDelay) {
+      callback();
+      lastExecution = now;
+    }
+  };
+}
 

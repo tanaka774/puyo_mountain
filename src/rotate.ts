@@ -107,6 +107,7 @@ export class Rotate {
     if (canRotate) {
       this.setRotateDrawing(changeAngle, this._current.currentPuyo.angle);
       this._current.currentPuyo = rotatedPuyo;
+      if (this._quickTurn.isPossible) this._quickTurn.isPossible = false;
       return;
     }
   }

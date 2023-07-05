@@ -206,7 +206,7 @@ export class Mountain {
       // this._currentTargetChainIndex = 0;
       // TODO: temp,
       this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
-      this._enduranceChainNum = 500;
+      this._enduranceChainNum = 100;
     }
     //common
     this._totalChainNum = 0;
