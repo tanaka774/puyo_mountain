@@ -68,6 +68,7 @@ export class Mountain {
   decideVariablilty() {
     // TODO: may change according to difficulty? this is test now!
     // need more randomness
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
     const divider = (this._currentMode === GameMode.ARCADE)
       ? 2 + (2 - this._phase / this._targetChainNums.length)
       : 3;
@@ -75,15 +76,18 @@ export class Mountain {
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
     // TODO: need to limit side range
-    const distributionNum = Math.floor(Math.random() * (boardWidth - 2)) + 2;
+    // const distributionNum = Math.floor(Math.random() * (boardWidth - 2)) + 2;
+    const distributionNum = getRandomNum(boardWidth - 2) + 2;
     // const deviation = seedPuyoNum / distributionNum * 3 / 5; 
     const onceLimit = 2 / 3;
     const heightLimit = boardHeight - 3;
 
     for (let n = 0; n < distributionNum; n++) {
-      let randomIndex = Math.floor(Math.random() * (boardWidth));
+      // let randomIndex = Math.floor(Math.random() * (boardWidth));
+      let randomIndex = getRandomNum(boardWidth);
       while (this._variability[randomIndex] !== 0 && n > 0) {
-        randomIndex = Math.floor(Math.random() * (boardWidth));
+        // randomIndex = Math.floor(Math.random() * (boardWidth));
+        randomIndex = getRandomNum(boardWidth);
       }
 
       const currentSeedPuyoSum = this._variability.reduce((acc, cur) => { return acc + cur; }, 0);
@@ -92,12 +96,13 @@ export class Mountain {
         break;
       }
 
-      let puyoNum = Math.floor(Math.random() * seedPuyoNum * onceLimit);
-      if (puyoNum > heightLimit) puyoNum = heightLimit;
+      // let puyoNum = Math.floor(Math.random() * seedPuyoNum * onceLimit);
+      let puyoNum = Math.min(getRandomNum(seedPuyoNum * onceLimit), heightLimit);
 
       if (currentSeedPuyoSum + puyoNum > seedPuyoNum - (distributionNum - n)) {
         // is this right???
-        this._variability[randomIndex] = Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum);
+        let lastPuyoNum = Math.min(Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum), heightLimit);
+        this._variability[randomIndex] = lastPuyoNum;
       } else {
         this._variability[randomIndex] = puyoNum;
       }

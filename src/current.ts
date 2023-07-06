@@ -12,6 +12,35 @@ export class Current {
   private _isBeingVPuyoUsed: boolean;
   private _hasVPuyoUsed: boolean;
   private _afterVPuyoSwitching: () => void;
+  private _puyoPool: number[][];
+
+  initPuyoPool() {
+    this._puyoPool = [];
+    const frequency = Array.from({ length: gameConfig.PUYO_COLOR_NUM })
+      .fill(gameConfig.PUYO_POOL_LOOP * 2 / gameConfig.PUYO_COLOR_NUM) as number[];
+    const getRandomIndex = () => Math.floor(Math.random() * 4);
+    for (let n = 0; n < gameConfig.PUYO_POOL_LOOP; n++) {
+      let index1 = getRandomIndex();
+      let index2 = getRandomIndex();
+      while (frequency[index1] === 0) { index1 = getRandomIndex(); }
+      frequency[index1]--;
+      while (frequency[index2] === 0) { index2 = getRandomIndex(); }
+      frequency[index2]--;
+      this._puyoPool.push([index1 + 1, index2 + 1]);
+    }
+  }
+
+  usePuyoPool() {
+    const res: baseManiPuyo = {
+      parentColor: this._puyoPool[0][0],
+      childColor: this._puyoPool[0][1],
+      parentX: gameConfig.PUYO_BIRTH_POSX,
+      parentY: gameConfig.PUYO_BIRTH_POSY,
+      angle: 0,
+    }
+    this._puyoPool = this._puyoPool.slice(1);
+    return res;
+  }
 
   constructor(
     private _board: Board,
@@ -22,21 +51,29 @@ export class Current {
     this._versatilePuyo = null;
     this._isBeingVPuyoUsed = false;
     this._hasVPuyoUsed = false;
+    this.initPuyoPool();
 
     document.addEventListener('keydown', e => {
       if (e.key === 'c') {
         if (gameState.currentState !== gameState.MANIPULATING ||
-          this._hasVPuyoUsed || !this._versatilePuyo
+          // this._hasVPuyoUsed || 
+          !this._versatilePuyo
         ) return;
 
-        this._versatilePuyo.parentColor = (this._versatilePuyo.parentColor) % 4 + 1;
-        this._versatilePuyo.childColor = (this._versatilePuyo.childColor) % 4 + 1;
+        if (!this._isBeingVPuyoUsed) {
+          this._versatilePuyo.parentColor = (this._versatilePuyo.parentColor) % gameConfig.PUYO_COLOR_NUM + 1;
+          this._versatilePuyo.childColor = (this._versatilePuyo.childColor) % gameConfig.PUYO_COLOR_NUM + 1;
+        } else {
+          // is this ok? be careful
+          this._currentPuyo.parentColor = (this._currentPuyo.parentColor) % gameConfig.PUYO_COLOR_NUM + 1;
+          this._currentPuyo.childColor = (this._currentPuyo.childColor) % gameConfig.PUYO_COLOR_NUM + 1;
+        }
       }
     });
 
     document.addEventListener('keydown', e => {
       if (e.key === 'd') {
-        if (gameState.currentState !== gameState.MANIPULATING &&
+        if (gameState.currentState !== gameState.MANIPULATING ||
           this._hasVPuyoUsed
         ) return;
 
@@ -57,8 +94,8 @@ export class Current {
 
   getRandomPuyo() {
     const newPuyo: baseManiPuyo = {
-      parentColor: Math.floor(Math.random() * 4) + 1,
-      childColor: Math.floor(Math.random() * 4) + 1,
+      parentColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
+      childColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
       parentX: gameConfig.PUYO_BIRTH_POSX,
       parentY: gameConfig.PUYO_BIRTH_POSY,
       angle: 0,
@@ -72,13 +109,18 @@ export class Current {
       this._versatilePuyo = null;
       this._isBeingVPuyoUsed = false;
     } else {
+      if (this._puyoPool.length === 0) { this.initPuyoPool(); }
+
       this._currentPuyo = (gameState.prevState !== gameState.UNINIT)
         ? this._nextPuyo
-        : this.getRandomPuyo();
-      this._nextPuyo = (this._nextPuyo !== null) ? this._doubleNextPuyo : this.getRandomPuyo();
-      this._doubleNextPuyo = this.getRandomPuyo();
+        // : this.getRandomPuyo();
+        : this.usePuyoPool();
+      this._nextPuyo = (this._nextPuyo !== null)
+        ? this._doubleNextPuyo
+        // : this.getRandomPuyo();
+        : this.usePuyoPool();
+      this._doubleNextPuyo = this.usePuyoPool(); // this.getRandomPuyo();
     }
-
   }
 
   getChildPos(puyo: baseManiPuyo) {

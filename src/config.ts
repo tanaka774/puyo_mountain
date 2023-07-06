@@ -27,15 +27,17 @@ const PUYO_COLORS = [
   'rgba(255, 225, 56, 1)', // '#FFE138' ->
   'rgba(56, 119, 255, 1)', // '#3877FF' ->
 ];
+const PUYO_COLOR_NUM = 4;
 const moveYDiff = 0.015;
 const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 120;
 const HOR_MOVING_TIME = 3;
 const ROTATING_TIME = 3;
-const PUSHEDUP_TIME = 20;
+const PUSHEDUP_TIME = 60;
 const SEED_FALLING_SPEED = 15.0;
 const SPLIT_FALLING_SPEED = 12.0;
 const FLOAT_FALLING_SPEED = 12.0;
+const PUYO_POOL_LOOP = 16;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -51,6 +53,7 @@ export const gameConfig = Object.freeze({
   PUYO_BIRTH_POSX,
   PUYO_BIRTH_POSY,
   PUYO_COLORS,
+  PUYO_COLOR_NUM,
   moveYDiff,
   VANISH_WAIT_TIME,
   LOCK_WAIT_TIME,
@@ -60,6 +63,7 @@ export const gameConfig = Object.freeze({
   SEED_FALLING_SPEED,
   SPLIT_FALLING_SPEED,
   FLOAT_FALLING_SPEED,
+  PUYO_POOL_LOOP,
 })
 
 
