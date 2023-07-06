@@ -8,10 +8,13 @@ const CELL_SIZE = 20;
 // y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
 const BOARD_LEFT_EDGE = 1;
 const BOARD_RIGHT_EDGE = BOARD_LEFT_EDGE + canvas.width / CELL_SIZE;// - 1;
-const BOARD_GHOST_ZONE = 2; // untransparent zone above top
+const BOARD_GHOST_ZONE = 2; // transparent zone above top
 const BOARD_TOP_EDGE = 4;
 const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + canvas.height / CELL_SIZE - BOARD_GHOST_ZONE;// - 1;
+const BOARD_HEIGHT_MARGIN = 5;
+const BOARD_WIDTH_MARGIN = 2;
 const NO_COLOR = 0;
+const WALL_NUMBER = 99;
 const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1;
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
 const PUYO_COLORS = [
@@ -29,6 +32,10 @@ const VANISH_WAIT_TIME = 30;
 const LOCK_WAIT_TIME = 120;
 const HOR_MOVING_TIME = 3;
 const ROTATING_TIME = 3;
+const PUSHEDUP_TIME = 20;
+const SEED_FALLING_SPEED = 15.0;
+const SPLIT_FALLING_SPEED = 12.0;
+const FLOAT_FALLING_SPEED = 12.0;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -37,7 +44,10 @@ export const gameConfig = Object.freeze({
   BOARD_GHOST_ZONE,
   BOARD_TOP_EDGE,
   BOARD_BOTTOM_EDGE,
+  BOARD_HEIGHT_MARGIN,
+  BOARD_WIDTH_MARGIN,
   NO_COLOR,
+  WALL_NUMBER,
   PUYO_BIRTH_POSX,
   PUYO_BIRTH_POSY,
   PUYO_COLORS,
@@ -46,6 +56,10 @@ export const gameConfig = Object.freeze({
   LOCK_WAIT_TIME,
   HOR_MOVING_TIME,
   ROTATING_TIME,
+  PUSHEDUP_TIME,
+  SEED_FALLING_SPEED,
+  SPLIT_FALLING_SPEED,
+  FLOAT_FALLING_SPEED,
 })
 
 

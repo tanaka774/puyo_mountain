@@ -71,6 +71,7 @@ export class Chain {
     if (cell === gameConfig.NO_COLOR || cell !== prevCell) {
       return 0;
     } else if (cell === prevCell) {
+      // if prevcell is board[y][x], enter this condition without fail and connectedPuyoNums becomes 1
       savePuyos.push([x, y]);
       checkedCells[y][x] = true;
 
@@ -265,57 +266,98 @@ export class Chain {
     // search puyos which can trigger chain not in threesome
     for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
       for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y > gameConfig.BOARD_TOP_EDGE; y--) {
-        if (board[y][x] !== 0 &&
-          board[y - 1][x] === 0 &&
-          (board[y][x] === board[y - 1][x - 1] || board[y][x] === board[y - 1][x + 1]) // temp, need to improve
+        if (board[y][x] === 0 &&
+          board[y + 1][x] !== 0
         ) {
-          // TODO: need more shape
-          if (board[y - 1][x - 1] === board[y][x] && board[y][x] === board[y - 1][x + 1]) {
-            triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 1]]);
+          const sameColorCells = [];
+          if (board[y][x - 1] !== 0 && board[y][x - 1] === board[y][x + 1] && board[y][x + 1] === board[y + 1][x]) {
+            // only these are enough for chain
+            sameColorCells.push([x - 1, y], [x + 1, y], [x, y + 1]);
           }
-          else if (board[y - 1][x - 1] === board[y][x]) {
-            if (board[y][x] === board[y][x + 1])
-              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
-            if (x > gameConfig.BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
-              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
-            if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
-              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
-            if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x - 1])
-              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 1, y - 2]]);
+          else if (board[y][x - 1] !== 0 && board[y][x - 1] === board[y][x + 1]) {
+            sameColorCells.push([x - 1, y], [x + 1, y]);
           }
-          else if (board[y - 1][x + 1] === board[y][x]) {
-            if (board[y][x] === board[y][x - 1])
-              triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
-            if (x < gameConfig.BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
-              triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
-            if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
-              triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
-            if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x + 1])
-              triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 2]]);
+          else if (board[y][x - 1] !== 0 && board[y][x - 1] === board[y + 1][x] && board[y + 1][x] !== gameConfig.WALL_NUMBER) {
+            sameColorCells.push([x - 1, y], [x, y + 1]);
+          }
+          else if (board[y + 1][x] !== 0 && board[y + 1][x] === board[y][x + 1] && board[y + 1][x] !== gameConfig.WALL_NUMBER) {
+            sameColorCells.push([x + 1, y], [x, y + 1]);
+          }
+
+          const checkedCells = Array.from(
+            { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + gameConfig.BOARD_HEIGHT_MARGIN },
+            () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + gameConfig.BOARD_WIDTH_MARGIN).fill(false));
+          const sameColorCellsAfter = [];
+
+          sameColorCells.forEach((sameColorCell) => {
+            const [x, y] = [...sameColorCell];
+            let connectedPuyoNum = 0;
+            const savePuyos: number[][] = [];
+            connectedPuyoNum = this.checkConnected(board, x, y, checkedCells, board[y][x], savePuyos, false);
+            if (connectedPuyoNum >= 3) {
+              // don't want to store 3 connected puyos here
+              return;
+            } else {
+              savePuyos.forEach((savePuyo) => sameColorCellsAfter.push(savePuyo));
+            }
+          })
+          if (sameColorCellsAfter.length >= 3) {
+            triggerPuyosGroup.push(sameColorCellsAfter);
           }
           break;
         }
 
-        if (board[y][x] === 0 &&
-          board[y + 1][x] !== 0 &&
-          board[y][x - 1] !== 0 &&
-          board[y][x - 1] === board[y][x + 1]
-        ) {
-          if (x - 2 >= gameConfig.BOARD_LEFT_EDGE && board[y][x - 2] === board[y][x - 1]) {
-            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 2, y]]);
-          } else if (x + 2 < gameConfig.BOARD_RIGHT_EDGE && board[y][x + 1] === board[y][x + 2]) {
-            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 2, y]]);
-          } else if (board[y][x - 1] === board[y - 1][x - 1]) {
-            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y - 1]]);
-          } else if (board[y][x + 1] === board[y - 1][x + 1]) {
-            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y - 1]]);
-          } else if (board[y][x - 1] === board[y + 1][x - 1]) {
-            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y + 1]]);
-          } else if (board[y][x + 1] === board[y + 1][x + 1]) {
-            triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y + 1]]);
-          }
-          break;
-        }
+        // if (board[y][x] !== 0 &&
+        //   board[y - 1][x] === 0 &&
+        //   (board[y][x] === board[y - 1][x - 1] || board[y][x] === board[y - 1][x + 1]) // temp, need to improve
+        // ) {
+        //   // TODO: need more shape
+        //   if (board[y - 1][x - 1] === board[y][x] && board[y][x] === board[y - 1][x + 1]) {
+        //     triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 1]]);
+        //   }
+        //   else if (board[y - 1][x - 1] === board[y][x]) {
+        //     if (board[y][x] === board[y][x + 1])
+        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
+        //     if (x > gameConfig.BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
+        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
+        //     if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
+        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
+        //     if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x - 1])
+        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 1, y - 2]]);
+        //   }
+        //   else if (board[y - 1][x + 1] === board[y][x]) {
+        //     if (board[y][x] === board[y][x - 1])
+        //       triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
+        //     if (x < gameConfig.BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
+        //       triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
+        //     if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
+        //       triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
+        //     if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x + 1])
+        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 2]]);
+        //   }
+        //   break;
+        // }
+        //
+        // if (board[y][x] === 0 &&
+        //   board[y + 1][x] !== 0 &&
+        //   board[y][x - 1] !== 0 &&
+        //   board[y][x - 1] === board[y][x + 1]
+        // ) {
+        //   if (x - 2 >= gameConfig.BOARD_LEFT_EDGE && board[y][x - 2] === board[y][x - 1]) {
+        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 2, y]]);
+        //   } else if (x + 2 < gameConfig.BOARD_RIGHT_EDGE && board[y][x + 1] === board[y][x + 2]) {
+        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 2, y]]);
+        //   } else if (board[y][x - 1] === board[y - 1][x - 1]) {
+        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y - 1]]);
+        //   } else if (board[y][x + 1] === board[y - 1][x + 1]) {
+        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y - 1]]);
+        //   } else if (board[y][x - 1] === board[y + 1][x - 1]) {
+        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y + 1]]);
+        //   } else if (board[y][x + 1] === board[y + 1][x + 1]) {
+        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y + 1]]);
+        //   }
+        //   break;
+        // }
       }
     }
   }

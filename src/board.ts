@@ -18,16 +18,16 @@ export class Board {
   }
 
   createBoard() {
-    const WALL_NUMBER = 99;
+    // const WALL_NUMBER = 99;
     const board = Array.from(
-      { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + 5 },
-      () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + 2).fill(gameConfig.NO_COLOR));
+      { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + gameConfig.BOARD_HEIGHT_MARGIN },
+      () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + gameConfig.BOARD_WIDTH_MARGIN).fill(gameConfig.NO_COLOR));
     for (let y = 0; y <= gameConfig.BOARD_BOTTOM_EDGE; y++) {
-      board[y][gameConfig.BOARD_LEFT_EDGE - 1] = WALL_NUMBER;
-      board[y][gameConfig.BOARD_RIGHT_EDGE] = WALL_NUMBER;
+      board[y][gameConfig.BOARD_LEFT_EDGE - 1] = gameConfig.WALL_NUMBER;
+      board[y][gameConfig.BOARD_RIGHT_EDGE] = gameConfig.WALL_NUMBER;
     }
     for (let x = gameConfig.BOARD_LEFT_EDGE - 1; x <= gameConfig.BOARD_RIGHT_EDGE; x++) {
-      board[gameConfig.BOARD_BOTTOM_EDGE][x] = WALL_NUMBER;
+      board[gameConfig.BOARD_BOTTOM_EDGE][x] = gameConfig.WALL_NUMBER;
     }
     // returning reference is okay?
     // return board;

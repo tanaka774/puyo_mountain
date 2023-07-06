@@ -20,6 +20,14 @@ export class Rotate {
     // turnACW: () => { rotatePuyo(-90); rotatePuyo(-90); },
   }
 
+  private _pushupDrawing = {
+    isPushedUp: false,
+    preChildX: 0,
+    preChildY: 0,
+    upY: 0,
+    drawCount: 0,
+  }
+
   constructor(
     private _current: Current,
     private _move: Move,
@@ -95,11 +103,14 @@ export class Rotate {
         // _board.board[Math.floor(rotatedChildY) + 1][currentChildX] !== gameConfig.NO_COLOR
       ) {
         // TODO: some animation at push up?
-        if (rotatedPuyo.parentY < 2) {
-          rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.1; // for mawashi??
-        } else {
-          rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - 0.5; // for mawashi??
-        }
+        this._pushupDrawing.preChildX = rotatedPuyo.parentX; // same as child
+        this._pushupDrawing.preChildY = rotatedPuyo.parentY; // same as child
+
+        let upY = (rotatedPuyo.parentY < 2) ? 0.1 : 0.5;
+        rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - upY; // for mawashi??
+
+        this._pushupDrawing.isPushedUp = true;
+        this._pushupDrawing.upY = this._pushupDrawing.preChildY - (rotatedPuyo.parentY + 1);
       }
       canRotate = true;
     }
@@ -112,7 +123,7 @@ export class Rotate {
     }
   }
 
-  setRotateDrawing(changeAngle, prevAngle) {
+  private setRotateDrawing(changeAngle, prevAngle) {
     this._rotateDrawing.isRotating = true;
     this._rotateDrawing.changeAngle = changeAngle;
     this._rotateDrawing.prevAngle = prevAngle;
@@ -120,4 +131,5 @@ export class Rotate {
 
   get quickTurn() { return this._quickTurn; }
   get rotateDrawing() { return this._rotateDrawing; }
+  get pushupDrawing() { return this._pushupDrawing; }
 }

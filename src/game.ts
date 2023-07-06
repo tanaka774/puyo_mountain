@@ -85,6 +85,7 @@ export class Game {
           this._move.letSinglePuyoFall(this._board,
             floatingSeedPuyo,
             recordPuyoSteps.SEED_PUYO_REC_FLAG,
+            gameConfig.SEED_FALLING_SPEED,
             () => { this._mountain.deleteFloatingSeedPuyos(floatingSeedPuyo); }
           )
         });
@@ -125,9 +126,11 @@ export class Game {
         }
         break;
       case gameState.SPLITTING:
-        this._move.letSinglePuyoFall(this._board,
+        this._move.letSinglePuyoFall(
+          this._board,
           this._split.splittedPuyo,
           recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG,
+          gameConfig.SPLIT_FALLING_SPEED,
           () => {
             this._split.splittedPuyo = null;
             gameState.setState(gameState.CHAIN_FINDING);
@@ -197,6 +200,7 @@ export class Game {
           this._move.letSinglePuyoFall(this._board,
             floatingPuyo,
             recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG,
+            gameConfig.FLOAT_FALLING_SPEED,
             () => { this._chain.deleteFloatingPuyos(floatingPuyo); }
           )
         });

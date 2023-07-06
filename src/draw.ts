@@ -100,6 +100,7 @@ export class DrawWithCanvas {
 
     // this.drawAfterimageHor();
     this.drawAfterimageRotate();
+    this.drawAfterimagePushedup();
 
     this.drawTriggerPuyos();
 
@@ -153,7 +154,6 @@ export class DrawWithCanvas {
     } else {
       this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke);
     }
-
   }
 
   drawBounce(oriX, oriY, radiusY, elliY, drawCallback) {
@@ -211,7 +211,12 @@ export class DrawWithCanvas {
 
   drawAfterimageRotate() {
     // after other state than MANIP like SPLIT, it enters this in certain condition
-    if (!this._current.currentPuyo) return;
+    if (!this._current.currentPuyo) {
+      // only do init
+      this._rotate.rotateDrawing.isRotating = false;
+      this._rotate.rotateDrawing.drawCount = gameConfig.ROTATING_TIME;
+      return;
+    }
 
     if (this._rotate.rotateDrawing.isRotating) {
       const devideNum = 3;
@@ -227,6 +232,33 @@ export class DrawWithCanvas {
       if (this._rotate.rotateDrawing.drawCount <= 0) {
         this._rotate.rotateDrawing.isRotating = false;
         this._rotate.rotateDrawing.drawCount = gameConfig.ROTATING_TIME;
+      }
+    }
+  }
+
+  drawAfterimagePushedup() {
+    if (!this._current.currentPuyo) {
+      // only init
+      this._rotate.pushupDrawing.isPushedUp = false;
+      this._rotate.pushupDrawing.drawCount = gameConfig.ROTATING_TIME;
+      return;
+    }
+
+    if (this._rotate.pushupDrawing.isPushedUp) {
+
+      // TODO: more recognizable animation
+      const devideNum = 3;
+      for (let n = 1; n < devideNum; n++) {
+        const alpha = 0.2 + 0.2 * n / devideNum;
+        const drawX = this._rotate.pushupDrawing.preChildX;
+        const drawY = this._rotate.pushupDrawing.preChildY - this._rotate.pushupDrawing.upY * (n / devideNum);
+        this.drawPuyo(drawX, drawY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+      }
+
+      this._rotate.pushupDrawing.drawCount--;
+      if (this._rotate.pushupDrawing.drawCount <= 0) {
+        this._rotate.pushupDrawing.isPushedUp = false;
+        this._rotate.pushupDrawing.drawCount = gameConfig.ROTATING_TIME;
       }
     }
   }

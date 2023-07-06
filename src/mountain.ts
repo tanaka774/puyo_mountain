@@ -67,15 +67,18 @@ export class Mountain {
 
   decideVariablilty() {
     // TODO: may change according to difficulty? this is test now!
+    // need more randomness
     const divider = (this._currentMode === GameMode.ARCADE)
       ? 2 + (2 - this._phase / this._targetChainNums.length)
       : 3;
     const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
     // TODO: need to limit side range
     const distributionNum = Math.floor(Math.random() * (boardWidth - 2)) + 2;
     // const deviation = seedPuyoNum / distributionNum * 3 / 5; 
     const onceLimit = 2 / 3;
+    const heightLimit = boardHeight - 3;
 
     for (let n = 0; n < distributionNum; n++) {
       let randomIndex = Math.floor(Math.random() * (boardWidth));
@@ -90,6 +93,8 @@ export class Mountain {
       }
 
       let puyoNum = Math.floor(Math.random() * seedPuyoNum * onceLimit);
+      if (puyoNum > heightLimit) puyoNum = heightLimit;
+
       if (currentSeedPuyoSum + puyoNum > seedPuyoNum - (distributionNum - n)) {
         // is this right???
         this._variability[randomIndex] = Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum);

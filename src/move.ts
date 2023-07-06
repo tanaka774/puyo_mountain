@@ -180,9 +180,10 @@ export class Move {
     _board: Board,
     singlePuyo: baseSinglePuyo,
     recordPuyoFlag: number,
+    speedRate: number,
     afterLocking: () => void,
   ) {
-    const nextY = this.movePuyoDown(singlePuyo.posY, 12.0);
+    const nextY = this.movePuyoDown(singlePuyo.posY, speedRate);
     if (nextY >= gameConfig.BOARD_BOTTOM_EDGE - 1 ||
       _board.board[Math.floor(nextY) + 1][singlePuyo.posX] !== gameConfig.NO_COLOR
     ) {
