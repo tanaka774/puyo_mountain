@@ -66,7 +66,7 @@ export class Game {
     switch (gameState.currentState) {
       case gameState.OPENING:
         // some opning animation?
-        // gameState.setState(gameState.MENU);
+        gameState.setState(gameState.MENU);
         break;
       case gameState.MENU:
         // open menu

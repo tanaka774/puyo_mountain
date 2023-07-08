@@ -18,13 +18,13 @@ export enum GameMode {
 export class Mountain {
   private _seedPuyos: baseSinglePuyo[];
   private _floatingSeedPuyos: baseSinglePuyo[];
-  // private _currentDifficulty: Difficulty;
+  private _currentDifficulty: Difficulty;
   private _currentTargetChainNum: number;
   private _currentTargetChainIndex: number;
   private _targetChainNums: number[][];
   private _validVanishPuyoNum: number;
   private _unnecessaryVanishPuyoNum: number;
-  private _variability: number[]; // rough seedpuyo numbers of each Column
+  private _seedPuyoVariability: number[]; // rough seedpuyo numbers of each Column
   private _currentLevel: number;
   private _elapsedTime: number; // consider its type
   private _virtualBoard: number[][];
@@ -33,7 +33,60 @@ export class Mountain {
   private _unnecessaryChainNum: number;
   private _everyPhaseEnds: boolean;
   private _currentMode: GameMode;
+  private _enduranceTotalTargetChainNum: number;
   private _enduranceChainNum: number;
+  private _enduranceChainVariablity: number[];
+  private _enduranceMinTargetChainNum: number;
+  private _enduranceMaxTargetChainNum: number;
+
+  initEnduranceChainNums() {
+    // keep same probability of each chain num as possible as you can
+
+    const target = this._enduranceTotalTargetChainNum;
+    const minChainNum = this._enduranceMinTargetChainNum;
+    const maxChainNum = this._enduranceMaxTargetChainNum;
+    const range = maxChainNum - minChainNum + 1;
+    const oneLoopSum = (maxChainNum + minChainNum) * range / 2;
+    const maxFrequency = Math.floor(target / oneLoopSum);
+    const frequencies = Array.from({ length: range }).fill(maxFrequency) as number[];
+    let shortNum = target - oneLoopSum * maxFrequency;
+
+    let addNum = minChainNum;
+    while (true) {
+      if (shortNum >= addNum) {
+        shortNum -= addNum;
+        frequencies[addNum - minChainNum]++;
+      } else if (shortNum >= minChainNum && shortNum <= maxChainNum) {
+        frequencies[shortNum - minChainNum]++;
+        shortNum = 0;
+        break;
+      } else if (shortNum < minChainNum) {
+        break;
+      }
+
+      if (addNum >= maxChainNum) addNum = minChainNum;
+      else addNum++;
+    }
+
+    // if some margin to target exists, increment higher chain num 
+    while (shortNum > 0) {
+      for (let index = maxChainNum - minChainNum; index > 0; index--) {
+        frequencies[index]++;
+        frequencies[index - 1]--;
+        if (--shortNum === 0) break;
+      }
+    }
+
+    this._enduranceChainVariablity = [...frequencies];
+  }
+
+  getNextEnduranceChainNum() {
+    const getRandomIndex = () => Math.floor(Math.random() * this._enduranceChainVariablity.length);
+    let index = getRandomIndex();
+    while (this._enduranceChainVariablity[index] === 0) { index = getRandomIndex(); }
+    this._enduranceChainVariablity[index]--;
+    return index + this._enduranceMinTargetChainNum;
+  }
 
   constructor(
     private _board: Board,
@@ -48,10 +101,15 @@ export class Mountain {
     this._validVanishPuyoNum = 0;
     this._unnecessaryVanishPuyoNum = 0;
     // this.initTargetChain();
+
+    this._enduranceTotalTargetChainNum = 500;
+    this._enduranceMinTargetChainNum = 6;
+    this._enduranceMaxTargetChainNum = 12;
+    this.initEnduranceChainNums();
   }
 
   generateSeedPuyos() {
-    this._variability.forEach((puyoNum, index) => {
+    this._seedPuyoVariability.forEach((puyoNum, index) => {
       if (puyoNum === 0) return;
       const x = index + gameConfig.BOARD_LEFT_EDGE;
 
@@ -81,46 +139,43 @@ export class Mountain {
     // const deviation = seedPuyoNum / distributionNum * 3 / 5; 
     const onceLimit = 2 / 3;
     const heightLimit = boardHeight - 3;
+    const setVariability = (index, val) => { this._seedPuyoVariability[index] = Math.min(val, heightLimit); }
 
     for (let n = 0; n < distributionNum; n++) {
-      // let randomIndex = Math.floor(Math.random() * (boardWidth));
       let randomIndex = getRandomNum(boardWidth);
-      while (this._variability[randomIndex] !== 0 && n > 0) {
-        // randomIndex = Math.floor(Math.random() * (boardWidth));
+      while (this._seedPuyoVariability[randomIndex] !== 0 && n > 0) {
         randomIndex = getRandomNum(boardWidth);
       }
 
-      const currentSeedPuyoSum = this._variability.reduce((acc, cur) => { return acc + cur; }, 0);
+      const currentSeedPuyoSum = this._seedPuyoVariability.reduce((acc, cur) => { return acc + cur; }, 0);
       if (n === distributionNum - 1) {
-        this._variability[randomIndex] = Math.round(seedPuyoNum - currentSeedPuyoSum);
+        setVariability(randomIndex, Math.round(seedPuyoNum - currentSeedPuyoSum));
         break;
       }
 
-      // let puyoNum = Math.floor(Math.random() * seedPuyoNum * onceLimit);
-      let puyoNum = Math.min(getRandomNum(seedPuyoNum * onceLimit), heightLimit);
+      let puyoNum = getRandomNum(seedPuyoNum * onceLimit);
 
       if (currentSeedPuyoSum + puyoNum > seedPuyoNum - (distributionNum - n)) {
         // is this right???
-        let lastPuyoNum = Math.min(Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum), heightLimit);
-        this._variability[randomIndex] = lastPuyoNum;
+        setVariability(randomIndex, Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum));
       } else {
-        this._variability[randomIndex] = puyoNum;
+        setVariability(randomIndex, puyoNum);
       }
     }
 
     // prevent seedpuyo from filling birth puyo pos
     const birthX = gameConfig.PUYO_BIRTH_POSX - 1;
     const limitY = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.PUYO_BIRTH_POSY - 5;
-    if (this._variability[birthX] > limitY) {
-      const diffY = this._variability[birthX] - limitY;
+    if (this._seedPuyoVariability[birthX] > limitY) {
+      const diffY = this._seedPuyoVariability[birthX] - limitY;
 
-      const minIndex = this._variability.reduce((minIndex, curNum, curIndex, ori) => {
+      const minIndex = this._seedPuyoVariability.reduce((minIndex, curNum, curIndex, ori) => {
         if (curNum < ori[minIndex]) { return curIndex; }
         else { return minIndex; }
       }, 0);
 
-      this._variability[minIndex] += diffY;
-      this._variability[birthX] = limitY;
+      this._seedPuyoVariability[minIndex] += diffY;
+      this._seedPuyoVariability[birthX] = limitY;
     }
   }
 
@@ -170,7 +225,7 @@ export class Mountain {
   }
 
   setFloatingSeedPuyos() {
-    this._variability.forEach((puyoNum, index) => {
+    this._seedPuyoVariability.forEach((puyoNum, index) => {
       if (puyoNum === 0) return;
       const x = index + gameConfig.BOARD_LEFT_EDGE;
 
@@ -206,6 +261,41 @@ export class Mountain {
 
   isClearGame() { }
 
+  nextTargetChain() {
+    // TODO: separate function according to gamemode
+    // temp, for endurance
+    if (this._currentMode === GameMode.ENDURANCE) {
+      this._totalChainNum += this._currentTargetChainNum;
+      if (this._totalChainNum >= this._enduranceTotalTargetChainNum) {
+        // or _enduranceChainVariablity.every((ele) => ele === 0)
+        this._everyPhaseEnds = true;
+        return;
+      }
+      // this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
+      this._currentTargetChainNum = this.getNextEnduranceChainNum();
+    } else if (this._currentMode === GameMode.ARCADE) {
+      // for ARCADE
+      if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex &&
+        this._targetChainNums.length === this._phase
+      ) {
+        // end of game
+        this._currentTargetChainNum = 99;
+        this._everyPhaseEnds = true;
+        return;
+      }
+
+      if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex) {
+        this._phase++;
+        this._currentTargetChainIndex = 0;
+      } else {
+        this._currentTargetChainIndex++;
+      }
+
+      this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
+    }
+  }
+
+
   initTargetChain() {
     if (this._currentMode === GameMode.ARCADE) {
       this._targetChainNums = [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]]
@@ -215,15 +305,15 @@ export class Mountain {
       // this._targetChainNums = [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]]
       // this._currentTargetChainIndex = 0;
       // TODO: temp,
-      this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
-      this._enduranceChainNum = 100;
+      this._currentTargetChainNum = this.getNextEnduranceChainNum();
+      // this._enduranceTotalTargetChainNum = 100;
     }
     //common
     this._totalChainNum = 0;
   }
 
   initVariability() {
-    this._variability =
+    this._seedPuyoVariability =
       Array.from({ length: gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE }).fill(0) as number[];
   }
   initSeedPuyos() { this._seedPuyos = []; }
@@ -247,38 +337,6 @@ export class Mountain {
   }
 
   get currentTargetChainNum() { return this._currentTargetChainNum; }
-  nextTargetChain() {
-    // TODO: separate function according to gamemode
-    // temp, for endurance
-    if (this._currentMode === GameMode.ENDURANCE) {
-      this._totalChainNum += this._currentTargetChainNum;
-      if (this._totalChainNum >= this._enduranceChainNum) {
-        this._everyPhaseEnds = true;
-        return;
-      }
-      this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
-      return;
-    }
-
-    // for ARCADE
-    if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex &&
-      this._targetChainNums.length === this._phase
-    ) {
-      // end of game
-      this._currentTargetChainNum = 99;
-      this._everyPhaseEnds = true;
-      return;
-    }
-
-    if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex) {
-      this._phase++;
-      this._currentTargetChainIndex = 0;
-    } else {
-      this._currentTargetChainIndex++;
-    }
-
-    this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
-  }
 
   get phase() { return this._phase; }
   get everyPhaseEnds() { return this._everyPhaseEnds; }
@@ -292,5 +350,7 @@ export class Mountain {
   get currentMode() { return this._currentMode; }
 
   get totalChainNum() { return this._totalChainNum; }
-  get enduranceChainNum() { return this._enduranceChainNum; }
+  get enduranceTotalTargetChainNum() { return this._enduranceTotalTargetChainNum; }
+
+  setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }
 }

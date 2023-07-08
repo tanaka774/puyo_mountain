@@ -14,34 +14,6 @@ export class Current {
   private _afterVPuyoSwitching: () => void;
   private _puyoPool: number[][];
 
-  initPuyoPool() {
-    this._puyoPool = [];
-    const frequency = Array.from({ length: gameConfig.PUYO_COLOR_NUM })
-      .fill(gameConfig.PUYO_POOL_LOOP * 2 / gameConfig.PUYO_COLOR_NUM) as number[];
-    const getRandomIndex = () => Math.floor(Math.random() * 4);
-    for (let n = 0; n < gameConfig.PUYO_POOL_LOOP; n++) {
-      let index1 = getRandomIndex();
-      let index2 = getRandomIndex();
-      while (frequency[index1] === 0) { index1 = getRandomIndex(); }
-      frequency[index1]--;
-      while (frequency[index2] === 0) { index2 = getRandomIndex(); }
-      frequency[index2]--;
-      this._puyoPool.push([index1 + 1, index2 + 1]);
-    }
-  }
-
-  usePuyoPool() {
-    const res: baseManiPuyo = {
-      parentColor: this._puyoPool[0][0],
-      childColor: this._puyoPool[0][1],
-      parentX: gameConfig.PUYO_BIRTH_POSX,
-      parentY: gameConfig.PUYO_BIRTH_POSY,
-      angle: 0,
-    }
-    this._puyoPool = this._puyoPool.slice(1);
-    return res;
-  }
-
   constructor(
     private _board: Board,
   ) {
@@ -92,16 +64,45 @@ export class Current {
     });
   }
 
-  getRandomPuyo() {
-    const newPuyo: baseManiPuyo = {
-      parentColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
-      childColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
+  initPuyoPool() {
+    this._puyoPool = [];
+    const frequencies = Array.from({ length: gameConfig.PUYO_COLOR_NUM })
+      .fill(gameConfig.PUYO_POOL_LOOP * 2 / gameConfig.PUYO_COLOR_NUM) as number[];
+    const getRandomIndex = () => Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM);
+    for (let n = 0; n < gameConfig.PUYO_POOL_LOOP; n++) {
+      let index1 = getRandomIndex();
+      let index2 = getRandomIndex();
+      while (frequencies[index1] === 0) { index1 = getRandomIndex(); }
+      frequencies[index1]--;
+      while (frequencies[index2] === 0) { index2 = getRandomIndex(); }
+      frequencies[index2]--;
+      this._puyoPool.push([index1 + 1, index2 + 1]);
+    }
+  }
+
+  usePuyoPool() {
+    const res: baseManiPuyo = {
+      parentColor: this._puyoPool[0][0],
+      childColor: this._puyoPool[0][1],
       parentX: gameConfig.PUYO_BIRTH_POSX,
       parentY: gameConfig.PUYO_BIRTH_POSY,
       angle: 0,
     }
-    return newPuyo;
+    this._puyoPool = this._puyoPool.slice(1);
+    return res;
   }
+
+
+  // getRandomPuyo() {
+  //   const newPuyo: baseManiPuyo = {
+  //     parentColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
+  //     childColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
+  //     parentX: gameConfig.PUYO_BIRTH_POSX,
+  //     parentY: gameConfig.PUYO_BIRTH_POSY,
+  //     angle: 0,
+  //   }
+  //   return newPuyo;
+  // }
 
   newPuyoSet() {
     if (this._isBeingVPuyoUsed) {
@@ -164,6 +165,7 @@ export class Current {
     this._nextPuyo = null;
     this._doubleNextPuyo = null;
     this._versatilePuyo = null;
+    this.initPuyoPool();
   }
 
   get versatilePuyo() { return this._versatilePuyo; }

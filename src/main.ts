@@ -35,41 +35,44 @@ function main() {
 
   setCallback();
 
-  // this is official
   gameState.setState(gameState.OPENING);
   game.gameLoop();
 
-  // // for debug
-  // const mountain = new Mountain(board, move, chain, 12, Difficulty.EASY);
-  // for (let n = 0; n < 10000; n++) {
-  //   console.log(n);
-  //   mountain.decideVariablilty();
-  //   mountain.generateSeedPuyos();
-  //   mountain.changeExcessPuyo();
-  //   mountain.setFloatingSeedPuyos();
-  //   mountain.initVariability();
-  //   mountain.initSeedPuyos();
-  //   mountain.initVirtualboard();
-  //   mountain.initFloatingSeedPuyos();
-  // }
-  //
   function setCallback() {
     move.setCallback(
       () => gameState.setState(gameState.SPLITTING),
     );
 
     menu.setCallback(
-      () => gameState.setState(gameState.UNINIT),
+      // () => gameState.setState(gameState.UNINIT),
       () => {
         gameState.setState(gameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ARCADE);
+        mountain.setDifficulty(Difficulty.EASY);
+        mountain.initTargetChain();
+      },
+      () => {
+        gameState.setState(gameState.GENE_SEED_PUYOS);
+        mountain.setGameMode(GameMode.ARCADE);
+        mountain.setDifficulty(Difficulty.NORMAL);
+        mountain.initTargetChain();
+      },
+      () => {
+        gameState.setState(gameState.GENE_SEED_PUYOS);
+        mountain.setGameMode(GameMode.ARCADE);
+        mountain.setDifficulty(Difficulty.HARD);
         mountain.initTargetChain();
       },
       () => {
         gameState.setState(gameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.initTargetChain();
-      }
+      },
+      () => {
+        gameState.setState(gameState.GENE_SEED_PUYOS);
+        mountain.setGameMode(GameMode.ENDURANCE);
+        mountain.initTargetChain();
+      },
     );
 
     current.setCallback(
