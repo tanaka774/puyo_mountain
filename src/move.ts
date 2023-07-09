@@ -1,5 +1,5 @@
 import { gameConfig } from "./config.ts"
-import { gameState } from "./state.ts"
+import { GameState } from "./state.ts"
 import { Game } from "./game.ts"
 import { baseManiPuyo, baseSinglePuyo } from "./types.ts"
 import { Split } from "./split.ts"
@@ -25,7 +25,7 @@ export class Move {
   canPuyoMoveDown(
     _board: Board,
     rate = 1.0,
-    // setNextState = () => gameState.setState(gameState.SPLITTING),
+    // setNextState = () => stateHandle.setState(GameState.SPLITTING),
   ) {
     const parentX = this._current.currentPuyo.parentX;
     const parentY = this._current.currentPuyo.parentY;

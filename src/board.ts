@@ -1,6 +1,6 @@
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
-import { gameState } from "./state.ts"
+import { GameState } from "./state.ts"
 import { baseManiPuyo } from "./types.ts"
 import { Bounce } from "./bounce";
 

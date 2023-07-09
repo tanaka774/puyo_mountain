@@ -1,6 +1,6 @@
 import { baseManiPuyo } from "./types"
 import { gameConfig } from "./config.ts"
-import { gameState } from "./state.ts"
+import { GameState, stateHandle } from "./state.ts"
 import { Split } from "./split.ts"
 import { Move } from "./move.ts"
 import { Chain } from "./chain.ts"
@@ -288,7 +288,7 @@ export class DrawWithCanvas {
 
   drawTriggerPuyos() {
     if (this._chain.maxVirtualChainCount < 2 ||
-      gameState.currentState !== gameState.MANIPULATING
+      !stateHandle.checkCurrentState(GameState.MANIPULATING) 
     ) return;
 
     this._chain.maxTriggerPuyos.forEach((elem) => {

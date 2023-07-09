@@ -1,9 +1,9 @@
 import { baseManiPuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
-import { gameState } from "./state.ts"
+import { GameState, stateHandle } from "./state.ts"
 import { Chain } from "./chain.ts"
-import { Menu } from "./menu.ts"
+import { Menu, MenuSelect } from "./menu.ts"
 import { Move } from "./move.ts"
 import { Split } from "./split.ts"
 import { Current } from "./current.ts"
@@ -63,24 +63,24 @@ export class Game {
   gameLoop(this) {
     this.beforeStateCheck();
 
-    switch (gameState.currentState) {
-      case gameState.OPENING:
+    switch (stateHandle.currentState) {
+      case GameState.OPENING:
         // some opning animation?
-        gameState.setState(gameState.MENU);
+        stateHandle.setState(GameState.MENU);
         break;
-      case gameState.MENU:
+      case GameState.MENU:
         // open menu
         break;
-      case gameState.GENE_SEED_PUYOS:
+      case GameState.GENE_SEED_PUYOS:
         this._current.initPuyos();
         this._board.board = this._board.createBoard();
         this._mountain.decideVariablilty();
         this._mountain.generateSeedPuyos();
         this._mountain.changeExcessPuyo();
         this._mountain.setFloatingSeedPuyos();
-        gameState.setState(gameState.FALLING_SEED_PUYOS);
+        stateHandle.setState(GameState.FALLING_SEED_PUYOS);
         break;
-      case gameState.FALLING_SEED_PUYOS:
+      case GameState.FALLING_SEED_PUYOS:
         this._mountain.floatingSeedPuyos.forEach(floatingSeedPuyo => {
           this._move.letSinglePuyoFall(this._board,
             floatingSeedPuyo,
@@ -91,41 +91,41 @@ export class Game {
         });
 
         if (this._mountain.floatingSeedPuyos.length === 0) {
-          gameState.setState(gameState.UNINIT);
+          stateHandle.setState(GameState.UNINIT);
           this._mountain.init();
           this._current.initVPuyo();
           this._htmlHandle.initTimer();
         }
         break;
-      case gameState.UNINIT:
-        this.init(() => gameState.setState(gameState.PREPARE_NEXT));
+      case GameState.UNINIT:
+        this.init(() => stateHandle.setState(GameState.PREPARE_NEXT));
         break;
-      case gameState.PREPARE_NEXT:
-        this.beforeNext(() => gameState.setState(gameState.MANIPULATING));
+      case GameState.PREPARE_NEXT:
+        this.beforeNext(() => stateHandle.setState(GameState.MANIPULATING));
         break;
-      case gameState.MANIPULATING: // FREEFALL state should be made?
+      case GameState.MANIPULATING: // FREEFALL state should be made?
         // TODO: deal with ugliness in this state
         this._input.inputHandle();
-        if (gameState.currentState !== gameState.SPLITTING &&
+        if (!stateHandle.checkCurrentState(GameState.SPLITTING) &&
           this._move.canPuyoMoveDown(this._board)
         ) {
           this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, 1.0);
 
         } else {
           // TODO: I don't wanna do this! should be done in canMovePuyoDown()
-          if (gameState.currentState !== gameState.SPLITTING) {
-            // gameState.setState(gameState.LOCKING_MANIPUYO)
+          if (!stateHandle.checkCurrentState(GameState.SPLITTING)) {
+            // stateHandle.setState(GameState.LOCKING_MANIPUYO)
 
-            if (this._current.lockCurrentPuyo()) gameState.setState(gameState.CHAIN_FINDING);
+            if (this._current.lockCurrentPuyo()) stateHandle.setState(GameState.CHAIN_FINDING);
             // else this state again?
           }
         }
         // TODO: this should be entry function of SPLITTING
-        if (gameState.currentState === gameState.SPLITTING) {
+        if (stateHandle.checkCurrentState(GameState.SPLITTING)) {
           this._split.lockUnsplittedPuyo();
         }
         break;
-      case gameState.SPLITTING:
+      case GameState.SPLITTING:
         this._move.letSinglePuyoFall(
           this._board,
           this._split.splittedPuyo,
@@ -133,17 +133,17 @@ export class Game {
           gameConfig.SPLIT_FALLING_SPEED,
           () => {
             this._split.splittedPuyo = null;
-            gameState.setState(gameState.CHAIN_FINDING);
+            stateHandle.setState(GameState.CHAIN_FINDING);
           }
         )
         break;
-      case gameState.LOCKING_MANIPUYO: // unused
+      case GameState.LOCKING_MANIPUYO: // unused
         // TODO: want to calc lockwaitcount here or isn't necessary?
-        // lockPuyo(() => gameState.setState(gameState.CHAIN_FINDING));
-        if (this._current.lockCurrentPuyo()) gameState.setState(gameState.CHAIN_FINDING);
-        else gameState.setState(gameState.MANIPULATING);
+        // lockPuyo(() => stateHandle.setState(GameState.CHAIN_FINDING));
+        if (this._current.lockCurrentPuyo()) stateHandle.setState(GameState.CHAIN_FINDING);
+        else stateHandle.setState(GameState.MANIPULATING);
         break;
-      case gameState.CHAIN_FINDING:
+      case GameState.CHAIN_FINDING:
         // TODO: these should go into function?
         this._chain.findConnectedPuyos(this._board.board, (savePuyos) => {
           this._chain.addVanishPuyos(savePuyos);
@@ -151,23 +151,23 @@ export class Game {
 
         if (this._chain.vanishPuyos.length !== 0) {
           this._chain.incrementChainCount();
-          gameState.setState(gameState.CHAIN_VANISHING);
+          stateHandle.setState(GameState.CHAIN_VANISHING);
           this._chain.erasePuyos(this._board.board); // temp here, should go into VANISHING
         } else {
           if (!this.isGameOver()) {
-            gameState.setState(gameState.PREPARE_NEXT);
+            stateHandle.setState(GameState.PREPARE_NEXT);
           }
-          else gameState.setState(gameState.GAMEOVER);
+          else stateHandle.setState(GameState.GAMEOVER);
 
 
           // TODO: don't confuse mountain process like this
           if (this._chain.chainCount >= this._mountain.currentTargetChainNum) {
-            gameState.setState(gameState.GENE_SEED_PUYOS);
+            stateHandle.setState(GameState.GENE_SEED_PUYOS);
             this._mountain.addValidVanishPuyoNum(this._mountain.currentTargetChainNum * 4);
             this._mountain.nextTargetChain();
             this._chain.initConnectedPuyos();
             if (this._mountain.everyPhaseEnds)
-              gameState.setState(gameState.GAMEOVER);
+              stateHandle.setState(GameState.GAMEOVER);
           } else {
             // if no chain happens, just 0 is added
             this._mountain.addUnnecessaryVanishPuyoNum(this._chain.vanishPuyoNum);
@@ -177,12 +177,12 @@ export class Game {
         }
 
         // chainfindfunction(
-        //   () => gameState.setState(gameState.CHAIN_VANISHING), // chain exists
-        //   () => gameState.setState(gameState.PREPARE_NEXT), // no chain
-        //   () => gameState.setState(gameState.GAMEOVER) // no chain and over
+        //   () => stateHandle.setState(GameState.CHAIN_VANISHING), // chain exists
+        //   () => stateHandle.setState(GameState.PREPARE_NEXT), // no chain
+        //   () => stateHandle.setState(GameState.GAMEOVER) // no chain and over
         // );
         break;
-      case gameState.CHAIN_VANISHING:
+      case GameState.CHAIN_VANISHING:
         // TODO: this should be called just once as enter function
         // erasePuyos(board);
 
@@ -192,10 +192,10 @@ export class Game {
         } else if (this._chain.chainVanishWaitCount === gameConfig.VANISH_WAIT_TIME) {
           this._chain.incrementChainVanishWaitCount();
           this._chain.findFloatingPuyos(this._board.board);
-          gameState.setState(gameState.FALLING_ABOVE_CHAIN);
+          stateHandle.setState(GameState.FALLING_ABOVE_CHAIN);
         }
         break;
-      case gameState.FALLING_ABOVE_CHAIN:
+      case GameState.FALLING_ABOVE_CHAIN:
         this._chain.floatingPuyos.forEach(floatingPuyo => {
           this._move.letSinglePuyoFall(this._board,
             floatingPuyo,
@@ -206,18 +206,18 @@ export class Game {
         });
 
         if (this._chain.floatingPuyos.length === 0) {
-          gameState.setState(gameState.CHAIN_FINDING);
+          stateHandle.setState(GameState.CHAIN_FINDING);
           this._chain.initVanishPuyos();
           this._chain.initChainVanishWaitCount();
         }
         break;
-      case gameState.JUST_DRAWING:
-        if (!this._bounce.willBounce) gameState.setState(gameState.prevState);
+      case GameState.JUST_DRAWING:
+        if (!this._bounce.willBounce) stateHandle.setState(stateHandle.prevState);
         break;
-      case gameState.GAMEOVER:
+      case GameState.GAMEOVER:
         // if no chain saves you, its over
         break;
-      case gameState.PAUSING:
+      case GameState.PAUSING:
         // if you press pause
         // after this, go back to origianl state
         break;
@@ -232,11 +232,34 @@ export class Game {
 
   beforeStateCheck() {
     if (this._bounce.willBounce &&
-      (gameState.currentState !== gameState.FALLING_ABOVE_CHAIN)
-    ) gameState.setState(gameState.JUST_DRAWING);
+      (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
+    ) stateHandle.setState(GameState.JUST_DRAWING);
   }
 
   isGameOver() {
     return this._board.board[gameConfig.BOARD_TOP_EDGE][gameConfig.PUYO_BIRTH_POSX] !== gameConfig.NO_COLOR;
+  }
+
+  handlePause() {
+    if (stateHandle.duringGamePlay()) {
+      // go to pause
+      stateHandle.setState(GameState.PAUSING);
+      this._menu.generateButtons(MenuSelect.PAUSE);
+    }
+    else if (stateHandle.checkCurrentState(GameState.PAUSING)) {
+      // back from pause
+      stateHandle.setState(stateHandle.prevState);
+      this._menu.deleteButtons();
+    }
+  }
+
+  // just once called before entering loop
+  beforeLoop() {
+    // register pause button
+    const pauseButton = document.getElementById("pauseButton");
+    pauseButton.addEventListener('click', this.handlePause.bind(this));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'p') this.handlePause();
+    })
   }
 }

@@ -1,5 +1,5 @@
 import { throttle, throttleEX, keyPressedTwice } from "./util.js"
-import { gameState } from "./state.ts"
+import { GameState, stateHandle } from "./state.ts"
 import { gameConfig } from "./config.ts"
 import { Move } from "./move.ts"
 import { Game } from "./game.ts"
@@ -126,7 +126,7 @@ export class Input {
   }
 
   canTakeInput() {
-    return (gameState.currentState === gameState.MANIPULATING)
+    return (stateHandle.checkCurrentState(GameState.MANIPULATING));
   }
 
   inputHandle() {

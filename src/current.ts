@@ -1,7 +1,7 @@
 import { baseManiPuyo } from "./types.ts"
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
-import { gameState } from "./state.ts"
+import { GameState, stateHandle } from "./state.ts"
 import { Board } from "./board";
 
 export class Current {
@@ -27,7 +27,7 @@ export class Current {
 
     document.addEventListener('keydown', e => {
       if (e.key === 'c') {
-        if (gameState.currentState !== gameState.MANIPULATING ||
+        if (!stateHandle.checkCurrentState(GameState.MANIPULATING)  ||
           // this._hasVPuyoUsed || 
           !this._versatilePuyo
         ) return;
@@ -45,7 +45,7 @@ export class Current {
 
     document.addEventListener('keydown', e => {
       if (e.key === 'd') {
-        if (gameState.currentState !== gameState.MANIPULATING ||
+        if (!stateHandle.checkCurrentState(GameState.MANIPULATING)  ||
           this._hasVPuyoUsed
         ) return;
 
@@ -112,7 +112,7 @@ export class Current {
     } else {
       if (this._puyoPool.length === 0) { this.initPuyoPool(); }
 
-      this._currentPuyo = (gameState.prevState !== gameState.UNINIT)
+      this._currentPuyo = (!stateHandle.checkPrevState(GameState.UNINIT))
         ? this._nextPuyo
         // : this.getRandomPuyo();
         : this.usePuyoPool();

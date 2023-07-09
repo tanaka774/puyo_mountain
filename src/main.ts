@@ -1,6 +1,6 @@
 import { gameConfig } from "./config.ts"
 import { recordPuyoSteps } from "./record.ts"
-import { gameState } from "./state.ts"
+import { GameState, stateHandle } from "./state.ts"
 import { baseSinglePuyo } from "./types.ts"
 import { Chain } from "./chain.ts"
 import { Menu } from "./menu.js"
@@ -35,44 +35,49 @@ function main() {
 
   setCallback();
 
-  gameState.setState(gameState.OPENING);
+  game.beforeLoop();
+  stateHandle.setState(GameState.OPENING);
   game.gameLoop();
 
   function setCallback() {
     move.setCallback(
-      () => gameState.setState(gameState.SPLITTING),
+      () => stateHandle.setState(GameState.SPLITTING),
     );
 
     menu.setCallback(
-      // () => gameState.setState(gameState.UNINIT),
+      // () => stateHandle.setState(GameState.UNINIT),
       () => {
-        gameState.setState(gameState.GENE_SEED_PUYOS);
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.EASY);
         mountain.initTargetChain();
       },
       () => {
-        gameState.setState(gameState.GENE_SEED_PUYOS);
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.NORMAL);
         mountain.initTargetChain();
       },
       () => {
-        gameState.setState(gameState.GENE_SEED_PUYOS);
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.HARD);
         mountain.initTargetChain();
       },
       () => {
-        gameState.setState(gameState.GENE_SEED_PUYOS);
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.initTargetChain();
       },
       () => {
-        gameState.setState(gameState.GENE_SEED_PUYOS);
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.initTargetChain();
       },
+      () => {
+        game.handlePause();
+        // TODO: init game status
+      }
     );
 
     current.setCallback(

@@ -1,6 +1,6 @@
-import { gameState } from "./state";
+import { GameState, stateHandle } from "./state";
 
-enum MenuSelect {
+export enum MenuSelect {
   START_MENU,
   ARCADE_SELECT_1,
   ENDURANCE_SELECT_1,
@@ -18,6 +18,7 @@ export class Menu {
   private arcadeHard: () => void;
   private enduranceMode1: () => void;
   private enduranceMode2: () => void;
+  private backToGameInPause: () => void;
   private enterKeyUpCallback: () => void;
 
 
@@ -36,30 +37,20 @@ export class Menu {
     this.handleMouseOver = this.handleMouseOver.bind(this);
     this.handleMouseClick = this.handleMouseClick.bind(this);
 
-    // this._buttons.forEach(button => {
-    //   button.addEventListener('mouseover', this.handleMouseOver);
-    //   button.addEventListener('click', this.handleMouseClick);
-    // });
-
-    // document.addEventListener('keydown', event => {
-    //   if (event.key === 'ArrowUp') {
-    //     this.handleArrowUp();
-    //   } else if (event.key === 'ArrowDown') {
-    //     this.handleArrowDown();
-    //   }
-    // });
-
     document.addEventListener('keyup', e => {
-      if (gameState.currentState !== gameState.MENU) return;
+      if (!stateHandle.menuButtonAppears()) return;
 
       if (e.key === 'ArrowUp') {
+        e.preventDefault();
         this.handleArrowUp();
       } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
         this.handleArrowDown();
       }
 
       if (e.key === 'Enter') {
         console.log("I'm called mom!")
+        e.preventDefault();
         this.enterKeyUpCallback();
       }
     })
@@ -104,7 +95,7 @@ export class Menu {
     // this.executeAction(index);
   }
 
-  private deleteButtons() {
+  deleteButtons() {
     this._menuContainer.innerHTML = "";
   }
 
@@ -117,6 +108,8 @@ export class Menu {
       const tempButton = document.createElement('button');
       tempButton.innerText = showText;
       tempButton.addEventListener('click', callback);
+      tempButton.addEventListener('mouseover', this.handleMouseOver.bind(this));
+      tempButton.addEventListener('click', this.handleMouseClick.bind(this));
 
       this._menuContainer.appendChild(tempButton);
     }
@@ -140,7 +133,7 @@ export class Menu {
         geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.PAUSE:
-        geneButton('ゲームに戻る', () => { });
+        geneButton('ゲームに戻る', () => { this.backToGameInPause(); this.deleteButtons(); });
         geneButton('メニューに戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_OVER:
@@ -161,43 +154,15 @@ export class Menu {
     this._buttons = this._menuContainer.querySelectorAll('button');
     this._selectedIndex = 0;
     this._buttons[this._selectedIndex].classList.add('selected');
-    this._buttons.forEach(button => {
-      button.addEventListener('mouseover', this.handleMouseOver.bind(this));
-      button.addEventListener('click', this.handleMouseClick.bind(this));
-    });
   }
 
-  // executeAction(index) {
-  //   let willCloseMenu = false;
-  //   switch (index) {
-  //     case 0:
-  //       willCloseMenu = true;
-  //       this.setStateMode1();
-  //       break;
-  //     case 1:
-  //       willCloseMenu = true;
-  //       this.setStateMode2();
-  //       break;
-  //     case 2:
-  //       willCloseMenu = true;
-  //       this.setStateMode3();
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  //   if (willCloseMenu) {
-  //
-  //     const menuDiv = document.getElementById("menu") as HTMLDivElement;
-  //     menuDiv.remove();
-  //   }
-  // }
-
-  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2) {
+  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, backToGameInPause) {
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
     this.arcadeHard = arcadeHard;
     this.enduranceMode1 = enduranceMode1;
     this.enduranceMode2 = enduranceMode2;
+    this.backToGameInPause = backToGameInPause;
   }
 }
 

@@ -294,10 +294,11 @@ export class Chain {
             let connectedPuyoNum = 0;
             const savePuyos: number[][] = [];
             connectedPuyoNum = this.checkConnected(board, x, y, checkedCells, board[y][x], savePuyos, false);
-            if (connectedPuyoNum >= 3) {
-              // don't want to store 3 connected puyos here
-              return;
-            } else {
+            // if (connectedPuyoNum >= 3) {
+            //   // don't want to store 3 connected puyos here
+            //   return;
+            // } else {
+            if (connectedPuyoNum >= 1) {
               savePuyos.forEach((savePuyo) => sameColorCellsAfter.push(savePuyo));
             }
           })

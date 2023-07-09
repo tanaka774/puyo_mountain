@@ -1,6 +1,6 @@
 import { Chain } from "./chain";
 import { GameMode, Mountain } from "./mountain";
-import { gameState } from "./state";
+import { GameState, stateHandle } from "./state";
 
 
 export class HtmlHandle {
@@ -11,7 +11,7 @@ export class HtmlHandle {
   private _startTime: number;
   private _currentTime: number;
   private _timerStarted: boolean;
-  private _pauseButton: HTMLElement;
+  // private _pauseButton: HTMLElement;
 
   constructor(
     private _chain: Chain,
@@ -23,12 +23,12 @@ export class HtmlHandle {
     this._timerElement = document.getElementById('timer');
     this._timerElement.textContent = '00:00';
     this._timerStarted = false;
-    this._pauseButton = document.getElementById("pauseButton");
+    // this._pauseButton = document.getElementById("pauseButton");
 
-    this._pauseButton.addEventListener('click', this.handlePause);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'p') this.handlePause();
-    })
+    // this._pauseButton.addEventListener('click', this.handlePause);
+    // document.addEventListener('keydown', e => {
+    //   if (e.key === 'p') this.handlePause();
+    // })
   }
 
   htmlUpdate() {
@@ -41,13 +41,13 @@ export class HtmlHandle {
     this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
   }
 
-  handlePause() {
-    // TODO: temp, prevent infinte loop
-    if (gameState.currentState === gameState.JUST_DRAWING) return;
-
-    if (gameState.currentState !== gameState.PAUSING) gameState.setState(gameState.PAUSING);
-    else gameState.setState(gameState.prevState);
-  }
+  // handlePause() {
+  //   // TODO: temp, prevent infinte loop
+  //   if (GameState.currentState === GameState.JUST_DRAWING) return;
+  //
+  //   if (GameState.currentState !== GameState.PAUSING) stateHandle.setState(GameState.PAUSING);
+  //   else stateHandle.setState(stateHandle.prevState);
+  // }
 
   // TODO: saparate and make timer class
   initTimer() {
@@ -65,8 +65,8 @@ export class HtmlHandle {
   }
 
   updateTimer() {
-    if (gameState.currentState === gameState.GAMEOVER) return;
-    if (gameState.currentState === gameState.PAUSING) {
+    if (stateHandle.checkCurrentState(GameState.GAMEOVER)) return;
+    if (stateHandle.checkCurrentState(GameState.PAUSING)) {
       this._startTime += Date.now() - this._currentTime;
     }
 

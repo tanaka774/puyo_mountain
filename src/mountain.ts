@@ -135,7 +135,7 @@ export class Mountain {
     const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
     // TODO: need to limit side range
     // const distributionNum = Math.floor(Math.random() * (boardWidth - 2)) + 2;
-    const distributionNum = getRandomNum(boardWidth - 2) + 2;
+    const distributionNum = getRandomNum(boardWidth - 4) + 4;
     // const deviation = seedPuyoNum / distributionNum * 3 / 5; 
     const onceLimit = 2 / 3;
     const heightLimit = boardHeight - 3;
