@@ -34,6 +34,10 @@ export class Board {
     return board;
   }
 
+  initBoard() {
+    this._board = this.createBoard();
+  }
+
   lockPuyo(board, posX, posY, color, recordFlag) {
     // TODO: remember x, y value here and use for chain process or something
     board[posY][posX] = color;

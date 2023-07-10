@@ -25,10 +25,9 @@ export class Current {
     this._hasVPuyoUsed = false;
     this.initPuyoPool();
 
-    document.addEventListener('keydown', e => {
+    document.addEventListener('keyup', e => {
       if (e.key === 'c') {
         if (!stateHandle.checkCurrentState(GameState.MANIPULATING)  ||
-          // this._hasVPuyoUsed || 
           !this._versatilePuyo
         ) return;
 
@@ -43,7 +42,7 @@ export class Current {
       }
     });
 
-    document.addEventListener('keydown', e => {
+    document.addEventListener('keyup', e => {
       if (e.key === 'd') {
         if (!stateHandle.checkCurrentState(GameState.MANIPULATING)  ||
           this._hasVPuyoUsed
@@ -160,11 +159,15 @@ export class Current {
   get nextPuyo() { return this._nextPuyo; }
   get doubleNextPuyo() { return this._doubleNextPuyo; }
 
-  initPuyos() {
+  initManiPuyos() {
     this._currentPuyo = null;
     this._nextPuyo = null;
     this._doubleNextPuyo = null;
     this._versatilePuyo = null;
+  }
+
+  initPuyos() {
+    this.initManiPuyos();
     this.initPuyoPool();
   }
 

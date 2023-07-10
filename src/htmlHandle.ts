@@ -32,6 +32,18 @@ export class HtmlHandle {
   }
 
   htmlUpdate() {
+    if (!stateHandle.willShowGameResult()) {
+      this._chainNumShow.style.display = 'none';
+      this._chainPuyoNumShow.style.display = 'none';
+      this._targetChainNumShow.style.display = 'none';
+      this._timerElement.style.display = 'none';
+    } else {
+      this._chainNumShow.style.display = '';
+      this._chainPuyoNumShow.style.display = '';
+      this._targetChainNumShow.style.display = '';
+      this._timerElement.style.display = '';
+    }
+
     if (this._mountain.currentMode === GameMode.ARCADE) {
       this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 　 フェーズ ${this._mountain.phase}`
     } else if (this._mountain.currentMode === GameMode.ENDURANCE) {

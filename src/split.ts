@@ -23,22 +23,25 @@ export class Split {
   }
 
   setSplittedPuyo(singlePuyo: baseSinglePuyo) {
-    this.initSplittedPuyo();
+    // this.initSplittedPuyo();
+    this._splittedPuyo = { posX: -1, posY: -1, color: -1 };
     this._splittedPuyo.posX = singlePuyo.posX;
     this._splittedPuyo.posY = singlePuyo.posY;
     this._splittedPuyo.color = singlePuyo.color;
   };
 
   setUnsplittedPuyo(singlePuyo: baseSinglePuyo) {
-    this.initUnsplittedPuyo();
+    // this.initUnsplittedPuyo();
+    this._unsplittedPuyo = { posX: -1, posY: -1, color: -1 };
     this._unsplittedPuyo.posX = singlePuyo.posX;
     this._unsplittedPuyo.posY = singlePuyo.posY;
     this._unsplittedPuyo.color = singlePuyo.color;
   };
 
-  initSplittedPuyo() { this._splittedPuyo = { posX: -1, posY: -1, color: -1 }; }
-  initUnsplittedPuyo() { this._unsplittedPuyo = { posX: -1, posY: -1, color: -1 }; }
+  initSplittedPuyo() { this._splittedPuyo = null; }
+  initUnsplittedPuyo() { this._unsplittedPuyo = null; }
 
   get splittedPuyo() { return this._splittedPuyo; }
   set splittedPuyo(singlePuyo: baseSinglePuyo) { this._splittedPuyo = singlePuyo; }
+
 }

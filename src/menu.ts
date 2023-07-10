@@ -19,6 +19,11 @@ export class Menu {
   private enduranceMode1: () => void;
   private enduranceMode2: () => void;
   private backToGameInPause: () => void;
+  private backToMenuInPause: () => void;
+  private retryAfterGameOver: () => void;
+  private retryAfterGameClear: () => void;
+  private backToMenuAfterGameOver: () => void;
+  private backToMenuAfterGameClear: () => void;
   private enterKeyUpCallback: () => void;
 
 
@@ -97,12 +102,14 @@ export class Menu {
 
   deleteButtons() {
     this._menuContainer.innerHTML = "";
+    this._menuContainer.classList.remove('overlay');
   }
 
   generateButtons(menuSelect: MenuSelect) {
     this._menuContainer = document.getElementById("menu") as HTMLDivElement;
     // this._menuContainer.innerHTML = "";
     this.deleteButtons();
+    this._menuContainer.classList.add('overlay');
 
     const geneButton = (showText: string, callback: () => void) => {
       const tempButton = document.createElement('button');
@@ -134,16 +141,15 @@ export class Menu {
         break;
       case MenuSelect.PAUSE:
         geneButton('ゲームに戻る', () => { this.backToGameInPause(); this.deleteButtons(); });
-        geneButton('メニューに戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
+        geneButton('メニューに戻る', () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_OVER:
-        // where should I let go back????
-        geneButton('リトライ', () => { });
-        geneButton('メニューに戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
+        geneButton('リトライする', () => { this.retryAfterGameOver(); this.deleteButtons(); });
+        geneButton('メニューに戻る', () => { this.backToMenuAfterGameOver(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_CLEAR:
-        geneButton('もういちど', () => { });
-        geneButton('メニューに戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
+        geneButton('もういちどのぼる', () => { this.retryAfterGameClear(); this.deleteButtons(); });
+        geneButton('メニューに戻る', () => { this.backToMenuAfterGameClear(); this.generateButtons(MenuSelect.START_MENU) });
         break;
 
       default:
@@ -156,13 +162,19 @@ export class Menu {
     this._buttons[this._selectedIndex].classList.add('selected');
   }
 
-  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, backToGameInPause) {
+  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, 
+    backToGameInPause, backToMenuInPause, retryAfterGameOver, backToMenuAfterGameOver, retryAfterGameClear, backToMenuAfterGameClear) {
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
     this.arcadeHard = arcadeHard;
     this.enduranceMode1 = enduranceMode1;
     this.enduranceMode2 = enduranceMode2;
     this.backToGameInPause = backToGameInPause;
+    this.backToMenuInPause = backToMenuInPause;
+    this.retryAfterGameOver = retryAfterGameOver;
+    this.backToMenuAfterGameOver = backToMenuAfterGameOver;
+    this.retryAfterGameClear = retryAfterGameClear;
+    this.backToMenuAfterGameClear = backToMenuAfterGameClear;
   }
 }
 

@@ -28,7 +28,7 @@ function main() {
   const mountain = new Mountain(board, move, chain);
   const input = new Input(board, current, move, rotate);
   const draw = new DrawWithCanvas(bounce, board, current, move, rotate,
-    split, chain, mountain, 'tetrisCanvas', 'nextPuyoCanvas');
+    split, chain, mountain, 'mainCanvas', 'nextPuyoCanvas');
   const htmlHandle = new HtmlHandle(chain, mountain);
   const game = new Game(menu, bounce, board, current, move, rotate,
     split, chain, input, draw, mountain, htmlHandle);
@@ -44,8 +44,20 @@ function main() {
       () => stateHandle.setState(GameState.SPLITTING),
     );
 
+    current.setCallback(
+      () => chain.detectPossibleChain(board.board, current.currentPuyo)
+    );
+
+    const resetStatus = () => {
+      board.initBoard();
+      current.initManiPuyos();
+      chain.initFloatingPuyos();
+      chain.initConnectedPuyos();
+      split.initSplittedPuyo();
+      mountain.initAll();
+    }
+
     menu.setCallback(
-      // () => stateHandle.setState(GameState.UNINIT),
       () => {
         stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ARCADE);
@@ -76,12 +88,27 @@ function main() {
       },
       () => {
         game.handlePause();
-        // TODO: init game status
-      }
-    );
-
-    current.setCallback(
-      () => chain.detectPossibleChain(board.board, current.currentPuyo)
+      },
+      () => {
+        resetStatus();
+        stateHandle.setState(GameState.MENU);
+      },
+      () => {
+        resetStatus();
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
+      },
+      () => {
+        resetStatus();
+        stateHandle.setState(GameState.MENU);
+      },
+      () => {
+        resetStatus();
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
+      },
+      () => {
+        resetStatus();
+        stateHandle.setState(GameState.MENU);
+      },
     );
   }
 }

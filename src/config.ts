@@ -1,8 +1,14 @@
-// TODO: temp, be careful about this
-const canvas = document.getElementById('tetrisCanvas') as HTMLCanvasElement;
 
-// Constants
-const CELL_SIZE = 20;
+const CELL_SIZE = 30;
+
+// TODO: temp, be careful about this
+const canvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
+canvas.width = CELL_SIZE * 6;
+canvas.height = CELL_SIZE * 14;
+const nextPuyoCanvas = document.getElementById('nextPuyoCanvas') as HTMLCanvasElement;
+nextPuyoCanvas.width = CELL_SIZE * 2;
+nextPuyoCanvas.height = CELL_SIZE * 12;
+
 // what is used as index are
 // x:BOARD_LEFT_EDGE ~ BOARD_RIGHT_EDGE - 1
 // y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
@@ -38,6 +44,9 @@ const SEED_FALLING_SPEED = 15.0;
 const SPLIT_FALLING_SPEED = 12.0;
 const FLOAT_FALLING_SPEED = 12.0;
 const PUYO_POOL_LOOP = 16;
+const ENDURANCE_TOTAL = 20;
+const ENDURANCE_MIN_ONCE = 6;
+const ENDURANCE_MAX_ONCE = 12;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -64,6 +73,9 @@ export const gameConfig = Object.freeze({
   SPLIT_FALLING_SPEED,
   FLOAT_FALLING_SPEED,
   PUYO_POOL_LOOP,
+  ENDURANCE_TOTAL,
+  ENDURANCE_MIN_ONCE,
+  ENDURANCE_MAX_ONCE,
 })
 
 

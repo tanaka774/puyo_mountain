@@ -5,50 +5,45 @@
   /* background: lightseagreen; */
   /* position: absolute; */
 }
-#tetrisCanvas {
+#mainCanvas {
   border: 1px solid #000;
   display: inline-block;
   margin: 0 auto;
   background: lightgray;
+  z-index: 3;
+  /* position: absolute; */
   /* flex: 0 0 auto; */
   /* width: 120px; */
-  /* height: 240px; */
+  /* height: 280px; */
 }
 #nextPuyoCanvas {
   display: inline-block;
   background: lightcyan;
+  z-index: 1;
+  /* position: absolute; */
   /* flex: 0 0 auto; */
 }
 
-/**/
-/* body { */
-/*   font-family: Arial, sans-serif; */
-/*   text-align: center; */
-/*   background-color: #f2f2f2; */
-/* } */
-/**/
-/* canvas { */
-/*   background-color: lightgreen; */
-/*   position: absolute; */
-/* /*   top: 100; */
-/*   left: 100; */ */
-/*   top: 50%; */
-/*   left: 50%; */
-/*   transform: translate(-50%, -50%); */
-/*   z-index: 1; */
-/* } */
-/**/
-
-.menu-container {
+.overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.5);
   z-index: 2;
 }
 
-h3 {
-  color: #333;
+.menu-container {
+  /* position: absolute; */
+  /* top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
+  /* top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0; */
+  /* z-index: 2; */
 }
 
 .menu-container button {

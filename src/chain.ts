@@ -308,57 +308,6 @@ export class Chain {
           break;
         }
 
-        // if (board[y][x] !== 0 &&
-        //   board[y - 1][x] === 0 &&
-        //   (board[y][x] === board[y - 1][x - 1] || board[y][x] === board[y - 1][x + 1]) // temp, need to improve
-        // ) {
-        //   // TODO: need more shape
-        //   if (board[y - 1][x - 1] === board[y][x] && board[y][x] === board[y - 1][x + 1]) {
-        //     triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 1]]);
-        //   }
-        //   else if (board[y - 1][x - 1] === board[y][x]) {
-        //     if (board[y][x] === board[y][x + 1])
-        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y]]);
-        //     if (x > gameConfig.BOARD_LEFT_EDGE && board[y][x] === board[y - 1][x - 2])
-        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 2, y - 1]]);
-        //     if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
-        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x, y + 1]]);
-        //     if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x - 1])
-        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x - 1, y - 2]]);
-        //   }
-        //   else if (board[y - 1][x + 1] === board[y][x]) {
-        //     if (board[y][x] === board[y][x - 1])
-        //       triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x - 1, y]]);
-        //     if (x < gameConfig.BOARD_RIGHT_EDGE - 1 && board[y][x] === board[y - 1][x + 2])
-        //       triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x + 2, y - 1]]);
-        //     if (y < gameConfig.BOARD_BOTTOM_EDGE - 1 && board[y][x] === board[y + 1][x])
-        //       triggerPuyosGroup.push([[x + 1, y - 1], [x, y], [x, y + 1]]);
-        //     if (y > gameConfig.BOARD_TOP_EDGE && board[y][x] === board[y - 2][x + 1])
-        //       triggerPuyosGroup.push([[x - 1, y - 1], [x, y], [x + 1, y - 2]]);
-        //   }
-        //   break;
-        // }
-        //
-        // if (board[y][x] === 0 &&
-        //   board[y + 1][x] !== 0 &&
-        //   board[y][x - 1] !== 0 &&
-        //   board[y][x - 1] === board[y][x + 1]
-        // ) {
-        //   if (x - 2 >= gameConfig.BOARD_LEFT_EDGE && board[y][x - 2] === board[y][x - 1]) {
-        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 2, y]]);
-        //   } else if (x + 2 < gameConfig.BOARD_RIGHT_EDGE && board[y][x + 1] === board[y][x + 2]) {
-        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 2, y]]);
-        //   } else if (board[y][x - 1] === board[y - 1][x - 1]) {
-        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y - 1]]);
-        //   } else if (board[y][x + 1] === board[y - 1][x + 1]) {
-        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y - 1]]);
-        //   } else if (board[y][x - 1] === board[y + 1][x - 1]) {
-        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x - 1, y + 1]]);
-        //   } else if (board[y][x + 1] === board[y + 1][x + 1]) {
-        //     triggerPuyosGroup.push([[x - 1, y], [x + 1, y], [x + 1, y + 1]]);
-        //   }
-        //   break;
-        // }
       }
     }
   }
@@ -414,14 +363,12 @@ export class Chain {
   get connectedPuyos() { return this._connectedPuyos; }
 
   addConnectedPuyos(x, y, color, dx, dy) {
-    // TODO: store x or y as it is not modfiying value
-    // this._connectedPuyos.add(`${x - gameConfig.BOARD_LEFT_EDGE},${y - gameConfig.BOARD_TOP_EDGE},${color}:${dx},${dy}`);
     this._connectedPuyos.add(`${x},${y},${color}:${dx},${dy}`);
   }
 
   deleteConnectedPuyo(x, y) {
-    const modX = x// - gameConfig.BOARD_LEFT_EDGE;
-    const modY = y// - gameConfig.BOARD_TOP_EDGE;
+    const modX = x;
+    const modY = y;
     this._connectedPuyos.forEach((elem) => {
       if (elem.indexOf(`${modX},${modY}`) === 0) {
         this._connectedPuyos.delete(elem);
@@ -457,6 +404,7 @@ export class Chain {
 
   get floatingPuyos() { return this._floatingPuyos; }
   set floatingPuyos(puyos: baseSinglePuyo[]) { this._floatingPuyos = puyos; }
+  initFloatingPuyos() { this._floatingPuyos = []; }
   deleteFloatingPuyos(floatingPuyo: baseSinglePuyo) {
     this._floatingPuyos =
       this._floatingPuyos.filter(

@@ -92,7 +92,7 @@ export class Game {
 
         if (this._mountain.floatingSeedPuyos.length === 0) {
           stateHandle.setState(GameState.UNINIT);
-          this._mountain.init();
+          this._mountain.initInternalInfo();
           this._current.initVPuyo();
           this._htmlHandle.initTimer();
         }
@@ -126,6 +126,11 @@ export class Game {
         }
         break;
       case GameState.SPLITTING:
+        // // splitted puyo is null from manip to here and disappears just in a brief moment
+        // if (stateHandle.isEnter()) {
+        //   this._split.lockUnsplittedPuyo();
+        // }
+
         this._move.letSinglePuyoFall(
           this._board,
           this._split.splittedPuyo,
@@ -152,7 +157,8 @@ export class Game {
         if (this._chain.vanishPuyos.length !== 0) {
           this._chain.incrementChainCount();
           stateHandle.setState(GameState.CHAIN_VANISHING);
-          this._chain.erasePuyos(this._board.board); // temp here, should go into VANISHING
+          // TODO: this should be called just once as enter function
+          // this._chain.erasePuyos(this._board.board); // temp here, should go into VANISHING
         } else {
           if (!this.isGameOver()) {
             stateHandle.setState(GameState.PREPARE_NEXT);
@@ -167,7 +173,7 @@ export class Game {
             this._mountain.nextTargetChain();
             this._chain.initConnectedPuyos();
             if (this._mountain.everyPhaseEnds)
-              stateHandle.setState(GameState.GAMEOVER);
+              stateHandle.setState(GameState.GAMECLEAR);
           } else {
             // if no chain happens, just 0 is added
             this._mountain.addUnnecessaryVanishPuyoNum(this._chain.vanishPuyoNum);
@@ -183,8 +189,9 @@ export class Game {
         // );
         break;
       case GameState.CHAIN_VANISHING:
-        // TODO: this should be called just once as enter function
-        // erasePuyos(board);
+        if (stateHandle.isEnter()) {
+          this._chain.erasePuyos(this._board.board);
+        }
 
         if (this._chain.chainVanishWaitCount < gameConfig.VANISH_WAIT_TIME) {
           this._chain.incrementChainVanishWaitCount();
@@ -216,6 +223,15 @@ export class Game {
         break;
       case GameState.GAMEOVER:
         // if no chain saves you, its over
+        if (stateHandle.isEnter()) {
+          this._menu.generateButtons(MenuSelect.GAME_OVER);
+        }
+        break;
+      case GameState.GAMECLEAR:
+        // if no chain saves you, its over
+        if (stateHandle.isEnter()) {
+          this._menu.generateButtons(MenuSelect.GAME_CLEAR);
+        }
         break;
       case GameState.PAUSING:
         // if you press pause
@@ -233,7 +249,9 @@ export class Game {
   beforeStateCheck() {
     if (this._bounce.willBounce &&
       (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
-    ) stateHandle.setState(GameState.JUST_DRAWING);
+    ) {
+      stateHandle.setState(GameState.JUST_DRAWING);
+    }
   }
 
   isGameOver() {
@@ -241,7 +259,7 @@ export class Game {
   }
 
   handlePause() {
-    if (stateHandle.duringGamePlay()) {
+    if (stateHandle.duringGamePlayWithoutJustDrawing()) {
       // go to pause
       stateHandle.setState(GameState.PAUSING);
       this._menu.generateButtons(MenuSelect.PAUSE);

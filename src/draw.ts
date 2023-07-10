@@ -39,15 +39,16 @@ export class DrawWithCanvas {
 
   drawMainBoard() {
     // TODO: use CELL_SIZE
+    const cs = gameConfig.CELL_SIZE;
     this.ctx.fillStyle = 'rgba(160,160,160,0.8)';
-    this.ctx.fillRect(0, 0, this.mainCanvas.width, 20);
+    this.ctx.fillRect(0, 0, this.mainCanvas.width, cs * 1);
     this.ctx.fillStyle = 'rgba(200,200,200,0.8)';
-    this.ctx.fillRect(0, 20, this.mainCanvas.width, 40);
+    this.ctx.fillRect(0, cs * 1, this.mainCanvas.width, cs * 2);
     this.ctx.fillStyle = 'rgba(240,240,240,0.8)';
-    this.ctx.fillRect(0, 40, this.mainCanvas.width, 240);
+    this.ctx.fillRect(0, cs * 2, this.mainCanvas.width, cs * 12);
     // this.ctx.fillStyle = 'rgba(240,90,90,0.2)';
     this.ctx.fillStyle = 'lightpink';
-    this.ctx.fillRect(40, 40, 20, 20);
+    this.ctx.fillRect(cs * 2, cs * 2, cs * 1, cs * 1);
 
     if (this._board.board) {
       for (let y = gameConfig.BOARD_TOP_EDGE - 1; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
@@ -288,7 +289,7 @@ export class DrawWithCanvas {
 
   drawTriggerPuyos() {
     if (this._chain.maxVirtualChainCount < 2 ||
-      !stateHandle.checkCurrentState(GameState.MANIPULATING) 
+      !stateHandle.checkCurrentState(GameState.MANIPULATING)
     ) return;
 
     this._chain.maxTriggerPuyos.forEach((elem) => {
