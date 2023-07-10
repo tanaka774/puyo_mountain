@@ -38,6 +38,7 @@ export class Mountain {
   private _enduranceChainVariablity: number[];
   private _enduranceMinTargetChainNum: number;
   private _enduranceMaxTargetChainNum: number;
+  private _resultGrade: string;
 
   constructor(
     private _board: Board,
@@ -282,7 +283,6 @@ export class Mountain {
         this._targetChainNums.length === this._phase
       ) {
         // end of game
-        this._currentTargetChainNum = 99;
         this._everyPhaseEnds = true;
         return;
       }
@@ -303,10 +303,10 @@ export class Mountain {
     if (this._currentMode === GameMode.ARCADE) {
       // this._targetChainNums = [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]]
       this._targetChainNums =
-      (this._currentDifficulty === Difficulty.EASY) ? [[4, 4], [4, 4], [4, 4]] :
-      (this._currentDifficulty === Difficulty.NORMAL) ? [[6, 6], [6, 6], [6, 6]] :
-      (this._currentDifficulty === Difficulty.HARD) ? [[8, 8], [8, 8], [8, 8]] :
-      [[]];
+        (this._currentDifficulty === Difficulty.EASY) ? [[4, 4]] :
+          (this._currentDifficulty === Difficulty.NORMAL) ? [[6, 6], [6, 6], [6, 6]] :
+            (this._currentDifficulty === Difficulty.HARD) ? [[8, 8], [8, 8], [8, 8]] :
+              [[]];
 
       this._currentTargetChainIndex = 0;
       this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
@@ -331,12 +331,13 @@ export class Mountain {
     this.initVirtualboard();
     this.initFloatingSeedPuyos();
   }
-  
+
   initGameResult() {
     this._phase = 1;
     this._everyPhaseEnds = false;
     this._validVanishPuyoNum = 0;
     this._unnecessaryVanishPuyoNum = 0;
+    this._resultGrade = '';
   }
 
   initAll() {
@@ -372,4 +373,6 @@ export class Mountain {
   get enduranceTotalTargetChainNum() { return this._enduranceTotalTargetChainNum; }
 
   setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }
+
+  get resultGrade() { return this._resultGrade; }
 }

@@ -1,16 +1,17 @@
 .canvas-container {
   white-space: nowrap;
-  /* display: flex; */
-  margin: 10px; /* Add some space between the canvases */
-  /* background: lightseagreen; */
-  /* position: absolute; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px; 
 }
 #mainCanvas {
   border: 1px solid #000;
   display: inline-block;
   margin: 0 auto;
   background: lightgray;
-  z-index: 3;
+  z-index: 1;
+  margin-right: 5px;
   /* position: absolute; */
   /* flex: 0 0 auto; */
   /* width: 120px; */
@@ -20,18 +21,19 @@
   display: inline-block;
   background: lightcyan;
   z-index: 1;
+  margin-left: 5px;
   /* position: absolute; */
   /* flex: 0 0 auto; */
 }
 
 .overlay {
-  position: absolute;
+  /* position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
   background-color: rgba(0,0,0,0.5);
-  z-index: 2;
+  z-index: 2; */
 }
 
 .menu-container {
