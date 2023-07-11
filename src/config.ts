@@ -1,22 +1,29 @@
 
 const CELL_SIZE = 30;
+const DRAW_TOOL: string = 'canvas'; // 'svg'
+const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
+const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;
+const NEXT_DRAW_WIDTH = CELL_SIZE * 2;
+const NEXT_DRAW_HEIGHT = CELL_SIZE * 12;
 
-// TODO: temp, be careful about this
-const canvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
-canvas.width = CELL_SIZE * 6;
-canvas.height = CELL_SIZE * 14;
-const nextPuyoCanvas = document.getElementById('nextPuyoCanvas') as HTMLCanvasElement;
-nextPuyoCanvas.width = CELL_SIZE * 2;
-nextPuyoCanvas.height = CELL_SIZE * 12;
+if (DRAW_TOOL === 'canvas') {
+  // TODO: temp, be careful about this
+  const canvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
+  canvas.width = MAIN_DRAW_WIDTH;
+  canvas.height = MAIN_DRAW_HEIGHT;
+  const nextPuyoCanvas = document.getElementById('nextPuyoCanvas') as HTMLCanvasElement;
+  nextPuyoCanvas.width = NEXT_DRAW_WIDTH;
+  nextPuyoCanvas.height = NEXT_DRAW_HEIGHT;
+}
 
 // what is used as index are
 // x:BOARD_LEFT_EDGE ~ BOARD_RIGHT_EDGE - 1
 // y:BOARD_TOP_EDGE ~ BOARD_BOTTOM_EDGE - 1
 const BOARD_LEFT_EDGE = 1;
-const BOARD_RIGHT_EDGE = BOARD_LEFT_EDGE + canvas.width / CELL_SIZE;// - 1;
+const BOARD_RIGHT_EDGE = BOARD_LEFT_EDGE + MAIN_DRAW_WIDTH / CELL_SIZE;// - 1;
 const BOARD_GHOST_ZONE = 2; // transparent zone above top
 const BOARD_TOP_EDGE = 4;
-const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + canvas.height / CELL_SIZE - BOARD_GHOST_ZONE;// - 1;
+const BOARD_BOTTOM_EDGE = BOARD_TOP_EDGE + MAIN_DRAW_HEIGHT / CELL_SIZE - BOARD_GHOST_ZONE;// - 1;
 const BOARD_HEIGHT_MARGIN = 5;
 const BOARD_WIDTH_MARGIN = 2;
 const NO_COLOR = 0;
@@ -50,6 +57,9 @@ const ENDURANCE_MAX_ONCE = 12;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
+  DRAW_TOOL,
+  MAIN_DRAW_WIDTH,
+  MAIN_DRAW_HEIGHT,
   BOARD_LEFT_EDGE,
   BOARD_RIGHT_EDGE,
   BOARD_GHOST_ZONE,

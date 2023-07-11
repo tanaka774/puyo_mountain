@@ -8,12 +8,13 @@ import { Move } from "./move.ts"
 import { Split } from "./split.ts"
 import { Current } from "./current.ts"
 import { Board } from "./board.ts"
-import { DrawWithCanvas } from "./draw.ts"
+import { DrawWithCanvas } from "./drawWithCanvas"
 import { Input } from "./input"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate.ts"
 import { Mountain } from "./mountain"
 import { HtmlHandle } from "./htmlHandle"
+import { DrawWithSVG } from "./drawWithSVG"
 
 export class Game {
   constructor(
@@ -27,6 +28,7 @@ export class Game {
     private _chain: Chain,
     private _input: Input,
     private _draw: DrawWithCanvas,
+    // private _draw: DrawWithSVG,
     private _mountain: Mountain,
     private _htmlHandle: HtmlHandle,
   ) {
@@ -34,8 +36,6 @@ export class Game {
 
   init(setNextState) {
     if (!this._board.board) this._board.board = this._board.createBoard();
-    // beforeNext();
-    // this._draw.draw();
     setNextState();
   }
 

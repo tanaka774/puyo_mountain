@@ -54,21 +54,21 @@ export class HtmlHandle {
     this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
     this._timerElement.innerText = this._formattedTime;
 
-    if (stateHandle.checkCurrentState(GameState.GAMECLEAR) || stateHandle.checkCurrentState(GameState.MENU)) {
-      const resultTime: string = this._formattedTime;
-      const mainCanvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
-      const ctx = mainCanvas.getContext('2d');
-      ctx.fillStyle = "lightblue";
-      ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-      ctx.font = "24px Arial";
-      ctx.fillStyle = "black";
-      const resultScore = `　総合スコア　${this._mountain.resultGrade}`;
-      const resultPlayTime = `　プレイ時間　${this._formattedTime}`
-      const resultUnne = `　不要に消したぷよ数　${this._mountain.unnecessaryVanishPuyoNum}`
-      ctx.fillText(resultScore, 0, 100, 160);
-      ctx.fillText(resultPlayTime, 0, 200, 160);
-      ctx.fillText(resultUnne, 0, 300, 160);
-    }
+    // if (stateHandle.checkCurrentState(GameState.GAMECLEAR) || stateHandle.checkCurrentState(GameState.MENU)) {
+    //   const resultTime: string = this._formattedTime;
+    //   const mainCanvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
+    //   const ctx = mainCanvas.getContext('2d');
+    //   ctx.fillStyle = "lightblue";
+    //   ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+    //   ctx.font = "24px Arial";
+    //   ctx.fillStyle = "black";
+    //   const resultScore = `　総合スコア　${this._mountain.resultGrade}`;
+    //   const resultPlayTime = `　プレイ時間　${this._formattedTime}`
+    //   const resultUnne = `　不要に消したぷよ数　${this._mountain.unnecessaryVanishPuyoNum}`
+    //   ctx.fillText(resultScore, 0, 100, 160);
+    //   ctx.fillText(resultPlayTime, 0, 200, 160);
+    //   ctx.fillText(resultUnne, 0, 300, 160);
+    // }
   }
 
   // handlePause() {

@@ -8,13 +8,14 @@ import { Move } from "./move.ts"
 import { Split } from "./split.ts"
 import { Game } from "./game.ts"
 import { Input } from "./input.ts"
-import { DrawWithCanvas } from "./draw.ts"
+import { DrawWithCanvas } from "./drawWithCanvas"
 import { Bounce } from "./bounce.ts"
 import { Board } from "./board.ts"
 import { Current } from "./current.ts"
 import { Rotate } from "./rotate.ts"
 import { Difficulty, GameMode, Mountain } from "./mountain"
 import { HtmlHandle } from "./htmlHandle"
+import { DrawWithSVG } from "./drawWithSVG"
 
 function main() {
   const menu = new Menu();
@@ -29,6 +30,8 @@ function main() {
   const input = new Input(board, current, move, rotate);
   const draw = new DrawWithCanvas(bounce, board, current, move, rotate,
     split, chain, mountain, 'mainCanvas', 'nextPuyoCanvas');
+  // const draw = new DrawWithSVG(bounce, board, current, move, rotate,
+  //   split, chain, mountain);
   const htmlHandle = new HtmlHandle(chain, mountain);
   const game = new Game(menu, bounce, board, current, move, rotate,
     split, chain, input, draw, mountain, htmlHandle);
