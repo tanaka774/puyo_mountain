@@ -48,7 +48,9 @@ export class Board {
       this._bounce.start(posX, posY);
     } else {
       // TODO: this dealing is temporary, you should revise these flow
-      this._bounce.delete(posX, posY);
+      // TODO: ^ what is this temporary for????
+      // bouncepuyos deleted by erasepuyos and enter chain state on the way of bouncing
+      // this._bounce.delete(posX, posY);
     }
   }
 

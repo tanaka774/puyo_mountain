@@ -149,6 +149,13 @@ export class Game {
         else stateHandle.setState(GameState.MANIPULATING);
         break;
       case GameState.CHAIN_FINDING:
+        // if (stateHandle.isEnter()) {
+          if(this._bounce.willBounce) {
+            stateHandle.setState(GameState.JUST_DRAWING);
+            break;
+          }
+        // }
+
         // TODO: these should go into function?
         this._chain.findConnectedPuyos(this._board.board, (savePuyos) => {
           this._chain.addVanishPuyos(savePuyos);
@@ -247,10 +254,11 @@ export class Game {
   }
 
   beforeStateCheck() {
-    if (this._bounce.willBounce &&
-      (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
+    if (this._bounce.willBounce 
+      // && (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
+      && (stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
     ) {
-      stateHandle.setState(GameState.JUST_DRAWING);
+      // stateHandle.setState(GameState.JUST_DRAWING);
     }
   }
 

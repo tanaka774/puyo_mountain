@@ -78,7 +78,7 @@ export class DrawWithCanvas {
   clear() {
     this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
   }
-  
+
   drawMainBoard() {
     // TODO: use CELL_SIZE
     const cs = gameConfig.CELL_SIZE;
@@ -102,9 +102,9 @@ export class DrawWithCanvas {
         }
       }
     }
-    
+
   }
-  
+
   // temp
   private drawNextBoard(puyo: baseManiPuyo, y1) {
     if (puyo) {
@@ -138,11 +138,7 @@ export class DrawWithCanvas {
     }
 
     if (this._bounce.willBounce &&
-      [...this._bounce.bouncePuyos].some((elem: string) => {
-        const posX = parseInt(elem.split(',')[0], 10);
-        const posY = parseInt(elem.split(',')[1], 10);
-        return posX === x && posY === y
-      })
+      this._bounce.searchBouncePuyo(x, y)
     ) {
       this.drawBounce(x, y, radiusY, elliY,
         () => { this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke); }
@@ -152,7 +148,7 @@ export class DrawWithCanvas {
     }
   }
 
-  drawBounce(oriX, oriY, radiusY, elliY, drawCallback) {
+  drawBounce(oriX, oriY, radiusY, elliY, drawCallback:() => void) {
     // remove connecting first, is using x, y here okay?
     this._chain.deleteConnectedPuyo(oriX, oriY);
 
@@ -165,7 +161,7 @@ export class DrawWithCanvas {
     // this.drawCallback();
     // this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-    const changeRate = Math.sin(this._bounce.bounceQuantities * Math.PI / 180) / 5;
+    const changeRate = Math.sin(this._bounce.getBounceQuantities(oriX, oriY) * Math.PI / 180) / 2;
     this.ctx.save();
     // TODO: appropriate parameter not behaving differently according to Y
     this.ctx.translate(0, elliY + (radiusY / 2) * changeRate);
@@ -174,9 +170,9 @@ export class DrawWithCanvas {
     drawCallback();
     this.ctx.restore();
 
-    this._bounce.timeElapses(
-      () => this._chain.findConnectedPuyos(this._board.board, (_) => { /*do nothing*/ }
-      ));
+    this._bounce.timeElapses(oriX, oriY, 
+      () => this._chain.findConnectedPuyos(this._board.board, (_) => { /*do nothing*/ })
+    );
   }
 
   drawConnecting() {

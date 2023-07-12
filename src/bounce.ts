@@ -3,50 +3,42 @@ import { gameConfig } from "./config.ts";
 export class Bounce {
   // TODO: these bounce should be saparated into other file.
   private _willBounce = false;
-  private _BOUNCING_TIME = 10; // TODO: throw into config
-  private _bouncePuyoNum = 3;
-  private _bouncePuyos = new Set(); // ["x1,y1", "x2,y2", ...]
-  private _bounceQuantities = 0; // increase by 180 / BOUNCING_TIME
+  private _BOUNCING_TIME = gameConfig.BOUNCING_TIME;
+  private _bouncePuyoNum = gameConfig.BOUNCING_PUYO_NUM;
+  private _bouncePuyos: Map<string, number> = new Map(); // manage each puyo's quantities ("x,y", quantities)
 
   start(x, y) {
     this._willBounce = true;
     for (let n = 0; (n <= this._bouncePuyoNum) && (y + n < gameConfig.BOARD_BOTTOM_EDGE); n++) {
-      this._bouncePuyos.add(`${x},${y + n}`);
+      this.setBounceQuantities(x, y + n, 0);
     }
   }
 
   end() {
     this._willBounce = false;
-    this._bounceQuantities = 0;
-    this._bouncePuyos.clear();
-    // TODO: this.__bounceEffect.is shit (dealing with connecting glue not returning)
-    // execute by callback
-    // this._chain.findConnectedPuyos(this._board, (_) => { /*do nothing*/ });
+    // this._bouncePuyos.clear(); // should be unnecessary
   }
 
-  delete(x, y) {
-    [...this._bouncePuyos].forEach((elem: string) => {
-      const posX = parseInt(elem.split(',')[0], 10);
-      const posY = parseInt(elem.split(',')[1], 10);
-      if (x === posX && y === posY) {
-        this._bouncePuyos.delete(elem);
-        this._willBounce = false;
-      }
-    })
-  }
+  timeElapses(x, y, afterEnd) {
+    this.setBounceQuantities(x, y,
+      (this.getBounceQuantities(x, y) > 180)
+        ? 180
+        : this.getBounceQuantities(x, y) + 180 / this._BOUNCING_TIME
+    );
 
-  timeElapses(afterEnd) {
-    this._bounceQuantities = (this._bounceQuantities > 180)
-      ? 180
-      : this._bounceQuantities + 180 / this._BOUNCING_TIME;
+    if (this.getBounceQuantities(x, y) >= 180) {
+      this.deleteBouncePuyo(x, y);
+    }
 
-    if (this._bounceQuantities >= 180) {
+    if (this._bouncePuyos.size === 0) {
       this.end();
       afterEnd();
     }
   }
 
   get willBounce() { return this._willBounce; }
-  get bouncePuyos() { return this._bouncePuyos; }
-  get bounceQuantities() { return this._bounceQuantities; }
+  getBounceQuantities(x, y) { return this._bouncePuyos.get(`${x},${y}`); }
+  setBounceQuantities(x, y, val) { this._bouncePuyos.set(`${x},${y}`, val); }
+  deleteBouncePuyo(x, y) { this._bouncePuyos.delete(`${x},${y}`); }
+  searchBouncePuyo(x, y) { return this._bouncePuyos.has(`${x},${y}`); }
 }
