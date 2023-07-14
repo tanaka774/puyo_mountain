@@ -8,6 +8,9 @@ export class Bounce {
   private _bouncePuyos: Map<string, number> = new Map(); // manage each puyo's quantities ("x,y", quantities)
 
   start(x, y) {
+    // don't add ghost zone puyo
+    if (y <= gameConfig.BOARD_GHOST_ZONE) return;
+
     this._willBounce = true;
     for (let n = 0; (n <= this._bouncePuyoNum) && (y + n < gameConfig.BOARD_BOTTOM_EDGE); n++) {
       this.setBounceQuantities(x, y + n, 0);

@@ -41,8 +41,11 @@ export class DrawWithCanvas {
   draw() {
     this.clear();
 
-    this.drawMainBoard();
+    this.drawBoardBackgorund();
 
+    this.drawBoardPuyos();
+
+    // draw first
     this.drawConnecting();
 
     for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
@@ -79,7 +82,7 @@ export class DrawWithCanvas {
     this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
   }
 
-  drawMainBoard() {
+  drawBoardBackgorund() {
     // TODO: use CELL_SIZE
     const cs = gameConfig.CELL_SIZE;
     this.ctx.fillStyle = 'rgba(160,160,160,0.8)';
@@ -91,7 +94,9 @@ export class DrawWithCanvas {
     // this.ctx.fillStyle = 'rgba(240,90,90,0.2)';
     this.ctx.fillStyle = 'lightpink';
     this.ctx.fillRect(cs * 2, cs * 2, cs * 1, cs * 1);
+  }
 
+  drawBoardPuyos() {
     if (this._board.board) {
       for (let y = gameConfig.BOARD_TOP_EDGE - 1; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
         for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
@@ -120,6 +125,59 @@ export class DrawWithCanvas {
     }
   }
 
+  drawPuyo_v2(ctx: CanvasRenderingContext2D, x: number, y: number, color: string, willStorke) {
+    const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
+    const drawPosY = (y - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
+
+    const radius = gameConfig.CELL_SIZE * 16 / 32;
+    const centerX = drawPosX + radius// + gameConfig.CELL_SIZE / 16;
+    const centerY = drawPosY + radius// + gameConfig.CELL_SIZE / 10;
+    const strokeColor = 'rgba(50,50,50,0.3)';
+    const shadow = 'rgba(50,50,50,0.3)';
+    // const gloss = 'rgba(250,0,0,0.9)';
+    const gloss = 'rgba(250,250,250,0.6)';
+    const eyeColor = 'rgba(50,50,50,0.3)';
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // gloss on upper left
+    ctx.save();
+
+    ctx.transform(1, 0, -1, 1, 0, 0);
+    ctx.translate(
+      centerX+centerY 
+      - gameConfig.CELL_SIZE * 3 
+      - (x-gameConfig.PUYO_BIRTH_POSX)*gameConfig.CELL_SIZE
+      + radius/3.2, 0)
+
+    ctx.beginPath();
+    ctx.arc(centerX - radius / 2, centerY - 2 / 3 * radius, radius / 4, 0, 2 * Math.PI);
+    ctx.fillStyle = gloss;
+    ctx.fill();
+    ctx.restore();
+
+    // shadow on lower right
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius * 5 / 6, 1 / 8 * Math.PI, 8 / 16 * Math.PI);
+    ctx.strokeStyle = shadow;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // eye
+    ctx.beginPath();
+    ctx.fillStyle = eyeColor;
+    ctx.fillRect(centerX - radius / 2, centerY - radius / 3, radius / 6, radius / 3);
+    ctx.fill();
+    ctx.fillStyle = eyeColor;
+    ctx.fillRect(centerX + radius / 3, centerY - radius / 3, radius / 6, radius / 3);
+    ctx.fill();
+  }
 
   drawPuyo(x, y, color, willStorke = true) {
     const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
@@ -142,13 +200,16 @@ export class DrawWithCanvas {
     ) {
       this.drawBounce(x, y, radiusY, elliY,
         () => { this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke); }
+        // () => {this.drawPuyo_v2(this.ctx, x, y, color, willStorke);}
       );
     } else {
       this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke);
+      // this.drawPuyo_pixel(this.ctx, x, y, color, willStorke);
+      // this.drawPuyo_v2(this.ctx, x, y, color, willStorke);
     }
   }
 
-  drawBounce(oriX, oriY, radiusY, elliY, drawCallback:() => void) {
+  drawBounce(oriX, oriY, radiusY, elliY, drawCallback: () => void) {
     // remove connecting first, is using x, y here okay?
     this._chain.deleteConnectedPuyo(oriX, oriY);
 
@@ -170,7 +231,7 @@ export class DrawWithCanvas {
     drawCallback();
     this.ctx.restore();
 
-    this._bounce.timeElapses(oriX, oriY, 
+    this._bounce.timeElapses(oriX, oriY,
       () => this._chain.findConnectedPuyos(this._board.board, (_) => { /*do nothing*/ })
     );
   }
@@ -416,4 +477,53 @@ export class DrawWithCanvas {
     return res;
   }
 
+  // TODO:  absolute heavy process!!!
+  drawPuyo_pixel(ctx: CanvasRenderingContext2D, x: number, y: number, color: string, willStroke) {
+    const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
+    const drawPosY = (y - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
+    const radius = gameConfig.CELL_SIZE * 16 / 32;
+    const centerX = drawPosX + radius// + gameConfig.CELL_SIZE / 16;
+    const centerY = drawPosY + radius// + gameConfig.CELL_SIZE / 10;
+    const rectSize = radius / 5;
+    const numRectangles = Math.floor(2 * Math.PI * radius / rectSize);
+    const rectColor = 'rgba(50,50,50,1.0)';
+    const gloss = 'rgba(50,50,50,0.5)';
+    const shadow = 'rgba(250,250,250,0.8)';
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    for (let i = 0; i < numRectangles; i++) {
+      const angle = (2 * Math.PI * i) / numRectangles;
+      console.log(i, angle);
+      const getRectX = (centerX, radius) => centerX + Math.cos(angle) * radius - rectSize / 2;
+      const getRectY = (centerY, radius) => centerY + Math.sin(angle) * radius - rectSize / 2;
+
+      const rectX = getRectX(centerX, radius);
+      const rectY = getRectY(centerY, radius);
+
+      ctx.fillStyle = rectColor;
+      ctx.fillRect(rectX, rectY, rectSize, rectSize);
+
+      if (angle > Math.PI * 17 / 16 && angle <= Math.PI * 22 / 16) {
+        const rectX2 = getRectX(centerX, radius * 8 / 10);
+        const rectY2 = getRectY(centerY, radius * 8 / 10);
+        ctx.fillStyle = gloss;
+        ctx.fillRect(rectX2, rectY2, rectSize, rectSize);
+
+        ctx.fillStyle = gloss;
+        ctx.fillRect(getRectX(centerX, radius * 7 / 10), getRectY(centerY, radius * 7 / 10), rectSize * 3 / 4, rectSize * 3 / 4);
+      }
+
+      if (angle > Math.PI * 1 / 16 && angle <= Math.PI * 8 / 16) {
+        const rectX2 = getRectX(centerX, radius * 9 / 10);
+        const rectY2 = getRectY(centerY, radius * 9 / 10);
+        ctx.fillStyle = shadow;
+        ctx.fillRect(rectX2, rectY2, rectSize, rectSize);
+      }
+    }
+
+  }
 }
