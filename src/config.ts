@@ -30,15 +30,22 @@ const NO_COLOR = 0;
 const WALL_NUMBER = 99;
 const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1;
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
+// const PUYO_COLORS = [
+//   null,
+//   'rgba(255, 13, 114, 1)', // '#FF0D72' ->
+//   'rgba(13, 194, 255, 1)', // '#0DC2FF' ->
+//   'rgba(13, 255, 114, 1)', // '#0DFF72' ->
+//   'rgba(245, 56, 255, 1)', // '#F538FF' ->
+//   'rgba(255, 142, 13, 1)', // '#FF8E0D' ->
+//   'rgba(255, 225, 56, 1)', // '#FFE138' ->
+//   'rgba(56, 119, 255, 1)', // '#3877FF' ->
+// ];
 const PUYO_COLORS = [
   null,
-  'rgba(255, 13, 114, 1)', // '#FF0D72' ->
-  'rgba(13, 194, 255, 1)', // '#0DC2FF' ->
-  'rgba(13, 255, 114, 1)', // '#0DFF72' ->
-  'rgba(245, 56, 255, 1)', // '#F538FF' ->
-  'rgba(255, 142, 13, 1)', // '#FF8E0D' ->
-  'rgba(255, 225, 56, 1)', // '#FFE138' ->
-  'rgba(56, 119, 255, 1)', // '#3877FF' ->
+  'rgba(205, 62, 62, 1)', // brown
+  'rgba(238, 0, 228, 1)',  // purple
+  'rgba(0, 228, 0, 1)',  // green
+  'rgba(225, 225, 0, 1)', // yellow
 ];
 const PUYO_COLOR_NUM = 4;
 const moveYDiff = 0.015;

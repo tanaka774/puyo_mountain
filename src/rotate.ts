@@ -1,6 +1,6 @@
-import { Current } from "./current.ts"
-import { Board } from "./board.ts"
-import { gameConfig } from "./config.ts"
+import { Current } from "./current"
+import { Board } from "./board"
+import { gameConfig } from "./config"
 import { Move } from "./move"
 
 export class Rotate {

@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
+    // "allowImportingTsExtensions": true,
     "target": "ESNext",
     "lib":  ["ESNext", "DOM"],
+    "moduleResolution": "node",
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@vercel/node": ["node_modules/@vercel/node"]
+    // },
   }
 }

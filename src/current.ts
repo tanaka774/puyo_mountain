@@ -1,7 +1,7 @@
-import { baseManiPuyo } from "./types.ts"
-import { gameConfig } from "./config.ts"
-import { recordPuyoSteps } from "./record.ts"
-import { GameState, stateHandle } from "./state.ts"
+import { baseManiPuyo } from "./types"
+import { gameConfig } from "./config"
+import { recordPuyoSteps } from "./record"
+import { GameState, stateHandle } from "./state"
 import { Board } from "./board";
 
 export class Current {

@@ -1,7 +1,7 @@
-import { gameConfig } from "./config.ts"
-import { recordPuyoSteps } from "./record.ts"
-import { GameState } from "./state.ts"
-import { baseManiPuyo } from "./types.ts"
+import { gameConfig } from "./config"
+import { recordPuyoSteps } from "./record"
+import { GameState } from "./state"
+import { baseManiPuyo } from "./types"
 import { Bounce } from "./bounce";
 
 export class Board {

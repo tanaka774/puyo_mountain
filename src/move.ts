@@ -1,10 +1,10 @@
-import { gameConfig } from "./config.ts"
-import { GameState } from "./state.ts"
-import { Game } from "./game.ts"
-import { baseManiPuyo, baseSinglePuyo } from "./types.ts"
-import { Split } from "./split.ts"
-import { Current } from "./current.ts"
-import { Board } from "./board.ts"
+import { gameConfig } from "./config"
+import { GameState } from "./state"
+import { Game } from "./game"
+import { baseManiPuyo, baseSinglePuyo } from "./types"
+import { Split } from "./split"
+import { Current } from "./current"
+import { Board } from "./board"
 
 export class Move {
   private _movingHorDrawing = {

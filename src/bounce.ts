@@ -1,4 +1,4 @@
-import { gameConfig } from "./config.ts";
+import { gameConfig } from "./config";
 
 export class Bounce {
   // TODO: these bounce should be saparated into other file.

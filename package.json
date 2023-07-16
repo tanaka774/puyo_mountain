@@ -1,5 +1,5 @@
 {
-  "name": "tetris_bygpt_2",
+  "name": "puyo_mountain",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,5 +14,9 @@
   "license": "ISC",
   "devDependencies": {
     "vite": "^4.3.9"
+  },
+  "dependencies": {
+    "@vercel/node": "^2.15.5",
+    "@vercel/postgres": "^0.4.0"
   }
 }

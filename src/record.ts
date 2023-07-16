@@ -1,4 +1,4 @@
-import { gameConfig } from "./config.ts"
+import { gameConfig } from "./config"
 
 export const recordPuyoSteps = {
   recordedPuyos: [], // [[x,y,color]]

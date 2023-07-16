@@ -1,6 +1,6 @@
-import { baseSinglePuyo, setSinglePuyo } from "./types.ts"
-import { gameConfig } from "./config.ts"
-import { recordPuyoSteps } from "./record.ts"
+import { baseSinglePuyo, setSinglePuyo } from "./types"
+import { gameConfig } from "./config"
+import { recordPuyoSteps } from "./record"
 import { Board } from "./board";
 
 export class Split {

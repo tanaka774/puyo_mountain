@@ -1,6 +1,6 @@
-import { baseManiPuyo, baseSinglePuyo } from "./types.ts"
-import { gameConfig } from "./config.ts"
-import { recordPuyoSteps } from "./record.ts"
+import { baseManiPuyo, baseSinglePuyo } from "./types"
+import { gameConfig } from "./config"
+import { recordPuyoSteps } from "./record"
 import { Board } from "./board"
 import conso from "../sample/oldjs/test";
 
