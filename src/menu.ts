@@ -11,7 +11,8 @@ export enum MenuSelect {
 
 export class Menu {
   private _buttons: NodeListOf<HTMLButtonElement>;
-  private _menuContainer: HTMLDivElement;
+  // private _menuContainer: HTMLDivElement;
+  private _menuContainer: HTMLDialogElement;
   private _selectedIndex: number;
   private arcadeEasy: () => void;
   private arcadeNormal: () => void;
@@ -30,6 +31,7 @@ export class Menu {
 
   constructor() {
     this.generateButtons(MenuSelect.START_MENU);
+    // this._menuContainer.showModal();
 
     this._buttons = this._menuContainer.querySelectorAll('button');
     // this._buttons = document.querySelectorAll('.menu-container button');
@@ -103,14 +105,16 @@ export class Menu {
 
   deleteButtons() {
     this._menuContainer.innerHTML = "";
-    this._menuContainer.classList.remove('overlay');
+    // this._menuContainer.classList.remove('overlay');
   }
 
   generateButtons(menuSelect: MenuSelect) {
-    this._menuContainer = document.getElementById("menu") as HTMLDivElement;
+    // this._menuContainer = document.getElementById("menu") as HTMLDivElement;
+    this._menuContainer = document.getElementById("menu") as HTMLDialogElement;
     // this._menuContainer.innerHTML = "";
     this.deleteButtons();
-    this._menuContainer.classList.add('overlay');
+    // this._menuContainer.classList.add('overlay');
+    if (!this._menuContainer.open) this._menuContainer.showModal();
 
     const geneButton = (showText: string, callback: () => void) => {
       const tempButton = document.createElement('button');
@@ -121,35 +125,37 @@ export class Menu {
 
       this._menuContainer.appendChild(tempButton);
     }
+    const closeModal = () => {this._menuContainer.close(); }
 
     switch (menuSelect) {
       case MenuSelect.START_MENU:
         geneButton('アーケードモード', () => this.generateButtons(MenuSelect.ARCADE_SELECT_1));
         geneButton('連鎖耐久モード', () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1));
         geneButton('カスタムモード', () => { });
+        geneButton('せってい', () => { });
         break;
       case MenuSelect.ARCADE_SELECT_1:
-        geneButton('EASY', () => { this.arcadeEasy(); this.deleteButtons(); });
-        geneButton('NORMAL', () => { this.arcadeNormal(); this.deleteButtons(); });
-        geneButton('HARD', () => { this.arcadeHard(); this.deleteButtons(); });
+        geneButton('EASY', () => { this.arcadeEasy(); closeModal(); });
+        geneButton('NORMAL', () => { this.arcadeNormal(); closeModal(); });
+        geneButton('HARD', () => { this.arcadeHard(); closeModal(); });
         geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.ENDURANCE_SELECT_1:
-        geneButton('モード1', () => { this.enduranceMode1(); this.deleteButtons(); });
-        geneButton('モード2', () => { this.enduranceMode2(); this.deleteButtons(); });
+        geneButton('モード1', () => { this.enduranceMode1(); closeModal(); });
+        geneButton('モード2', () => { this.enduranceMode2(); closeModal(); });
         geneButton('きろくをみる', () => { this.watchHighScores(); });
         geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.PAUSE:
-        geneButton('ゲームに戻る', () => { this.backToGameInPause(); this.deleteButtons(); });
+        geneButton('ゲームに戻る', () => { this.backToGameInPause(); closeModal(); });
         geneButton('メニューに戻る', () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_OVER:
-        geneButton('リトライする', () => { this.retryAfterGameOver(); this.deleteButtons(); });
+        geneButton('リトライする', () => { this.retryAfterGameOver(); closeModal(); });
         geneButton('メニューに戻る', () => { this.backToMenuAfterGameOver(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_CLEAR:
-        geneButton('もういちどのぼる', () => { this.retryAfterGameClear(); this.deleteButtons(); });
+        geneButton('もういちどのぼる', () => { this.retryAfterGameClear(); closeModal(); });
         geneButton('メニューに戻る', () => { this.backToMenuAfterGameClear(); this.generateButtons(MenuSelect.START_MENU) });
         break;
 
