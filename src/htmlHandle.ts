@@ -173,16 +173,6 @@ export class HtmlHandle {
 
   }
 
-  private addCloseButton(dialogElement: HTMLDialogElement) {
-    const closeButton = document.createElement("button");
-    closeButton.textContent = "閉じる";
-    closeButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      dialogElement.close();
-    });
-    dialogElement.appendChild(closeButton);
-  }
-
 
   async showHighScoresModal() {
     const highScoreDialog = document.createElement("dialog");
@@ -289,10 +279,20 @@ export class HtmlHandle {
     for (let item of data.scores.rows) {
       const li = document.createElement('li');
       li.textContent =
-        `WR:${item.wholerank} SR:${item.seasonrank} 
-        UN:${item.username} PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} 
+        `UN:${item.username} WR:${item.wholerank} SR:${item.seasonrank} 
+        PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} 
         WHEN:${item.createdat.split('T')[0]}`;
       dynamicContent.appendChild(li);
     }
+  }
+
+  private addCloseButton(dialogElement: HTMLDialogElement) {
+    const closeButton = document.createElement("button");
+    closeButton.textContent = "閉じる";
+    closeButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      dialogElement.close();
+    });
+    dialogElement.appendChild(closeButton);
   }
 }
