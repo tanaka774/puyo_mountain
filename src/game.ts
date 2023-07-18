@@ -12,13 +12,17 @@ import { DrawWithCanvas } from "./drawWithCanvas"
 import { Input } from "./input"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
-import { Mountain } from "./mountain"
+import { GameMode, Mountain } from "./mountain"
 import { HtmlHandle } from "./htmlHandle"
 import { DrawWithSVG } from "./drawWithSVG"
+import { ApiHandle } from "./apiHandle"
+import { Timer } from "./timer"
 
 export class Game {
   constructor(
     private _menu: Menu,
+    private _apiHandle: ApiHandle,
+    private _timer: Timer,
     private _bounce: Bounce,
     private _board: Board,
     private _current: Current,
@@ -94,7 +98,7 @@ export class Game {
           stateHandle.setState(GameState.UNINIT);
           this._mountain.initInternalInfo();
           this._current.initVPuyo();
-          this._htmlHandle.initTimer();
+          this._timer.initTimer();
         }
         break;
       case GameState.UNINIT:
@@ -150,10 +154,10 @@ export class Game {
         break;
       case GameState.CHAIN_FINDING:
         // if (stateHandle.isEnter()) {
-          if(this._bounce.willBounce) {
-            stateHandle.setState(GameState.JUST_DRAWING);
-            break;
-          }
+        if (this._bounce.willBounce) {
+          stateHandle.setState(GameState.JUST_DRAWING);
+          break;
+        }
         // }
 
         // TODO: these should go into function?
@@ -235,9 +239,13 @@ export class Game {
         }
         break;
       case GameState.GAMECLEAR:
-        // if no chain saves you, its over
+        // conglats
         if (stateHandle.isEnter()) {
           this._menu.generateButtons(MenuSelect.GAME_CLEAR);
+
+          if (this._mountain.currentMode === GameMode.ENDURANCE) {
+            this.afterEnduranceGameClear();
+          }
         }
         break;
       case GameState.PAUSING:
@@ -254,7 +262,7 @@ export class Game {
   }
 
   beforeStateCheck() {
-    if (this._bounce.willBounce 
+    if (this._bounce.willBounce
       // && (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
       && (stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
     ) {
@@ -287,5 +295,13 @@ export class Game {
     document.addEventListener('keydown', e => {
       if (e.key === 'p') this.handlePause();
     })
+  }
+
+  async afterEnduranceGameClear() {
+    try {
+      this._htmlHandle.showRankInModal();
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

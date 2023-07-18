@@ -9,27 +9,19 @@ export default async function handler(
     const year = request.query.year as string;
     const minMonth = request.query.minMonth as string;
     const maxMonth = request.query.maxMonth as string;
-    const bottomRank = request.query.bottomRank as string;
-    let scores;
-    if (year === '0' && minMonth === '0'&& maxMonth === '0') {
-      // get wholerank
-      scores = await sql`
-        SELECT * FROM Scores 
-        WHERE wholerank <= ${bottomRank}
-        ORDER BY wholerank ASC;
-      `;
-    } else {
-      // get seasonrank
-      scores = await sql`
-        SELECT * FROM Scores
-        WHERE EXTRACT(YEAR FROM createdat) = ${year}
+    const playDuration = request.query.playDuration as string;
+    const scores = await sql`
+        SELECT MAX(seasonrank) AS next_rank
+        FROM (
+          SELECT RANK() OVER (ORDER BY playDuration ASC) AS seasonrank
+          FROM Scores
+          WHERE EXTRACT(YEAR FROM createdat) = ${year}
           AND EXTRACT(MONTH FROM createdat) >= ${minMonth} 
           AND EXTRACT(MONTH FROM createdat) <= ${maxMonth} 
-          AND seasonrank <= ${bottomRank}
-        ORDER BY seasonrank ASC;
+          AND playDuration < ${playDuration}
+        ) AS subquery;
       `;
-        // SELECT *, RANK() OVER (ORDER BY playDuration ASC) AS updated_rank
-    }
+    
     return response.status(200).json({ scores });
   } catch (error) {
     return response.status(500).json({ error });

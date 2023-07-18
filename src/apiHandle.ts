@@ -1,11 +1,11 @@
 export class ApiHandle {
 
 
-  fetchData(year, minMonth, maxMonth, maxRank) {
+  fetchData(year, minMonth, maxMonth, bottomRank) {
     const dynamicContent = document.getElementById('api-test');
 
     // Make an AJAX request to fetch the data from the backend
-    fetch(`/api/get-scores?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&maxRank=${maxRank}`)
+    fetch(`/api/get-scores?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&bottomRank=${bottomRank}`)
       .then(response => response.json())
       .then(data => {
         console.log(data);
@@ -55,11 +55,47 @@ export class ApiHandle {
   }
 
 
-  addData(userName, playDuration, gamemode) {
-    fetch(`/api/add-scores?userName=${userName}&playDuration=${playDuration}&gamemode=${gamemode}`)
-      .then(response => response.json())
-      .then(data => { console.log(data); })
-      .catch(error => console.error(error));
+  async addData(userName, playDuration, gamemode) {
+    try {
+      const response = await fetch(`/api/add-scores?userName=${userName}&playDuration=${playDuration}&gamemode=${gamemode}`)
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async getNextWholeRank(playDuration) {
+    try {
+      const response = await fetch(`/api/get-nextwholerank?playDuration=${playDuration}`)
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      const data = await response.json();
+      const rankToEnter = Number(data.scores.rows[0].next_rank) + 1;
+      // console.log(rankToEnter);
+      return rankToEnter;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async getNextSeasonRank(year, minMonth, maxMonth, playDuration) {
+    try {
+      const response = await fetch(`/api/get-nextseasonrank?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&playDuration=${playDuration}`)
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      const data = await response.json();
+      const rankToEnter = Number(data.scores.rows[0].next_rank) + 1;
+      // console.log(rankToEnter);
+      return rankToEnter;
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   // this is for test/debug

@@ -1,6 +1,8 @@
+import { ApiHandle } from "./apiHandle";
 import { Chain } from "./chain";
 import { GameMode, Mountain } from "./mountain";
 import { GameState, stateHandle } from "./state";
+import { Timer } from "./timer";
 
 
 export class HtmlHandle {
@@ -8,13 +10,15 @@ export class HtmlHandle {
   private _chainNumShow: HTMLElement;
   private _chainPuyoNumShow: HTMLElement;
   private _timerElement: HTMLElement;
-  private _startTime: number;
-  private _currentTime: number;
-  private _timerStarted: boolean;
-  private _formattedTime: string;
+  // private _startTime: number;
+  // private _currentTime: number;
+  // private _timerStarted: boolean;
+  // private _formattedTime: string;
   // private _pauseButton: HTMLElement;
 
   constructor(
+    private _apiHandle: ApiHandle,
+    private _timer: Timer,
     private _chain: Chain,
     private _mountain: Mountain,
   ) {
@@ -22,8 +26,8 @@ export class HtmlHandle {
     this._chainNumShow = document.getElementById("chainCount");
     this._chainPuyoNumShow = document.getElementById("chainPuyoNum");
     this._timerElement = document.getElementById('timer');
-    this._formattedTime = '00:00';
-    this._timerStarted = false;
+    // this._formattedTime = '00:00';
+    // this._timerStarted = false;
     // this._pauseButton = document.getElementById("pauseButton");
 
     // this._pauseButton.addEventListener('click', this.handlePause);
@@ -52,7 +56,7 @@ export class HtmlHandle {
     }
     this._chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
-    this._timerElement.innerText = this._formattedTime;
+    this._timerElement.innerText = this._timer.formattedTime;
 
     // if (stateHandle.checkCurrentState(GameState.GAMECLEAR) || stateHandle.checkCurrentState(GameState.MENU)) {
     //   const resultTime: string = this._formattedTime;
@@ -69,6 +73,7 @@ export class HtmlHandle {
     //   ctx.fillText(resultPlayTime, 0, 200, 160);
     //   ctx.fillText(resultUnne, 0, 300, 160);
     // }
+
   }
 
   // handlePause() {
@@ -79,32 +84,97 @@ export class HtmlHandle {
   //   else stateHandle.setState(stateHandle.prevState);
   // }
 
-  // TODO: saparate and make timer class
-  initTimer() {
-    if (this._timerStarted) return;
-    this._startTime = Date.now();
-    this._currentTime = Date.now();
-    setInterval(this.updateTimer.bind(this), 1000);
-    this._timerStarted = true;
-  }
+  async showRankInModal() { // (wholeRank, seasonRank, isInHighScore:boolean, playDuration, gamemode) {
 
-  formatTime(time) {
-    const minutes = Math.floor(time / 60).toString().padStart(2, '0');
-    const seconds = (time % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  }
+    const [hours, minutes, seconds] = this._timer.getElapsedTimeDigits();
+    const playDuration = `${hours} hours ${minutes} minutes ${seconds} seconds`
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const bottomRank = 10; // TODO: consider proper place not here
+    const gamemode = 'gamemode1';
 
-  updateTimer() {
-    if (stateHandle.checkCurrentState(GameState.GAMEOVER)) return;
-    if (stateHandle.checkCurrentState(GameState.PAUSING)) {
-      this._startTime += Date.now() - this._currentTime;
+
+    const rankInDialog = document.createElement("dialog");
+    document.body.appendChild(rankInDialog);
+
+    rankInDialog.showModal();
+
+    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, month, month + 2, playDuration);
+    const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration);
+
+    const whatRankDiv = document.createElement("div");
+    whatRankDiv.textContent = `総合${wholeRankToEnter}位　シーズン${seasonRankToEnter}位にランクインしました`;
+    rankInDialog.appendChild(whatRankDiv);
+
+    // "Cancel" button closes the dialog without submitting because of [formmethod="dialog"], triggering a close event.
+    rankInDialog.addEventListener("close", async (e) => {
+      // unused?
+    });
+
+    if (seasonRankToEnter <= bottomRank) {
+
+      const inputLabel = document.createElement("label");
+      inputLabel.setAttribute("for", "userInput");
+      inputLabel.textContent = "ユーザーネームを入力してください(10文字以内)";
+      rankInDialog.appendChild(inputLabel);
+
+      const userInput = document.createElement("input");
+      userInput.setAttribute("type", "text");
+      userInput.setAttribute("id", "userInput");
+      userInput.setAttribute("maxlength", "10");
+      userInput.required = true; // this time "submit" isn't used so this is unnecessary
+      rankInDialog.appendChild(userInput);
+
+      const sendButton = document.createElement("button");
+      sendButton.textContent = "送信する";
+      sendButton.addEventListener("click", async (e) => {
+        e.preventDefault(); // We don't want to submit this fake form
+
+        const userInput = document.getElementById("userInput") as HTMLInputElement;
+        const userName = userInput.value;
+
+        if (!userName || (userName === '')) {
+          alert('名前を入力してください!')
+          return;
+        }
+        // TODO: implement retry process
+        await this._apiHandle.addData(userName, playDuration, gamemode)
+
+        rankInDialog.innerHTML = '';
+        rankInDialog.innerText = 'データを送信しました'
+        this.addCloseButton(rankInDialog);
+        // rankInDialog.close(userName);
+      });
+      rankInDialog.appendChild(sendButton);
+
+      const notSendButton = document.createElement("button");
+      notSendButton.textContent = "送信しない";
+      notSendButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        const result = confirm("今回の記録は残りませんがよろしいですか?");
+        if (result) {
+          // User clicked "OK"
+          rankInDialog.close();
+        } else {
+          // User clicked "Cancel"
+        }
+      });
+      rankInDialog.appendChild(notSendButton);
+
+    } else {
+      this.addCloseButton(rankInDialog);
     }
 
-    this._currentTime = Date.now();
+  }
 
-    const elapsedTimeInSeconds = Math.floor((this._currentTime - this._startTime) / 1000);
-    const formattedTime = this.formatTime(elapsedTimeInSeconds);
-    // this._timerElement.textContent = formattedTime;
-    this._formattedTime = formattedTime;
+  private addCloseButton(rankInDialog: HTMLDialogElement) {
+    const closeButton = document.createElement("button");
+    closeButton.textContent = "閉じる";
+    closeButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      rankInDialog.close();
+    });
+    rankInDialog.appendChild(closeButton);
   }
 }
