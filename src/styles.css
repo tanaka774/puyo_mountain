@@ -67,3 +67,8 @@
 .menu-container button:hover {
   background-color: #ff7f50;
 }
+
+.scrollable-container {
+  overflow: auto;
+  height: 50px; /* Adjust the height as needed */
+}

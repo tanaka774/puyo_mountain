@@ -10,11 +10,6 @@ export class HtmlHandle {
   private _chainNumShow: HTMLElement;
   private _chainPuyoNumShow: HTMLElement;
   private _timerElement: HTMLElement;
-  // private _startTime: number;
-  // private _currentTime: number;
-  // private _timerStarted: boolean;
-  // private _formattedTime: string;
-  // private _pauseButton: HTMLElement;
 
   constructor(
     private _apiHandle: ApiHandle,
@@ -26,9 +21,6 @@ export class HtmlHandle {
     this._chainNumShow = document.getElementById("chainCount");
     this._chainPuyoNumShow = document.getElementById("chainPuyoNum");
     this._timerElement = document.getElementById('timer');
-    // this._formattedTime = '00:00';
-    // this._timerStarted = false;
-    // this._pauseButton = document.getElementById("pauseButton");
 
     // this._pauseButton.addEventListener('click', this.handlePause);
     // document.addEventListener('keydown', e => {
@@ -91,28 +83,28 @@ export class HtmlHandle {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
-    const bottomRank = 10; // TODO: consider proper place not here
+    const bottomRank = 30; // TODO: consider proper place not here
     const gamemode = 'gamemode1';
-
 
     const rankInDialog = document.createElement("dialog");
     document.body.appendChild(rankInDialog);
 
     rankInDialog.showModal();
-
-    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, month, month + 2, playDuration);
-    const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration);
-
-    const whatRankDiv = document.createElement("div");
-    whatRankDiv.textContent = `総合${wholeRankToEnter}位　シーズン${seasonRankToEnter}位にランクインしました`;
-    rankInDialog.appendChild(whatRankDiv);
-
     // "Cancel" button closes the dialog without submitting because of [formmethod="dialog"], triggering a close event.
     rankInDialog.addEventListener("close", async (e) => {
       // unused?
     });
 
+    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, month, month + 2, playDuration);
+    const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration);
+
     if (seasonRankToEnter <= bottomRank) {
+      const whatRankDiv = document.createElement("div");
+      // TODO: want to separate line!
+      whatRankDiv.textContent =
+        `今回のタイム${hours}h${minutes}m${seconds}s\n
+      総合${wholeRankToEnter}位　シーズン${seasonRankToEnter}位にランクインしました`;
+      rankInDialog.appendChild(whatRankDiv);
 
       const inputLabel = document.createElement("label");
       inputLabel.setAttribute("for", "userInput");
@@ -128,7 +120,7 @@ export class HtmlHandle {
 
       const sendButton = document.createElement("button");
       sendButton.textContent = "送信する";
-      sendButton.addEventListener("click", async (e) => {
+      sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
 
         const userInput = document.getElementById("userInput") as HTMLInputElement;
@@ -139,11 +131,21 @@ export class HtmlHandle {
           return;
         }
         // TODO: implement retry process
-        await this._apiHandle.addData(userName, playDuration, gamemode)
+        // await this._apiHandle.addData(userName, playDuration, gamemode)
+        this._apiHandle.addDataWithRetry(userName, playDuration, gamemode)
+          .then(() => {
+            rankInDialog.innerHTML = '';
+            rankInDialog.innerText = 'データを送信しました'
+            this.addCloseButton(rankInDialog);
+          })
+          .catch((error) => {
+            // TODO: how to verify this case
+            console.error(error);
+            rankInDialog.innerHTML = '';
+            rankInDialog.innerText = '問題が発生しました、管理者に問い合わせてください'
+            this.addCloseButton(rankInDialog);
+          })
 
-        rankInDialog.innerHTML = '';
-        rankInDialog.innerText = 'データを送信しました'
-        this.addCloseButton(rankInDialog);
         // rankInDialog.close(userName);
       });
       rankInDialog.appendChild(sendButton);
@@ -163,18 +165,134 @@ export class HtmlHandle {
       rankInDialog.appendChild(notSendButton);
 
     } else {
+      rankInDialog.innerText =
+        `今回のタイム${hours}h${minutes}m${seconds}s 
+      今回はランク外でした`
       this.addCloseButton(rankInDialog);
     }
 
   }
 
-  private addCloseButton(rankInDialog: HTMLDialogElement) {
+  private addCloseButton(dialogElement: HTMLDialogElement) {
     const closeButton = document.createElement("button");
     closeButton.textContent = "閉じる";
     closeButton.addEventListener("click", (e) => {
       e.preventDefault();
-      rankInDialog.close();
+      dialogElement.close();
     });
-    rankInDialog.appendChild(closeButton);
+    dialogElement.appendChild(closeButton);
+  }
+
+
+  async showHighScoresModal() {
+    const highScoreDialog = document.createElement("dialog");
+    document.body.appendChild(highScoreDialog);
+
+    highScoreDialog.showModal();
+
+    highScoreDialog.addEventListener("close", async (e) => {
+      // unused?
+    });
+
+    const addOption = (text, value, select: HTMLSelectElement) => {
+      const newOption = document.createElement('option');
+      newOption.textContent = text;
+      newOption.value = value;
+      select.appendChild(newOption);
+    }
+
+    const startYear = 2023;
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    const bottomRank = 30; // TODO: consider proper place not here
+    const gamemode = 'gamemode1';
+
+    const wholeSelect = document.createElement("select");
+    addOption('総合', 'whole', wholeSelect);
+    addOption('シーズン', 'season', wholeSelect);
+    const yearSelect = document.createElement("select");
+    addOption('選ぶ', 'default', yearSelect);
+    for (let y = startYear; y <= currentYear; y++) {
+      addOption(`${y}`, `${y}`, yearSelect);
+    }
+    const monthSelect = document.createElement("select");
+    addOption('選ぶ', 'default', monthSelect);
+    addOption('1-3', 'spring', monthSelect);
+    addOption('4-6', 'summer', monthSelect);
+    addOption('7-9', 'autumn', monthSelect);
+    addOption('10-12', 'winter', monthSelect);
+    const modeSelect = document.createElement("select");
+    // addOption('選ぶ', 'default', modeSelect);
+    addOption('mode1', 'mode1', modeSelect);
+    addOption('mode2', 'mode2', modeSelect);
+    const scoresOutput = document.createElement("output");
+    scoresOutput.classList.add('scrollable-container');
+
+    wholeSelect.addEventListener('change', async () => {
+      const selectedValue = wholeSelect.value;
+      let data;
+      if (selectedValue === 'whole') {
+        yearSelect.value = 'default';
+        monthSelect.value = 'default';
+        data = await this._apiHandle.fetchData('0', '0', '0', bottomRank);
+      } else if (selectedValue === 'season') {
+        yearSelect.value = currentYear.toString();
+        const minMonth = currentMonth - ((currentMonth % 3 + 2) % 3);
+        monthSelect.value =
+          (minMonth === 1) ? "spring" :
+            (minMonth === 4) ? "summer" :
+              (minMonth === 7) ? "autumn" :
+                (minMonth === 10) ? "winter" : "default";
+
+        data = await this._apiHandle.fetchData(currentYear, minMonth, minMonth + 2, bottomRank);
+      }
+      this.makeContentFromDB(scoresOutput, data);
+    })
+
+    yearSelect.addEventListener('change', async () => {
+      if (yearSelect.value === 'default' || monthSelect.value === 'default') return;
+
+      const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
+      const minMonth = monthRange.split("-")[0];
+      const maxMonth = monthRange.split("-")[1];
+      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank); 
+      this.makeContentFromDB(scoresOutput, data);
+    })
+
+    monthSelect.addEventListener('change', async () => {
+      if (yearSelect.value === 'default' || monthSelect.value === 'default') return;
+
+      const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
+      const minMonth = monthRange.split("-")[0];
+      const maxMonth = monthRange.split("-")[1];
+      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank); 
+      this.makeContentFromDB(scoresOutput, data);
+    })
+    
+    modeSelect.addEventListener('change', () => {
+      // TODO:
+    })
+
+    highScoreDialog.appendChild(wholeSelect);
+    highScoreDialog.appendChild(yearSelect);
+    highScoreDialog.appendChild(monthSelect);
+    highScoreDialog.appendChild(modeSelect);
+    highScoreDialog.appendChild(scoresOutput);
+    this.addCloseButton(highScoreDialog);
+    const firstDataToShow = await this._apiHandle.fetchData('0', '0', '0', bottomRank);
+    this.makeContentFromDB(scoresOutput, firstDataToShow);
+  }
+
+  private makeContentFromDB(dynamicContent: HTMLElement, data) {
+    dynamicContent.innerHTML = '';
+    for (let item of data.scores.rows) {
+      const li = document.createElement('li');
+      li.textContent =
+        `WR:${item.wholerank} SR:${item.seasonrank} 
+        UN:${item.username} PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} 
+        WHEN:${item.createdat.split('T')[0]}`;
+      dynamicContent.appendChild(li);
+    }
   }
 }

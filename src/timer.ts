@@ -46,6 +46,7 @@ export class Timer {
     const dateStart = new Date(this._startTime);
 
     // dealing with timezone difference
+    // TODO: if hours is more than 24, this implementation collapses
     const hours = dateCurrent.getHours() - dateStart.getHours();   //.padStart(2, '0');
     const minutes = dateElapsed.getMinutes();   //.padStart(2, '0');
     const seconds = dateElapsed.getSeconds();   //.padStart(2, '0');

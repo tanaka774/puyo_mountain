@@ -1,22 +1,17 @@
 export class ApiHandle {
 
 
-  fetchData(year, minMonth, maxMonth, bottomRank) {
-    const dynamicContent = document.getElementById('api-test');
-
-    // Make an AJAX request to fetch the data from the backend
-    fetch(`/api/get-scores?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&bottomRank=${bottomRank}`)
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        // TODO: show data in proper order (sometimes comes in wrong order)
-        for (let item of data.scores.rows) {
-          const li = document.createElement('li');
-          li.textContent = `WR:${item.wholerank} SR:${item.seasonrank} UN:${item.username} PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} WHEN:${item.createdat.split('T')[0]}`;
-          dynamicContent.appendChild(li);
-        }
-      })
-      .catch(error => console.error(error));
+  async fetchData(year, minMonth, maxMonth, bottomRank) {
+    try {
+      const response = await fetch(`/api/get-scores?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&bottomRank=${bottomRank}`)
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   createTable() {
@@ -149,4 +144,51 @@ export class ApiHandle {
     }
     return number.toString();
   }
+
+  // Retry configuration
+  private _maxRetries = 5; // Maximum number of retries
+  private _baseDelay = 1000; // Initial delay in milliseconds
+  private _backoffFactor = 2; // Backoff factor for exponential increase
+
+  async addDataWithRetry(userName, playDuration, gamemode) {
+    let retries = 0;
+    let delay = this._baseDelay;
+
+    while (retries < this._maxRetries) {
+      try {
+        // Perform the database operation here
+        // Example: await databaseClient.performOperation();
+        await this.addData(userName, playDuration, gamemode);
+
+        // If the operation succeeds, break the loop and return
+        console.log('Database operation successful!');
+        return;
+      } catch (error) {
+        console.error('Database operation failed:', error);
+
+        // If the maximum number of retries is reached, throw the error
+        if (retries === this._maxRetries - 1) {
+          throw error;
+        }
+
+        // Calculate the delay for the next retry using exponential backoff
+        const backoffDelay = delay * Math.pow(this._backoffFactor, retries);
+
+        console.log(`Retrying in ${backoffDelay} milliseconds...`);
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+
+        retries++;
+      }
+    }
+
+    console.error('Maximum number of retries reached. Database operation failed.');
+
+    // // Usage:
+    // performDatabaseOperation()
+    // .catch(error => {
+    //   console.error('Error:', error);
+    //   // Handle the error or propagate it further if needed
+    // });
+  }
+
 }
