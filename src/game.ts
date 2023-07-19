@@ -283,7 +283,8 @@ export class Game {
     else if (stateHandle.checkCurrentState(GameState.PAUSING)) {
       // back from pause
       stateHandle.setState(stateHandle.prevState);
-      this._menu.deleteButtons();
+      // this._menu.deleteButtons();
+      this._menu.closeModal();
     }
   }
 

@@ -1,27 +1,29 @@
 .canvas-container {
-  white-space: nowrap;
+  /* white-space: nowrap; */
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin: 10px; 
+  position: relative;
+  top: 50px; /* TODO: actually I want to align center vertically not like this*/
+  /* align-items: center; */
+  /* margin: 10px;  */
 }
 #mainCanvas {
   border: 1px solid #000;
-  display: inline-block;
-  margin: 0 auto;
+  /* display: inline-block; */
+  /* margin: 0 auto; */
   background: lightgray;
-  z-index: 1;
-  margin-right: 5px;
+  /* z-index: 1; */
+  margin-right: 10px;
   /* position: absolute; */
   /* flex: 0 0 auto; */
   /* width: 120px; */
   /* height: 280px; */
 }
 #nextPuyoCanvas {
-  display: inline-block;
+  /* display: inline-block; */
   background: lightcyan;
-  z-index: 1;
-  margin-left: 5px;
+  /* z-index: 1; */
+  /* margin-left: 5px; */
   /* position: absolute; */
   /* flex: 0 0 auto; */
 }
