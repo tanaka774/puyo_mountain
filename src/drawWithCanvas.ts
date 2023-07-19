@@ -35,8 +35,38 @@ export class DrawWithCanvas {
     this.ctx = this.mainCanvas.getContext('2d');
     this.nextPuyoCanvas = document.getElementById(nextPuyoCanvasName) as HTMLCanvasElement;
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
+    
+    // call just once
+    // this.drawWholeBackground();
   }
 
+  drawWholeBackground() {
+    // TODO: fix many things!
+    // const wholeCanvas = document.createElement("canvas");
+    // // const canvasContainer = document.getElementById("canvasContainer");
+    // // canvasContainer.appendChild(wholeCanvas);
+    // document.body.appendChild(wholeCanvas);
+
+    const wholeCanvas = document.getElementById("canvasBackground") as HTMLCanvasElement;
+    const wholeCtx = wholeCanvas.getContext("2d");
+    wholeCanvas.width = window.innerWidth;
+    wholeCanvas.height = window.innerHeight;
+    wholeCtx.fillStyle = "skyblue";
+    wholeCtx.fillRect(0, 0, wholeCanvas.width, wholeCanvas.height);
+    wholeCtx.beginPath();
+    wholeCtx.moveTo(0, wholeCanvas.height / 2); // Starting point on the left side
+    wholeCtx.quadraticCurveTo(wholeCanvas.width / 2, wholeCanvas.height, wholeCanvas.width, wholeCanvas.height / 2); // Control point and ending point
+    wholeCtx.lineTo(wholeCanvas.width, wholeCanvas.height); // Bottom-right corner
+    wholeCtx.lineTo(0, wholeCanvas.height); // Bottom-left corner
+    wholeCtx.closePath();
+
+    const gradient = wholeCtx.createLinearGradient(0, 0, 0, wholeCanvas.height);
+    gradient.addColorStop(0, "skyblue");
+    gradient.addColorStop(1, "gray");
+    wholeCtx.fillStyle = gradient;
+    wholeCtx.fill();
+
+  }
 
   draw() {
     this.clear();
@@ -49,22 +79,22 @@ export class DrawWithCanvas {
     this.drawConnecting();
 
     for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
-      this.drawPuyo(floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
+      this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
     }
 
     for (const floatingPuyo of this._chain.floatingPuyos) {
-      this.drawPuyo(floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
+      this.drawPuyo(this.ctx, floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
     }
 
     if (this._split.splittedPuyo) {
-      this.drawPuyo(this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
+      this.drawPuyo(this.ctx, this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
     }
 
     if (this._current.currentPuyo) {
-      this.drawPuyo(this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor]);
+      this.drawPuyo(this.ctx, this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor]);
 
       const [childX, childY] = this._current.getChildPos(this._current.currentPuyo);
-      this.drawPuyo(childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
+      this.drawPuyo(this.ctx, childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
     }
 
     // this.drawAfterimageHor();
@@ -80,6 +110,7 @@ export class DrawWithCanvas {
 
   clear() {
     this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+    this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
   }
 
   drawBoardBackgorund() {
@@ -102,7 +133,7 @@ export class DrawWithCanvas {
         for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
           const cell = this._board.board[y][x];
           if (cell !== gameConfig.NO_COLOR) {
-            this.drawPuyo(x, y, gameConfig.PUYO_COLORS[cell])
+            this.drawPuyo(this.ctx, x, y, gameConfig.PUYO_COLORS[cell])
           }
         }
       }
@@ -113,10 +144,12 @@ export class DrawWithCanvas {
   // temp
   private drawNextBoard(puyo: baseManiPuyo, y1) {
     if (puyo) {
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.parentColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.childColor];
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, (y1 + 1) * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      this.drawPuyo(this.nextPuyoCtx, 0.25 + gameConfig.BOARD_LEFT_EDGE, y1 + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.parentColor]);
+      this.drawPuyo(this.nextPuyoCtx, 0.25 + gameConfig.BOARD_LEFT_EDGE, 1 + y1 + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
+      // this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.parentColor];
+      // this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      // this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.childColor];
+      // this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, (y1 + 1) * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
     } else {
       this.nextPuyoCtx.fillStyle = 'white';
       this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
@@ -179,7 +212,7 @@ export class DrawWithCanvas {
     ctx.fill();
   }
 
-  drawPuyo(x, y, color, willStorke = true) {
+  drawPuyo(ctx:CanvasRenderingContext2D, x, y, color:string, willStorke = true) {
     const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
     const drawPosY = (y - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
 
@@ -187,11 +220,9 @@ export class DrawWithCanvas {
     const radiusY = gameConfig.CELL_SIZE * 14 / 32;
     const elliX = drawPosX + radiusX + gameConfig.CELL_SIZE / 16;
     const elliY = drawPosY + radiusY + gameConfig.CELL_SIZE / 10;
-    // this.drawEllipse(this.ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
-    // this.drawEyes(this.ctx, elliX, elliY);
 
     // if in ghost zone, add transparency
-    if (y <= gameConfig.BOARD_TOP_EDGE - 0.5) {
+    if (y <= gameConfig.BOARD_TOP_EDGE - 0.5 && ctx === this.ctx) {
       color = this.addAlpha(color, 0.5);
     }
 
@@ -199,11 +230,11 @@ export class DrawWithCanvas {
       this._bounce.searchBouncePuyo(x, y)
     ) {
       this.drawBounce(x, y, radiusY, elliY,
-        () => { this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke); }
+        () => { this.drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke); }
         // () => {this.drawPuyo_v2(this.ctx, x, y, color, willStorke);}
       );
     } else {
-      this.drawEllipse(elliX, elliY, radiusX, radiusY, color, willStorke);
+      this.drawEllipse(ctx, elliX, elliY, radiusX, radiusY, color, willStorke);
       // this.drawPuyo_pixel(this.ctx, x, y, color, willStorke);
       // this.drawPuyo_v2(this.ctx, x, y, color, willStorke);
     }
@@ -278,7 +309,7 @@ export class DrawWithCanvas {
         const rotatingX = this._current.currentPuyo.parentX + Math.cos((angle * (-1) + 270) * Math.PI / 180);
         const rotatingY = this._current.currentPuyo.parentY - Math.sin((angle * (-1) + 270) * Math.PI / 180);
         const alpha = 0.2 + 0.2 * n / devideNum;
-        this.drawPuyo(rotatingX, rotatingY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+        this.drawPuyo(this.ctx, rotatingX, rotatingY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
       this._rotate.rotateDrawing.drawCount--;
@@ -305,7 +336,7 @@ export class DrawWithCanvas {
         const alpha = 0.2 + 0.2 * n / devideNum;
         const drawX = this._rotate.pushupDrawing.preChildX;
         const drawY = this._rotate.pushupDrawing.preChildY - this._rotate.pushupDrawing.upY * (n / devideNum);
-        this.drawPuyo(drawX, drawY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+        this.drawPuyo(this.ctx, drawX, drawY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
       this._rotate.pushupDrawing.drawCount--;
@@ -326,9 +357,9 @@ export class DrawWithCanvas {
       for (let n = 1; n < devideNum; n++) {
         const alpha = 0.2 + 0.1 * n / devideNum;
         if (!(diffX < 0 && this._current.currentPuyo.angle === 270))
-          this.drawPuyo(this._current.currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), this._current.currentPuyo.parentY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor], alpha), false);
+          this.drawPuyo(this.ctx, this._current.currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), this._current.currentPuyo.parentY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor], alpha), false);
         if (!(diffX > 0 && this._current.currentPuyo.angle === 90))
-          this.drawPuyo(childX - (diffX * (2 / 5 * n / devideNum)), childY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+          this.drawPuyo(this.ctx, childX - (diffX * (2 / 5 * n / devideNum)), childY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
       this._move.movingHorDrawing.drawCount--;
@@ -356,11 +387,12 @@ export class DrawWithCanvas {
 
 
   drawGlueToDown(cellSize, x1, y1, x2, y2, radiusX, radiusY, color) {
+    // color = 'white'; //temp
     x1 *= cellSize; x1 += cellSize / 2;
     x2 *= cellSize; x2 += cellSize / 2;
     y1 *= cellSize; y1 += cellSize / 2;
     y2 *= cellSize; y2 += cellSize / 2;
-    const elliCenterX = (x1 + x2) / 2;
+    const elliCenterX = (x1 + x2) / 2 + radiusX/8;
     const elliCenterY = (y1 + y2) / 2;
     const xElliMod = radiusX * 4 / 5;
     const yElliMod = radiusY / 3;
@@ -399,6 +431,7 @@ export class DrawWithCanvas {
   }
 
   drawGlueToRight(cellSize, x1, y1, x2, y2, radiusX, radiusY, color) {
+    // color = 'white'; //temp
     x1 *= cellSize; x1 += cellSize / 2;
     x2 *= cellSize; x2 += cellSize / 2;
     y1 *= cellSize; y1 += cellSize / 2;
@@ -406,21 +439,21 @@ export class DrawWithCanvas {
     const ud_elliCenterX = (x1 + x2) / 2;
     const ud_elliCenterY = (y1 + y2) / 2;
     const ud_xElliMod = radiusX * 1 / 4;
-    const ud_yElliMod = radiusY * 5 / 5;
-    const ud_yContMod = radiusY / 5;
+    const ud_yElliMod = radiusY * 4 / 5;
+    const ud_yContMod = (-1) * radiusY / 16;
 
-    const upperStartX = x2 + ud_xElliMod;
-    const upperStartY = y2 - ud_yElliMod;
+    const upperStartX = x1 + ud_xElliMod;
+    const upperStartY = y1 - ud_yElliMod;
     const upperContX = ud_elliCenterX;
     const upperContY = ud_elliCenterY + ud_yContMod;
-    const upperEndX = x1 - ud_xElliMod;
-    const upperEndY = y1 - ud_yElliMod;
-    const downStartX = x2 + ud_xElliMod;
-    const downStartY = y2 + ud_yElliMod;
+    const upperEndX = x2 - ud_xElliMod;
+    const upperEndY = y2 - ud_yElliMod;
+    const downStartX = x1 + ud_xElliMod;
+    const downStartY = y1 + ud_yElliMod;
     const downContX = ud_elliCenterX;
     const downContY = ud_elliCenterY - ud_yContMod;
-    const downEndX = x1 - ud_xElliMod;
-    const downEndY = y1 + ud_yElliMod;
+    const downEndX = x2 - ud_xElliMod;
+    const downEndY = y2 + ud_yElliMod;
 
     this.ctx.beginPath();
     this.ctx.moveTo(upperStartX, upperStartY);
@@ -439,15 +472,15 @@ export class DrawWithCanvas {
     this.ctx.fill();
   }
 
-  drawEllipse(X, Y, radiusX, radiusY, color, willStorke = true) {
+  drawEllipse(ctx :CanvasRenderingContext2D, X, Y, radiusX, radiusY, color, willStorke = true) {
     // this.draw the ellipse
-    this.ctx.beginPath();
-    this.ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
-    this.ctx.fillStyle = color;
-    this.ctx.fill();
-    this.ctx.strokeStyle = 'rgba(150,150,150,0.5)';
-    this.ctx.lineWidth = 2;
-    (willStorke) && this.ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(150,150,150,0.5)';
+    ctx.lineWidth = 2;
+    (willStorke) && ctx.stroke();
   }
 
   drawEyes(X, Y) {

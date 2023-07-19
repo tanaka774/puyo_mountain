@@ -3,13 +3,18 @@
   display: flex;
   justify-content: center;
   position: relative;
-  top: 50px; /* TODO: actually I want to align center vertically not like this*/
+  /* TODO: actually I want to align center vertically not like this*/
+  top: 50px; 
   /* align-items: center; */
   /* margin: 10px;  */
+  z-index: 1;
+}
+.main-container {
+  display: inline-grid;
 }
 #mainCanvas {
   border: 1px solid #000;
-  /* display: inline-block; */
+  /* display: inline-grid; */
   /* margin: 0 auto; */
   background: lightgray;
   /* z-index: 1; */
@@ -27,6 +32,33 @@
   /* position: absolute; */
   /* flex: 0 0 auto; */
 }
+
+.game-info { 
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+/* #targetChainCount {
+  position: absolute;
+  top: 100%;
+} */
+
+.canvas-background {
+  position: relative;
+  z-index: -1;
+}
+
+.canvas-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* background: url('background-image.jpg') center/cover no-repeat; */
+  /* Other background properties can be added as needed */
+  z-index: -1;
+}
+
 
 .overlay {
   /* position: absolute;

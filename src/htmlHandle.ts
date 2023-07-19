@@ -20,6 +20,7 @@ export class HtmlHandle {
     this._targetChainNumShow = document.getElementById("targetChainCount");
     this._chainNumShow = document.getElementById("chainCount");
     this._chainPuyoNumShow = document.getElementById("chainPuyoNum");
+    this._chainPuyoNumShow.style.display = 'none'; // unused??
     this._timerElement = document.getElementById('timer');
 
     // this._pauseButton.addEventListener('click', this.handlePause);
@@ -31,23 +32,23 @@ export class HtmlHandle {
   htmlUpdate() {
     if (!stateHandle.willShowGameResult()) {
       this._chainNumShow.style.display = 'none';
-      this._chainPuyoNumShow.style.display = 'none';
+      // this._chainPuyoNumShow.style.display = 'none';
       this._targetChainNumShow.style.display = 'none';
       this._timerElement.style.display = 'none';
     } else {
       this._chainNumShow.style.display = '';
-      this._chainPuyoNumShow.style.display = '';
+      // this._chainPuyoNumShow.style.display = '';
       this._targetChainNumShow.style.display = '';
       this._timerElement.style.display = '';
     }
 
     if (this._mountain.currentMode === GameMode.ARCADE) {
-      this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 　 フェーズ ${this._mountain.phase}`
+      this._targetChainNumShow.textContent = `　${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
     } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
-      this._targetChainNumShow.textContent = `**${this._mountain.currentTargetChainNum} 連鎖せよ！** 現在 ${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
+      this._targetChainNumShow.textContent = `　${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
     }
     this._chainNumShow.textContent = `${this._chain.chainCount} 連鎖    最大${this._chain.maxVirtualChainCount}連鎖可能`
-    this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
+    // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
     this._timerElement.innerText = this._timer.formattedTime;
 
     // if (stateHandle.checkCurrentState(GameState.GAMECLEAR) || stateHandle.checkCurrentState(GameState.MENU)) {
@@ -122,6 +123,7 @@ export class HtmlHandle {
       sendButton.textContent = "送信する";
       sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
+        // TODO: prevent multiple clicks
 
         const userInput = document.getElementById("userInput") as HTMLInputElement;
         const userName = userInput.value;
@@ -140,8 +142,10 @@ export class HtmlHandle {
           })
           .catch((error) => {
             // TODO: how to verify this case
+
             console.error(error);
             rankInDialog.innerHTML = '';
+            // TODO: maybe this would happen if just one retry occurs, so this should be only if maxretries
             rankInDialog.innerText = '問題が発生しました、管理者に問い合わせてください'
             this.addCloseButton(rankInDialog);
           })
@@ -219,6 +223,7 @@ export class HtmlHandle {
     const scoresOutput = document.createElement("output");
     scoresOutput.classList.add('scrollable-container');
 
+    // TODO: try-catch?
     wholeSelect.addEventListener('change', async () => {
       const selectedValue = wholeSelect.value;
       let data;
@@ -246,7 +251,7 @@ export class HtmlHandle {
       const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
       const minMonth = monthRange.split("-")[0];
       const maxMonth = monthRange.split("-")[1];
-      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank); 
+      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank);
       this.makeContentFromDB(scoresOutput, data);
     })
 
@@ -256,10 +261,10 @@ export class HtmlHandle {
       const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
       const minMonth = monthRange.split("-")[0];
       const maxMonth = monthRange.split("-")[1];
-      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank); 
+      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank);
       this.makeContentFromDB(scoresOutput, data);
     })
-    
+
     modeSelect.addEventListener('change', () => {
       // TODO:
     })

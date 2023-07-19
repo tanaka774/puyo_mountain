@@ -1,5 +1,5 @@
 
-const CELL_SIZE = 30;
+const CELL_SIZE = 35;
 const DRAW_TOOL: string = 'canvas'; // 'svg'
 const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
 const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;
@@ -60,7 +60,7 @@ const SEED_FALLING_SPEED = 15.0;
 const SPLIT_FALLING_SPEED = 12.0;
 const FLOAT_FALLING_SPEED = 12.0;
 const PUYO_POOL_LOOP = 16;
-const ENDURANCE_TOTAL = 20;
+const ENDURANCE_TOTAL = 6;
 const ENDURANCE_MIN_ONCE = 6;
 const ENDURANCE_MAX_ONCE = 12;
 

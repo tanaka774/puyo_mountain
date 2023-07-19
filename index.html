@@ -9,25 +9,33 @@
 
 <body>
 
-  <div class="canvas-container">
-    <canvas id="mainCanvas"></canvas>
-    <canvas id="nextPuyoCanvas"></canvas>
-  </div>
-    <!-- <div class="menu-container" id="menu"></div> -->
-    <dialog class="menu-container" id="menu"></dialog>
+  <div class="canvas-container" id="canvasContainer">
+    <div class="main-container" id="mainContainer">
+      <canvas id="mainCanvas"></canvas>
+      <p class="game-info" id="targetChainCount"></p>
 
-  <p id="targetChainCount"></p>
-  <p id="chainCount"></p>
-  <p id="chainPuyoNum"></p>
-  <div id="timer"></div>
+    </div>
+    <div class="next-container" id="nextContainer">
+      <canvas id="nextPuyoCanvas"></canvas>
+      <p class="game-info" id="chainCount"></p>
+      <p class="game-info" id="chainPuyoNum"></p>
+      <div class="game-info" id="timer"></div>
+    </div>
+
+  </div>
+
+  <!-- <div class="menu-container" id="menu"></div> -->
+  <dialog class="menu-container" id="menu"></dialog>
 
   <button type="button" id="pauseButton">ポーズ</button>
-  <button type="button" id="undoButton">戻す</button>
-  <button type="button" id="redoButton">進める</button>
+  <!-- <button type="button" id="undoButton">戻す</button> -->
+  <!-- <button type="button" id="redoButton">進める</button> -->
 
   <!-- <svg id="puyo"></svg> -->
-  
-  <div id="api-test"></div>
+
+  <!-- <div id="api-test"></div> -->
+
+  <!-- <canvas class="canvas-background" id="canvasBackground"></canvas> -->
 
   <script type="module" src="./src/main.ts"></script>
 </body>
