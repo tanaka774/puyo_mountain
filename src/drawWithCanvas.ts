@@ -35,7 +35,7 @@ export class DrawWithCanvas {
     this.ctx = this.mainCanvas.getContext('2d');
     this.nextPuyoCanvas = document.getElementById(nextPuyoCanvasName) as HTMLCanvasElement;
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
-    
+
     // call just once
     // this.drawWholeBackground();
   }
@@ -102,6 +102,10 @@ export class DrawWithCanvas {
     this.drawAfterimagePushedup();
 
     this.drawTriggerPuyos();
+
+    if (this._chain.vanishPuyos.length > 0) {
+      this.showChainCountAnim();
+    }
 
     this.drawNextBoard(this._current.nextPuyo, 1);
     this.drawNextBoard(this._current.doubleNextPuyo, 4);
@@ -184,10 +188,10 @@ export class DrawWithCanvas {
 
     ctx.transform(1, 0, -1, 1, 0, 0);
     ctx.translate(
-      centerX+centerY 
-      - gameConfig.CELL_SIZE * 3 
-      - (x-gameConfig.PUYO_BIRTH_POSX)*gameConfig.CELL_SIZE
-      + radius/3.2, 0)
+      centerX + centerY
+      - gameConfig.CELL_SIZE * 3
+      - (x - gameConfig.PUYO_BIRTH_POSX) * gameConfig.CELL_SIZE
+      + radius / 3.2, 0)
 
     ctx.beginPath();
     ctx.arc(centerX - radius / 2, centerY - 2 / 3 * radius, radius / 4, 0, 2 * Math.PI);
@@ -212,7 +216,7 @@ export class DrawWithCanvas {
     ctx.fill();
   }
 
-  drawPuyo(ctx:CanvasRenderingContext2D, x, y, color:string, willStorke = true) {
+  drawPuyo(ctx: CanvasRenderingContext2D, x, y, color: string, willStorke = true) {
     const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
     const drawPosY = (y - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
 
@@ -392,7 +396,7 @@ export class DrawWithCanvas {
     x2 *= cellSize; x2 += cellSize / 2;
     y1 *= cellSize; y1 += cellSize / 2;
     y2 *= cellSize; y2 += cellSize / 2;
-    const elliCenterX = (x1 + x2) / 2 + radiusX/8;
+    const elliCenterX = (x1 + x2) / 2 + radiusX / 8;
     const elliCenterY = (y1 + y2) / 2;
     const xElliMod = radiusX * 4 / 5;
     const yElliMod = radiusY / 3;
@@ -472,7 +476,7 @@ export class DrawWithCanvas {
     this.ctx.fill();
   }
 
-  drawEllipse(ctx :CanvasRenderingContext2D, X, Y, radiusX, radiusY, color, willStorke = true) {
+  drawEllipse(ctx: CanvasRenderingContext2D, X, Y, radiusX, radiusY, color, willStorke = true) {
     // this.draw the ellipse
     ctx.beginPath();
     ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
@@ -558,5 +562,36 @@ export class DrawWithCanvas {
       }
     }
 
+  }
+
+  showChainCountAnim() {
+    const vanishPuyos = this._chain.vanishPuyos;
+    const chainCount = this._chain.chainCount;
+
+    // thanks chatgpt
+    const result = vanishPuyos.reduce((acc, innerArray) => {
+      const minY = Math.min(acc.minY, ...innerArray.map(([_, y]) => y));
+      const sumX = acc.sumX + innerArray.reduce((sum, [x, _]) => sum + x, 0);
+      const countX = acc.countX + innerArray.length;
+      return { minY, sumX, countX };
+    }, { minY: Infinity, sumX: 0, countX: 0 });
+
+    const cs = gameConfig.CELL_SIZE;
+    const upLimit = gameConfig.BOARD_TOP_EDGE + 2;
+
+    const posY = (result.minY - 2 <= upLimit) ? upLimit : (result.minY - 2);
+    const drawY = posY * cs;
+    const meanX = result.sumX / result.countX;
+    const posX = (meanX - 0.5 <= gameConfig.BOARD_LEFT_EDGE)
+      ? gameConfig.BOARD_LEFT_EDGE + 0.5
+      : ((meanX + 0.5 >= gameConfig.BOARD_RIGHT_EDGE - 1)
+        ? gameConfig.BOARD_RIGHT_EDGE - 1.5 
+        : meanX);
+    const drawX = posX * cs;
+
+    this.ctx.font = "32px Impact";
+    const alpha = 1 - this._chain.chainVanishWaitCount / gameConfig.VANISH_WAIT_TIME;
+    this.ctx.fillStyle = `rgba(50,50,50,${alpha})`;
+    this.ctx.fillText(`${chainCount}`, drawX, drawY);
   }
 }

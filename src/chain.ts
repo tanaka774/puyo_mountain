@@ -7,7 +7,7 @@ import conso from "../sample/oldjs/test";
 
 export class Chain {
   private _floatingPuyos: baseSinglePuyo[];
-  private _vanishPuyos: number[][];
+  private _vanishPuyos // : number[][]; // [][][]
   private _vanishPuyoNum: number;
   private _chainVanishWaitCount: number;
   private _chainCount: number;
