@@ -1,3 +1,4 @@
+import { FontHandle } from "./fontHandle";
 import { GameState, stateHandle } from "./state";
 
 export enum MenuSelect {
@@ -29,7 +30,9 @@ export class Menu {
   private enterKeyUpCallback: () => void;
 
 
-  constructor() {
+  constructor(
+  private _fontHandle: FontHandle
+  ) {
     // TODO: menu should be generated and shown here???
     this.generateButtons(MenuSelect.START_MENU);
     // this._menuContainer.showModal();
@@ -121,6 +124,8 @@ export class Menu {
     const geneButton = (showText: string, callback: () => void) => {
       const tempButton = document.createElement('button');
       tempButton.innerText = showText;
+      // TODO: why css doesn't apply to these button???
+      tempButton.style.fontFamily = this._fontHandle.fontName;
       tempButton.addEventListener('click', callback);
       tempButton.addEventListener('mouseover', this.handleMouseOver.bind(this));
       tempButton.addEventListener('click', this.handleMouseClick.bind(this));

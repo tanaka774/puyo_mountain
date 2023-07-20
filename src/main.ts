@@ -18,9 +18,11 @@ import { HtmlHandle } from "./htmlHandle"
 import { DrawWithSVG } from "./drawWithSVG"
 import { ApiHandle } from "./apiHandle"
 import { Timer } from "./timer"
+import { FontHandle } from "./fontHandle"
 
 function main() {
-  const menu = new Menu();
+  const fontHandle = new FontHandle();
+  const menu = new Menu(fontHandle);
   const apiHandle = new ApiHandle();
   const timer = new Timer();
   const bounce = new Bounce();
@@ -32,7 +34,7 @@ function main() {
   const rotate = new Rotate(current, move);
   const mountain = new Mountain(board, move, chain);
   const input = new Input(board, current, move, rotate);
-  const draw = new DrawWithCanvas(bounce, board, current, move, rotate,
+  const draw = new DrawWithCanvas(fontHandle, bounce, board, current, move, rotate,
     split, chain, mountain, 'mainCanvas', 'nextPuyoCanvas');
   // const draw = new DrawWithSVG(bounce, board, current, move, rotate,
   //   split, chain, mountain);

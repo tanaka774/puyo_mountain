@@ -9,6 +9,7 @@ import { Current } from "./current"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
 import { Mountain } from "./mountain"
+import { FontHandle } from "./fontHandle"
 
 
 export class DrawWithCanvas {
@@ -19,7 +20,9 @@ export class DrawWithCanvas {
   // TODO: type should be nullable?
   private nextPuyoCtx: CanvasRenderingContext2D;
 
+
   constructor(
+    private _fontHandle: FontHandle,
     private _bounce: Bounce,
     private _board: Board,
     private _current: Current,
@@ -38,6 +41,7 @@ export class DrawWithCanvas {
 
     // call just once
     // this.drawWholeBackground();
+
   }
 
   drawWholeBackground() {
@@ -78,8 +82,11 @@ export class DrawWithCanvas {
     // draw first
     this.drawConnecting();
 
-    for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
-      this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
+    if (this._mountain.floatingSeedPuyos.length > 0) {
+      for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
+        this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
+      }
+      this.showCurrentChainCount();
     }
 
     for (const floatingPuyo of this._chain.floatingPuyos) {
@@ -582,16 +589,51 @@ export class DrawWithCanvas {
     const posY = (result.minY - 2 <= upLimit) ? upLimit : (result.minY - 2);
     const drawY = posY * cs;
     const meanX = result.sumX / result.countX;
-    const posX = (meanX - 0.5 <= gameConfig.BOARD_LEFT_EDGE)
-      ? gameConfig.BOARD_LEFT_EDGE + 0.5
-      : ((meanX + 0.5 >= gameConfig.BOARD_RIGHT_EDGE - 1)
-        ? gameConfig.BOARD_RIGHT_EDGE - 1.5 
+    const posX = (meanX - 1 <= gameConfig.BOARD_LEFT_EDGE)
+      ? gameConfig.BOARD_LEFT_EDGE + 1
+      : ((meanX + 1 >= gameConfig.BOARD_RIGHT_EDGE - 1)
+        ? gameConfig.BOARD_RIGHT_EDGE - 2
         : meanX);
     const drawX = posX * cs;
 
-    this.ctx.font = "32px Impact";
+    // TODO: use custom font of ultimate pop-style one
     const alpha = 1 - this._chain.chainVanishWaitCount / gameConfig.VANISH_WAIT_TIME;
-    this.ctx.fillStyle = `rgba(50,50,50,${alpha})`;
+    const chainRate = Math.min(chainCount / this._mountain.currentTargetChainNum, 1);
+    this._fontHandle.fontFace.load()
+      .then(() => {
+        this.ctx.font = "bold 40px custom";
+      })
+      .catch((err) => {
+        this.ctx.font = "bold 40px Comic Sans MS";
+        console.error(err)
+      })
+    // this.ctx.font = "bold italic 40px Comic Sans MS";
+    this.ctx.fillStyle = `rgba(${50 + 200 * chainRate},${250 - 90 * chainRate},${40 + 140 * chainRate},${alpha})`;
     this.ctx.fillText(`${chainCount}`, drawX, drawY);
+    this.ctx.strokeStyle = `rgba(50, 50, 50, ${alpha})`;
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeText(`${chainCount}`, drawX, drawY);
   }
+
+  showCurrentChainCount() {
+    // TODO: use custom font of ultimate pop-style one
+    const chainCount = this._mountain.currentTargetChainNum;
+    const drawY = (gameConfig.BOARD_TOP_EDGE + 1) * gameConfig.CELL_SIZE;
+    const drawX = (gameConfig.BOARD_LEFT_EDGE + -0.5) * gameConfig.CELL_SIZE;
+    const text = `${chainCount} れんさすべし`;
+    this._fontHandle.fontFace.load()
+      .then(() => {
+        this.ctx.font = "bold 24px custom";
+      })
+      .catch((err) => {
+        this.ctx.font = "bold 24px Arial";
+        console.error(err)
+      })
+    this.ctx.fillStyle = `rgba(139, 69, 19, 0.8)`;
+    this.ctx.fillText(`${text}`, drawX, drawY);
+    this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeText(`${text}`, drawX, drawY);
+  }
+
 }
