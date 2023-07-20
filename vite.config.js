@@ -8,4 +8,5 @@ export default defineConfig({
     outDir: 'dist', // Specify the output directory for the build
     emptyOutDir: true, // Empty the output directory before each build
   },
+    assetsInclude: ['/src/fonts/*.woff2'],
 });
