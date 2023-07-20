@@ -40,8 +40,7 @@ export class DrawWithCanvas {
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
 
     // call just once
-    // this.drawWholeBackground();
-
+    this.drawWholeBackground();
   }
 
   drawWholeBackground() {
@@ -55,17 +54,18 @@ export class DrawWithCanvas {
     const wholeCtx = wholeCanvas.getContext("2d");
     wholeCanvas.width = window.innerWidth;
     wholeCanvas.height = window.innerHeight;
-    wholeCtx.fillStyle = "skyblue";
+    const upperColor = "skyblue";
+    wholeCtx.fillStyle = upperColor;
     wholeCtx.fillRect(0, 0, wholeCanvas.width, wholeCanvas.height);
     wholeCtx.beginPath();
-    wholeCtx.moveTo(0, wholeCanvas.height / 2); // Starting point on the left side
-    wholeCtx.quadraticCurveTo(wholeCanvas.width / 2, wholeCanvas.height, wholeCanvas.width, wholeCanvas.height / 2); // Control point and ending point
-    wholeCtx.lineTo(wholeCanvas.width, wholeCanvas.height); // Bottom-right corner
-    wholeCtx.lineTo(0, wholeCanvas.height); // Bottom-left corner
+    wholeCtx.moveTo(0, wholeCanvas.height / 2);
+    wholeCtx.quadraticCurveTo(wholeCanvas.width / 2, wholeCanvas.height * 0, wholeCanvas.width, wholeCanvas.height / 2);
+    wholeCtx.lineTo(wholeCanvas.width, wholeCanvas.height); 
+    wholeCtx.lineTo(0, wholeCanvas.height); 
     wholeCtx.closePath();
 
     const gradient = wholeCtx.createLinearGradient(0, 0, 0, wholeCanvas.height);
-    gradient.addColorStop(0, "skyblue");
+    gradient.addColorStop(0, upperColor);
     gradient.addColorStop(1, "gray");
     wholeCtx.fillStyle = gradient;
     wholeCtx.fill();
@@ -75,7 +75,7 @@ export class DrawWithCanvas {
   draw() {
     this.clear();
 
-    this.drawBoardBackgorund();
+    this.drawBoardBackground();
 
     this.drawBoardPuyos();
 
@@ -124,18 +124,31 @@ export class DrawWithCanvas {
     this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
   }
 
-  drawBoardBackgorund() {
+  drawBoardBackground() {
     // TODO: use CELL_SIZE
     const cs = gameConfig.CELL_SIZE;
-    this.ctx.fillStyle = 'rgba(160,160,160,0.8)';
+    const alpha = 0.7;
+    this.ctx.fillStyle = `rgba(160,160,160,${alpha})`;
     this.ctx.fillRect(0, 0, this.mainCanvas.width, cs * 1);
-    this.ctx.fillStyle = 'rgba(200,200,200,0.8)';
+    this.ctx.fillStyle = `rgba(200,200,200,${alpha})`;
     this.ctx.fillRect(0, cs * 1, this.mainCanvas.width, cs * 2);
-    this.ctx.fillStyle = 'rgba(240,240,240,0.8)';
+    this.ctx.fillStyle = `rgba(240,240,240,${alpha})`;
     this.ctx.fillRect(0, cs * 2, this.mainCanvas.width, cs * 12);
-    // this.ctx.fillStyle = 'rgba(240,90,90,0.2)';
-    this.ctx.fillStyle = 'lightpink';
-    this.ctx.fillRect(cs * 2, cs * 2, cs * 1, cs * 1);
+
+    // draw "x" on birth pos
+    const birthX = (gameConfig.PUYO_BIRTH_POSX - 1) * cs;
+    const birthY = (gameConfig.PUYO_BIRTH_POSY - 1) * cs;
+    const modifier = cs / 4;
+    this.ctx.strokeStyle = `rgba(255, 182, 193, 0.8)`;
+    this.ctx.lineWidth = 4;
+    this.ctx.beginPath();
+    this.ctx.moveTo(birthX + modifier, birthY + modifier);
+    this.ctx.lineTo(birthX + cs - modifier, birthY + cs - modifier);
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.moveTo(birthX + cs - modifier, birthY + modifier);
+    this.ctx.lineTo(birthX + modifier, birthY + cs - modifier);
+    this.ctx.stroke();
   }
 
   drawBoardPuyos() {
@@ -619,21 +632,23 @@ export class DrawWithCanvas {
     // TODO: use custom font of ultimate pop-style one
     const chainCount = this._mountain.currentTargetChainNum;
     const drawY = (gameConfig.BOARD_TOP_EDGE + 1) * gameConfig.CELL_SIZE;
-    const drawX = (gameConfig.BOARD_LEFT_EDGE + -0.5) * gameConfig.CELL_SIZE;
+    const diffX = (chainCount >= 10) ? -1.5 : -0.5;
+    const drawX = (gameConfig.BOARD_LEFT_EDGE + diffX) * gameConfig.CELL_SIZE;
     const text = `${chainCount} れんさすべし`;
+    // const text = `12 れんさすべし`; //for debug
     this._fontHandle.fontFace.load()
       .then(() => {
-        this.ctx.font = "bold 24px custom";
+        this.ctx.font = "bold 26px custom";
       })
       .catch((err) => {
-        this.ctx.font = "bold 24px Arial";
+        this.ctx.font = "bold 26px Arial";
         console.error(err)
       })
-    this.ctx.fillStyle = `rgba(139, 69, 19, 0.8)`;
+    this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
     this.ctx.fillText(`${text}`, drawX, drawY);
-    this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
-    this.ctx.lineWidth = 1;
-    this.ctx.strokeText(`${text}`, drawX, drawY);
+    // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
+    // this.ctx.lineWidth = 1;
+    // this.ctx.strokeText(`${text}`, drawX, drawY);
   }
 
 }

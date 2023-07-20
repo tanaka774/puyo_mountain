@@ -1,5 +1,5 @@
 
-const CELL_SIZE = 35;
+const CELL_SIZE = 40;
 const DRAW_TOOL: string = 'canvas'; // 'svg'
 const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
 const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;

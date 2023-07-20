@@ -291,8 +291,8 @@ export class Game {
   // just once called before entering loop
   beforeLoop() {
     // register pause button
-    const pauseButton = document.getElementById("pauseButton");
-    pauseButton.addEventListener('click', this.handlePause.bind(this));
+    // const pauseButton = document.getElementById("pauseButton");
+    // pauseButton.addEventListener('click', this.handlePause.bind(this));
     document.addEventListener('keydown', e => {
       if (e.key === 'p') this.handlePause();
     })

@@ -136,7 +136,7 @@ export class Menu {
     switch (menuSelect) {
       case MenuSelect.START_MENU:
         geneButton('アーケードモード', () => this.generateButtons(MenuSelect.ARCADE_SELECT_1));
-        geneButton('連鎖耐久モード', () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1));
+        geneButton('スコアモード', () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1));
         geneButton('カスタムモード', () => { });
         geneButton('せってい', () => { });
         break;
