@@ -41,6 +41,60 @@ export class DrawWithCanvas {
 
     // call just once
     this.drawWholeBackground();
+    // this.drawUIInfo();
+  }
+
+  draw() {
+    this.clear();
+
+    this.drawBoardBackground();
+
+    this.drawBoardPuyos();
+
+    // draw first
+    this.drawConnecting();
+
+    if (this._mountain.floatingSeedPuyos.length > 0) {
+      for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
+        this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
+      }
+      this.showCurrentChainCount();
+    }
+
+    for (const floatingPuyo of this._chain.floatingPuyos) {
+      this.drawPuyo(this.ctx, floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
+    }
+
+    if (this._split.splittedPuyo) {
+      this.drawPuyo(this.ctx, this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
+    }
+
+    if (this._current.currentPuyo) {
+      this.drawPuyo(this.ctx, this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor]);
+
+      const [childX, childY] = this._current.getChildPos(this._current.currentPuyo);
+      this.drawPuyo(this.ctx, childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
+    }
+
+    // this.drawAfterimageHor();
+    this.drawAfterimageRotate();
+    this.drawAfterimagePushedup();
+
+    this.drawTriggerPuyos();
+
+    if (this._chain.vanishPuyos.length > 0) {
+      this.showChainCountAnim();
+    }
+
+    // this.drawNextBoard(this._current.nextPuyo, 1);
+    // this.drawNextBoard(this._current.doubleNextPuyo, 4);
+    // this.drawNextBoard(this._current.versatilePuyo, 9);
+    this.drawNextBoard();
+  }
+
+  clear() {
+    this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+    this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
   }
 
   drawWholeBackground() {
@@ -103,60 +157,8 @@ export class DrawWithCanvas {
 
   }
 
-  draw() {
-    this.clear();
-
-    this.drawBoardBackground();
-
-    this.drawBoardPuyos();
-
-    // draw first
-    this.drawConnecting();
-
-    if (this._mountain.floatingSeedPuyos.length > 0) {
-      for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
-        this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
-      }
-      this.showCurrentChainCount();
-    }
-
-    for (const floatingPuyo of this._chain.floatingPuyos) {
-      this.drawPuyo(this.ctx, floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
-    }
-
-    if (this._split.splittedPuyo) {
-      this.drawPuyo(this.ctx, this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
-    }
-
-    if (this._current.currentPuyo) {
-      this.drawPuyo(this.ctx, this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor]);
-
-      const [childX, childY] = this._current.getChildPos(this._current.currentPuyo);
-      this.drawPuyo(this.ctx, childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
-    }
-
-    // this.drawAfterimageHor();
-    this.drawAfterimageRotate();
-    this.drawAfterimagePushedup();
-
-    this.drawTriggerPuyos();
-
-    if (this._chain.vanishPuyos.length > 0) {
-      this.showChainCountAnim();
-    }
-
-    this.drawNextBoard(this._current.nextPuyo, 1);
-    this.drawNextBoard(this._current.doubleNextPuyo, 4);
-    this.drawNextBoard(this._current.versatilePuyo, 9);
-  }
-
-  clear() {
-    this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-    this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
-  }
-
   drawBoardBackground() {
-    // TODO: use CELL_SIZE
+    // TODO: use board size
     const cs = gameConfig.CELL_SIZE;
     const alpha = 0.7;
     this.ctx.fillStyle = `rgba(160,160,160,${alpha})`;
@@ -170,7 +172,7 @@ export class DrawWithCanvas {
     const birthX = (gameConfig.PUYO_BIRTH_POSX - 1) * cs;
     const birthY = (gameConfig.PUYO_BIRTH_POSY - 1) * cs;
     const modifier = cs / 4;
-    this.ctx.strokeStyle = `rgba(255, 182, 193, 0.8)`;
+    this.ctx.strokeStyle = `rgba(255, 82, 93, 0.4)`;
     this.ctx.lineWidth = 4;
     this.ctx.beginPath();
     this.ctx.moveTo(birthX + modifier, birthY + modifier);
@@ -197,21 +199,64 @@ export class DrawWithCanvas {
   }
 
   // temp
-  private drawNextBoard(puyo: baseManiPuyo, y1) {
-    if (puyo) {
-      this.drawPuyo(this.nextPuyoCtx, 0.25 + gameConfig.BOARD_LEFT_EDGE, y1 + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.parentColor]);
-      this.drawPuyo(this.nextPuyoCtx, 0.25 + gameConfig.BOARD_LEFT_EDGE, 1 + y1 + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
-      // this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.parentColor];
-      // this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      // this.nextPuyoCtx.fillStyle = gameConfig.PUYO_COLORS[puyo.childColor];
-      // this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, (y1 + 1) * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-    } else {
-      this.nextPuyoCtx.fillStyle = 'white';
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, y1 * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
-      this.nextPuyoCtx.fillStyle = 'white';
-      this.nextPuyoCtx.fillRect(0.3 * gameConfig.CELL_SIZE, (y1 + 1) * gameConfig.CELL_SIZE, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+  private drawNextBoard() {
+    // TODO: UI should be into whole background??? 
+    this.drawUIInfo();
+    const drawNextPuyo = (puyo:baseManiPuyo, x, y) => {
+      this.drawPuyo(this.nextPuyoCtx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.parentColor]);
+      this.drawPuyo(this.nextPuyoCtx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
+    }
+    // TODO: animation
+    if (this._current.nextPuyo) {
+      drawNextPuyo(this._current.nextPuyo, 0.5, 2.5);
+    }
+    if (this._current.doubleNextPuyo) {
+      drawNextPuyo(this._current.doubleNextPuyo, 2, 4.5);
+    }
+    if (this._current.versatilePuyo) {
+      drawNextPuyo(this._current.versatilePuyo, 0.5, 9);
     }
   }
+
+  drawUIInfo() {
+    const backColor = 'rgba(200,200,200,0.7)';
+    const cs = gameConfig.CELL_SIZE;
+    this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
+    this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
+    this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 8.5, cs * 2, cs * 3, cs / 2, 'rgba(50,50,50,0.7)');
+    this._fontHandle.fontFace.load()
+    .then(() => {
+        this.nextPuyoCtx.font = "bold 20px custom";
+    })
+    .catch((err) => {
+      this.nextPuyoCtx.font = "bold 20px Arial";
+      console.error(err);
+    })
+    this.nextPuyoCtx.fillStyle = `rgba(30, 30, 30, 0.8)`;
+    this.nextPuyoCtx.fillText('Vぷよ', cs * 0.3, cs * 8.3);
+    // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
+    // this.nextPuyoCtx.lineWidth = 0.001;
+    // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
+      
+    // TODO: use smaller font size???
+    this.nextPuyoCtx.fillText('D: 使用', cs * 2.3, cs * 9.2);
+    this.nextPuyoCtx.fillText('C: 色変更', cs * 2.3, cs * 10.0);
+    this.nextPuyoCtx.fillText('P: ポーズ', cs * 2.3, cs * 11.0);
+  }
+
+  private drawRoundedRect = (ctx, x, y, width, height, radius, color: string) => {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + width, y, x + width, y + height, radius);
+    ctx.arcTo(x + width, y + height, x, y + height, radius);
+    ctx.arcTo(x, y + height, x, y, radius);
+    ctx.arcTo(x, y, x + width, y, radius);
+    ctx.closePath();
+    // ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
 
   drawPuyo_v2(ctx: CanvasRenderingContext2D, x: number, y: number, color: string, willStorke) {
     const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;

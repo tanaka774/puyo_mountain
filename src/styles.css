@@ -13,7 +13,6 @@ html {
 }
 
 .canvas-container {
-  /* white-space: nowrap; */
   display: flex;
   justify-content: center;
   position: relative;
@@ -23,39 +22,32 @@ html {
   /* margin: 10px;  */
   z-index: 1;
 }
+
 .main-container {
   display: inline-grid;
-}
-#mainCanvas {
-  border: 1px solid #000;
-  /* display: inline-grid; */
-  /* margin: 0 auto; */
-  /* background: lightgray; */
-  /* z-index: 1; */
   margin-right: 10px;
-  /* position: absolute; */
-  /* flex: 0 0 auto; */
-  /* width: 120px; */
-  /* height: 280px; */
-}
-#nextPuyoCanvas {
-  /* display: inline-block; */
-  background: lightcyan;
-  /* z-index: 1; */
-  /* margin-left: 5px; */
-  /* position: absolute; */
-  /* flex: 0 0 auto; */
 }
 
-.game-info { 
-  margin-top: 3px;
-  margin-bottom: 3px;
-  background-color: rgba(153, 161, 171, 0.5);
+#nextPuyoCanvas {
+  /* background-color: rgba(203, 201, 201, 0.7); */
 }
-/* #targetChainCount {
-  position: absolute;
-  top: 100%;
-} */
+
+
+.game-info { 
+  background-color: rgba(203, 201, 201, 0.7);
+  text-align: center;
+}
+
+.main-container .game-info{
+  margin-top: 3px;
+  font-size: large;
+}
+
+.next-container .game-info {
+  margin-top: 5px;
+  margin-bottom: 3px;
+  font-size: large;
+}
 
 .canvas-background {
   position: absolute;
@@ -66,16 +58,6 @@ html {
   z-index: -1;
 }
 
-
-.overlay {
-  /* position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0,0,0,0.5);
-  z-index: 2; */
-}
 
 .menu-container {
   /* position: absolute; */

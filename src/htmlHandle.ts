@@ -43,9 +43,9 @@ export class HtmlHandle {
     }
 
     if (this._mountain.currentMode === GameMode.ARCADE) {
-      this._targetChainNumShow.textContent = `　${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
+      this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
     } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
-      this._targetChainNumShow.textContent = `　${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
+      this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
     }
     // this._chainNumShow.textContent = ` 最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainNumShow.textContent = `MAX: ${this._chain.maxVirtualChainCount}`

@@ -3,7 +3,7 @@ const CELL_SIZE = 40;
 const DRAW_TOOL: string = 'canvas'; // 'svg'
 const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
 const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;
-const NEXT_DRAW_WIDTH = CELL_SIZE * 2;
+const NEXT_DRAW_WIDTH = CELL_SIZE * 5;
 const NEXT_DRAW_HEIGHT = CELL_SIZE * 12;
 
 if (DRAW_TOOL === 'canvas') {
