@@ -50,6 +50,7 @@ html {
 .game-info { 
   margin-top: 3px;
   margin-bottom: 3px;
+  background-color: rgba(153, 161, 171, 0.5);
 }
 /* #targetChainCount {
   position: absolute;

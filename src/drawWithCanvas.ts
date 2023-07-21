@@ -44,31 +44,62 @@ export class DrawWithCanvas {
   }
 
   drawWholeBackground() {
-    // TODO: fix many things!
-    // const wholeCanvas = document.createElement("canvas");
-    // // const canvasContainer = document.getElementById("canvasContainer");
-    // // canvasContainer.appendChild(wholeCanvas);
-    // document.body.appendChild(wholeCanvas);
-
     const wholeCanvas = document.getElementById("canvasBackground") as HTMLCanvasElement;
     const wholeCtx = wholeCanvas.getContext("2d");
     wholeCanvas.width = window.innerWidth;
     wholeCanvas.height = window.innerHeight;
-    const upperColor = "skyblue";
-    wholeCtx.fillStyle = upperColor;
-    wholeCtx.fillRect(0, 0, wholeCanvas.width, wholeCanvas.height);
-    wholeCtx.beginPath();
-    wholeCtx.moveTo(0, wholeCanvas.height / 2);
-    wholeCtx.quadraticCurveTo(wholeCanvas.width / 2, wholeCanvas.height * 0, wholeCanvas.width, wholeCanvas.height / 2);
-    wholeCtx.lineTo(wholeCanvas.width, wholeCanvas.height); 
-    wholeCtx.lineTo(0, wholeCanvas.height); 
-    wholeCtx.closePath();
 
-    const gradient = wholeCtx.createLinearGradient(0, 0, 0, wholeCanvas.height);
-    gradient.addColorStop(0, upperColor);
-    gradient.addColorStop(1, "gray");
-    wholeCtx.fillStyle = gradient;
-    wholeCtx.fill();
+    const ww = wholeCanvas.width;
+    const wh = wholeCanvas.height;
+    const drawMountain = (cw, ch, color: string) => {
+      wholeCtx.beginPath();
+      wholeCtx.moveTo(cw, ch);
+      cw = cw + ww / 10; ch = ch - wh / 15; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch - wh / 10; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 10; ch = ch - wh / 6; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch - wh / 25; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 20; ch = ch + wh / 20; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch + wh / 16; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch + wh / 6; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch + wh / 16; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch + wh / 20; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 20; ch = ch + wh / 32; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch - wh / 25; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch - wh / 8; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 16; ch = ch - wh / 20; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 20; ch = ch - wh / 40; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 20; ch = ch + wh / 32; wholeCtx.lineTo(cw, ch);
+      cw = cw + ww / 20; ch = ch + wh / 20; wholeCtx.lineTo(cw, ch);
+      wholeCtx.lineTo(ww, wh / 2);
+      wholeCtx.lineTo(ww, wh);
+      wholeCtx.lineTo(0, wh);
+      wholeCtx.fillStyle = color;
+      wholeCtx.fill();
+      wholeCtx.closePath();
+    }
+    const createGradient = (x0, y0, x1, y1, upColor, downColor) => {
+      const gradient = wholeCtx.createLinearGradient(0, 0, 0, wholeCanvas.height);
+      gradient.addColorStop(0, upColor);
+      gradient.addColorStop(1, downColor);
+      wholeCtx.fillStyle = gradient;
+      wholeCtx.fill();
+    }
+
+    // TODO: more investigating for better background, want to mix green on mountain
+    const upperColor = "rgb(255, 140, 0)";
+    const color1 = 'black';
+    const color2 = 'rgb(69, 69, 69)';
+    const color3 = 'gray';
+    wholeCtx.fillStyle = upperColor;
+    wholeCtx.fillRect(0, 0, ww, wh);
+    // let cw = 0; // current width
+    // let ch = wh * 3 / 5; // current height
+    drawMountain(0, wh * 4.5 / 10, color3);
+    createGradient(0, 0, 0, wholeCanvas.height, upperColor, color3);
+    drawMountain(0, wh * 5.5 / 10, color2);
+    createGradient(0, 0, 0, wholeCanvas.height, upperColor, color2);
+    drawMountain(0, wh * 6 / 10, color1);
+    createGradient(0, 0, 0, wholeCanvas.height, upperColor, color1);
 
   }
 
@@ -131,7 +162,7 @@ export class DrawWithCanvas {
     this.ctx.fillStyle = `rgba(160,160,160,${alpha})`;
     this.ctx.fillRect(0, 0, this.mainCanvas.width, cs * 1);
     this.ctx.fillStyle = `rgba(200,200,200,${alpha})`;
-    this.ctx.fillRect(0, cs * 1, this.mainCanvas.width, cs * 2);
+    this.ctx.fillRect(0, cs * 1, this.mainCanvas.width, cs * 1);
     this.ctx.fillStyle = `rgba(240,240,240,${alpha})`;
     this.ctx.fillRect(0, cs * 2, this.mainCanvas.width, cs * 12);
 
@@ -612,6 +643,7 @@ export class DrawWithCanvas {
     // TODO: use custom font of ultimate pop-style one
     const alpha = 1 - this._chain.chainVanishWaitCount / gameConfig.VANISH_WAIT_TIME;
     const chainRate = Math.min(chainCount / this._mountain.currentTargetChainNum, 1);
+    // TODO: if you cant use custom font, try another with google font api (with link)
     this._fontHandle.fontFace.load()
       .then(() => {
         this.ctx.font = "bold 40px custom";
