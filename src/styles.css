@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: "custom";
-  src: url(src/fonts/BestTen-CRT.woff2) format("woff2");
+  src: url(/src/fonts/BestTen-CRT.woff2) format("woff2");
 }
 
 .canvas-container {
