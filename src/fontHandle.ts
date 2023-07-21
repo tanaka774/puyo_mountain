@@ -14,7 +14,7 @@ export class FontHandle {
   initFont() {
     this._fontName = 'custom';
     this._fontFormat = 'woff2';
-    this._fontUrl = `url(src/fonts/BestTen-CRT.woff2)`;
+    this._fontUrl = `url(/src/fonts/BestTen-CRT.woff2)`;
 
     this._fontFace = new FontFace(this._fontName, this._fontUrl);
   }
