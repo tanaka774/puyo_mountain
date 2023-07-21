@@ -8,7 +8,7 @@ export class FontHandle {
   constructor(
   ) {
     this.initFont();
-    this.createFontFaceRule();
+    // this.createFontFaceRule();
   }
 
   initFont() {
