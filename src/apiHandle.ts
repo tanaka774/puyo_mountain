@@ -35,18 +35,18 @@ export class ApiHandle {
       .catch(error => console.error(error));
   }
 
-  updateWholeRank() {
-    fetch('/api/update-wholerank')
-      .then(response => response.json())
-      .then(data => { console.log(data); })
-      .catch(error => console.error(error));
+  async updateWholeRank() {
+    try {
+      const response = await fetch('/api/update-wholerank');
+      if (!response.ok) { throw new Error('Request failed'); }
+    } catch (error) { console.error(error) };
   }
 
-  updateSeasonRank(year, minMonth, maxMonth) {
-    fetch(`/api/update-seasonrank?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}`)
-      .then(response => response.json())
-      .then(data => { console.log(data); })
-      .catch(error => console.error(error));
+  async updateSeasonRank(year, minMonth, maxMonth) {
+    try {
+      const response = await fetch(`/api/update-seasonrank?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}`)
+      if (!response.ok) { throw new Error('Request failed'); }
+    } catch (error) { console.error(error) };
   }
 
 
@@ -56,8 +56,8 @@ export class ApiHandle {
       if (!response.ok) {
         throw new Error('Request failed');
       }
-      const data = await response.json();
-      console.log(data);
+      // const data = await response.json();
+      // console.log(data);
     } catch (error) {
       console.error(error);
     }
@@ -150,23 +150,18 @@ export class ApiHandle {
   private _baseDelay = 1000; // Initial delay in milliseconds
   private _backoffFactor = 2; // Backoff factor for exponential increase
 
-  async addDataWithRetry(userName, playDuration, gamemode) {
+  async addDataWithRetry(userName, playDuration, gamemode) { //:Promise<number> {
     let retries = 0;
     let delay = this._baseDelay;
 
     while (retries < this._maxRetries) {
       try {
-        // Perform the database operation here
-        // Example: await databaseClient.performOperation();
         await this.addData(userName, playDuration, gamemode);
 
-        // If the operation succeeds, break the loop and return
-        console.log('Database operation successful!');
-        return;
+        return; //break; ???
       } catch (error) {
         console.error('Database operation failed:', error);
 
-        // If the maximum number of retries is reached, throw the error
         if (retries === this._maxRetries - 1) {
           throw error;
         }
@@ -182,13 +177,6 @@ export class ApiHandle {
     }
 
     console.error('Maximum number of retries reached. Database operation failed.');
-
-    // // Usage:
-    // performDatabaseOperation()
-    // .catch(error => {
-    //   console.error('Error:', error);
-    //   // Handle the error or propagate it further if needed
-    // });
   }
 
 }

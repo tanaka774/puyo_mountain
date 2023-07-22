@@ -133,25 +133,29 @@ export class HtmlHandle {
           alert('名前を入力してください!')
           return;
         }
-        // TODO: implement retry process
-        // await this._apiHandle.addData(userName, playDuration, gamemode)
+
         this._apiHandle.addDataWithRetry(userName, playDuration, gamemode)
           .then(() => {
             rankInDialog.innerHTML = '';
             rankInDialog.innerText = 'データを送信しました'
             this.addCloseButton(rankInDialog);
+
+            // update after inserting data, welcome to callback hell
+            this._apiHandle.updateWholeRank()
+              .then(() => {
+                this._apiHandle.updateSeasonRank(year, month, month + 2)
+                .then(() => {})
+                .catch((err) => { console.error(err); })
+              })
+              .catch((err) => { console.error(err); })
           })
           .catch((error) => {
-            // TODO: how to verify this case
-
             console.error(error);
             rankInDialog.innerHTML = '';
-            // TODO: maybe this would happen if just one retry occurs, so this should be only if maxretries
-            rankInDialog.innerText = '問題が発生しました、管理者に問い合わせてください'
+            rankInDialog.innerText = `問題が発生しました、管理者に問い合わせてください 今回のタイム${hours}h${minutes}m${seconds}s`;
             this.addCloseButton(rankInDialog);
           })
 
-        // rankInDialog.close(userName);
       });
       rankInDialog.appendChild(sendButton);
 
@@ -222,7 +226,7 @@ export class HtmlHandle {
     addOption('mode1', 'mode1', modeSelect);
     addOption('mode2', 'mode2', modeSelect);
     const scoresOutput = document.createElement("output");
-    scoresOutput.classList.add('scrollable-container');
+    scoresOutput.classList.add('score-container');
 
     // TODO: try-catch?
     wholeSelect.addEventListener('change', async () => {
@@ -282,14 +286,47 @@ export class HtmlHandle {
 
   private makeContentFromDB(dynamicContent: HTMLElement, data) {
     dynamicContent.innerHTML = '';
-    for (let item of data.scores.rows) {
-      const li = document.createElement('li');
-      li.textContent =
-        `UN:${item.username} WR:${item.wholerank} SR:${item.seasonrank} 
-        PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} 
-        WHEN:${item.createdat.split('T')[0]}`;
-      dynamicContent.appendChild(li);
-    }
+
+    // for (let item of data.scores.rows) {
+    // const li = document.createElement('li');
+    // li.textContent =
+    //   `UN:${item.username} WR:${item.wholerank} SR:${item.seasonrank} 
+    //   PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} 
+    //   WHEN:${item.createdat.split('T')[0]}`;
+    // dynamicContent.appendChild(li);
+    // }
+
+    const scoreTable = document.createElement('table');
+    scoreTable.innerHTML = `
+      <thead>
+        <tr>
+          <th>名前</th>
+          <th>総合</th>
+          <th>シーズン</th>
+          <th>タイム</th>
+          <th>達成日</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.scores.rows.map(entry => `
+          <tr>
+            <td>${entry.username}</td>
+            <td>${entry.wholerank}</td>
+            <td>${entry.seasonrank}</td>
+            <td>${entry.playduration.hours || '0'}:${entry.playduration.minutes || '00'}:${entry.playduration.seconds || '00'}</td>
+            <td>${entry.createdat.split('T')[0]}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    `;
+    scoreTable.style.backgroundColor = 'black';
+    dynamicContent.appendChild(scoreTable);
+
+    // data.scores.rows.forEach(entry => {
+    //   const div = document.createElement('div');
+    //   div.textContent = `${entry.username}, ${entry.wholerank}, ${entry.seasonrank}`;
+    //   dynamicContent.appendChild(div);
+    // });
   }
 
   private addCloseButton(dialogElement: HTMLDialogElement) {
