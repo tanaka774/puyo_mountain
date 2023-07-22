@@ -19,6 +19,9 @@ export class DrawWithCanvas {
   private nextPuyoCanvas: HTMLCanvasElement;
   // TODO: type should be nullable?
   private nextPuyoCtx: CanvasRenderingContext2D;
+  private VPuyoCanvas: HTMLCanvasElement;
+  // TODO: type should be nullable?
+  private VPuyoCtx: CanvasRenderingContext2D;
 
 
   constructor(
@@ -38,6 +41,8 @@ export class DrawWithCanvas {
     this.ctx = this.mainCanvas.getContext('2d');
     this.nextPuyoCanvas = document.getElementById(nextPuyoCanvasName) as HTMLCanvasElement;
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
+    this.VPuyoCanvas = document.getElementById('VPuyoCanvas') as HTMLCanvasElement;
+    this.VPuyoCtx = this.VPuyoCanvas.getContext('2d');
 
     // call just once
     this.drawWholeBackground();
@@ -90,11 +95,13 @@ export class DrawWithCanvas {
     // this.drawNextBoard(this._current.doubleNextPuyo, 4);
     // this.drawNextBoard(this._current.versatilePuyo, 9);
     this.drawNextBoard();
+    this.drawVBoard();
   }
 
   clear() {
     this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
     this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
+    this.VPuyoCtx.clearRect(0, 0, this.VPuyoCanvas.width, this.VPuyoCanvas.height);
   }
 
   drawWholeBackground() {
@@ -198,24 +205,57 @@ export class DrawWithCanvas {
 
   }
 
-  // temp
-  private drawNextBoard() {
-    // TODO: UI should be into whole background??? 
+  drawNextBoard() {
     this.drawUIInfo();
-    const drawNextPuyo = (puyo:baseManiPuyo, x, y) => {
-      this.drawPuyo(this.nextPuyoCtx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.parentColor]);
-      this.drawPuyo(this.nextPuyoCtx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
+    // current puyo goes up from next pos
+    const nextFixX = 0.5;
+    const nextFixY = 2.5;
+    const doubleNextFixX = 2;
+    const doubleNextFixY = 4.5;
+    const diffX = doubleNextFixX - nextFixX;
+    const diffY = doubleNextFixY - nextFixY;
+    const rate = this._current.nextMovingCount / gameConfig.NEXT_MOVING_TIME;
+
+    if (this._current.currentPuyo) {
+      this.drawWaitingPuyo(this.nextPuyoCtx, this._current.currentPuyo, nextFixX, nextFixY - rate * 3 * (nextFixY));
     }
-    // TODO: animation
+
     if (this._current.nextPuyo) {
-      drawNextPuyo(this._current.nextPuyo, 0.5, 2.5);
+      this.drawWaitingPuyo(this.nextPuyoCtx, this._current.nextPuyo, nextFixX + (1 - rate) * diffX, nextFixY + (1 - rate) * diffY);
     }
     if (this._current.doubleNextPuyo) {
-      drawNextPuyo(this._current.doubleNextPuyo, 2, 4.5);
+      this.drawWaitingPuyo(this.nextPuyoCtx, this._current.doubleNextPuyo, doubleNextFixX, doubleNextFixY + (1 - rate) * 3);
     }
+
+    if (this._current.nextMovingCount < gameConfig.NEXT_MOVING_TIME) {
+      this._current.incrementNextMovingCount();
+    }
+  }
+
+  drawVBoard() {
+    const cs = gameConfig.CELL_SIZE;
+
+    const startY = 0.5;
+    this.drawRoundedRect(this.VPuyoCtx, 0, cs * (startY + 0.2), cs * 2, cs * 3, cs / 2, 'rgba(50,50,50,0.7)');
     if (this._current.versatilePuyo) {
-      drawNextPuyo(this._current.versatilePuyo, 0.5, 9);
+      this.drawWaitingPuyo(this.VPuyoCtx, this._current.versatilePuyo, 0.5, 1);
     }
+    this.VPuyoCtx.fillStyle = `rgba(30, 30, 30, 0.8)`;
+    this.VPuyoCtx.font = "bold 18px Comic Sans MS";
+    this.VPuyoCtx.fillText('Vぷよ', cs * 0.4, cs * startY);
+    // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
+    // this.nextPuyoCtx.lineWidth = 0.001;
+    // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
+
+    this.VPuyoCtx.font = "16px Comic Sans MS";
+    this.VPuyoCtx.fillText('D: 使用', cs * 2.3, cs * (startY + 0.9));
+    this.VPuyoCtx.fillText('C: 色変更', cs * 2.3, cs * (startY + 1.7));
+    this.VPuyoCtx.fillText('P: ポーズ', cs * 2.3, cs * (startY + 2.7));
+  }
+
+  private drawWaitingPuyo(ctx: CanvasRenderingContext2D, puyo: baseManiPuyo, x, y) {
+    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.parentColor]);
+    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
   }
 
   drawUIInfo() {
@@ -223,25 +263,23 @@ export class DrawWithCanvas {
     const cs = gameConfig.CELL_SIZE;
     this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
     this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
-    this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 8.5, cs * 2, cs * 3, cs / 2, 'rgba(50,50,50,0.7)');
-    this._fontHandle.fontFace.load()
-    .then(() => {
-        this.nextPuyoCtx.font = "bold 20px custom";
-    })
-    .catch((err) => {
-      this.nextPuyoCtx.font = "bold 20px Arial";
-      console.error(err);
-    })
-    this.nextPuyoCtx.fillStyle = `rgba(30, 30, 30, 0.8)`;
-    this.nextPuyoCtx.fillText('Vぷよ', cs * 0.3, cs * 8.3);
+    // this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 8.5, cs * 2, cs * 3, cs / 2, 'rgba(50,50,50,0.7)');
+    // this._fontHandle.fontFace.load()
+    // .then(() => {
+    //     this.nextPuyoCtx.font = "bold 20px custom";
+    // })
+    // .catch((err) => {
+    //   this.nextPuyoCtx.font = "bold 20px Arial";
+    //   console.error(err);
+    // })
+    // this.nextPuyoCtx.fillStyle = `rgba(30, 30, 30, 0.8)`;
+    // this.nextPuyoCtx.font = "bold 18px Comic Sans MS";
+    // this.nextPuyoCtx.fillText('Vぷよ', cs * 0.3, cs * 8.3);
     // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
     // this.nextPuyoCtx.lineWidth = 0.001;
     // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
-      
+
     // TODO: use smaller font size???
-    this.nextPuyoCtx.fillText('D: 使用', cs * 2.3, cs * 9.2);
-    this.nextPuyoCtx.fillText('C: 色変更', cs * 2.3, cs * 10.0);
-    this.nextPuyoCtx.fillText('P: ポーズ', cs * 2.3, cs * 11.0);
   }
 
   private drawRoundedRect = (ctx, x, y, width, height, radius, color: string) => {

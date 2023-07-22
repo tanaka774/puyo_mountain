@@ -28,8 +28,15 @@ html {
   margin-right: 10px;
 }
 
+.side-container {
+  /* display: inline-grid; */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 #nextPuyoCanvas {
-  /* background-color: rgba(203, 201, 201, 0.7); */
+  clip-path: polygon(0 30%, 100% 30%, 100% 100%, 0% 100%);
 }
 
 
@@ -40,13 +47,14 @@ html {
 
 .main-container .game-info{
   margin-top: 3px;
-  font-size: large;
+  font-size: larger;
 }
 
-.next-container .game-info {
+.side-container .game-info {
   margin-top: 5px;
-  margin-bottom: 3px;
-  font-size: large;
+  /* margin-bottom: 3px; */
+  font-size: 20px;
+  width: 90px;
 }
 
 .canvas-background {

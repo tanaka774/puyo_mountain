@@ -4,7 +4,9 @@ const DRAW_TOOL: string = 'canvas'; // 'svg'
 const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
 const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;
 const NEXT_DRAW_WIDTH = CELL_SIZE * 5;
-const NEXT_DRAW_HEIGHT = CELL_SIZE * 12;
+const NEXT_DRAW_HEIGHT = CELL_SIZE * 7;
+const VPUYO_DRAW_WIDTH = CELL_SIZE * 5;
+const VPUYO_DRAW_HEIGHT = CELL_SIZE * 4;
 
 if (DRAW_TOOL === 'canvas') {
   // TODO: temp, be careful about this
@@ -14,6 +16,9 @@ if (DRAW_TOOL === 'canvas') {
   const nextPuyoCanvas = document.getElementById('nextPuyoCanvas') as HTMLCanvasElement;
   nextPuyoCanvas.width = NEXT_DRAW_WIDTH;
   nextPuyoCanvas.height = NEXT_DRAW_HEIGHT;
+  const VPuyoCanvas = document.getElementById('VPuyoCanvas') as HTMLCanvasElement;
+  VPuyoCanvas.width = VPUYO_DRAW_WIDTH;
+  VPuyoCanvas.height = VPUYO_DRAW_HEIGHT;
 }
 
 // what is used as index are
@@ -54,6 +59,7 @@ const LOCK_WAIT_TIME = 120;
 const HOR_MOVING_TIME = 3;
 const ROTATING_TIME = 3;
 const PUSHEDUP_TIME = 60;
+const NEXT_MOVING_TIME = 20;
 const BOUNCING_TIME = 15;
 const BOUNCING_PUYO_NUM = 3;
 const SEED_FALLING_SPEED = 15.0;
@@ -88,6 +94,7 @@ export const gameConfig = Object.freeze({
   HOR_MOVING_TIME,
   ROTATING_TIME,
   PUSHEDUP_TIME,
+  NEXT_MOVING_TIME,
   BOUNCING_TIME,
   BOUNCING_PUYO_NUM,
   SEED_FALLING_SPEED,

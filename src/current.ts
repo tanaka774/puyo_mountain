@@ -13,6 +13,7 @@ export class Current {
   private _hasVPuyoUsed: boolean;
   private _afterVPuyoSwitching: () => void;
   private _puyoPool: number[][];
+  private _nextMovingCount: number;
 
   constructor(
     private _board: Board,
@@ -24,10 +25,11 @@ export class Current {
     this._isBeingVPuyoUsed = false;
     this._hasVPuyoUsed = false;
     this.initPuyoPool();
+    this.initNextMovingCount();
 
     document.addEventListener('keyup', e => {
       if (e.key === 'c') {
-        if (!stateHandle.checkCurrentState(GameState.MANIPULATING)  ||
+        if (!stateHandle.checkCurrentState(GameState.MANIPULATING) ||
           !this._versatilePuyo
         ) return;
 
@@ -44,7 +46,7 @@ export class Current {
 
     document.addEventListener('keyup', e => {
       if (e.key === 'd') {
-        if (!stateHandle.checkCurrentState(GameState.MANIPULATING)  ||
+        if (!stateHandle.checkCurrentState(GameState.MANIPULATING) ||
           this._hasVPuyoUsed
         ) return;
 
@@ -84,24 +86,13 @@ export class Current {
       parentColor: this._puyoPool[0][0],
       childColor: this._puyoPool[0][1],
       parentX: gameConfig.PUYO_BIRTH_POSX,
-      parentY: gameConfig.PUYO_BIRTH_POSY,
+      parentY: gameConfig.PUYO_BIRTH_POSY - 0.5,
       angle: 0,
     }
     this._puyoPool = this._puyoPool.slice(1);
     return res;
   }
 
-
-  // getRandomPuyo() {
-  //   const newPuyo: baseManiPuyo = {
-  //     parentColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
-  //     childColor: Math.floor(Math.random() * gameConfig.PUYO_COLOR_NUM) + 1,
-  //     parentX: gameConfig.PUYO_BIRTH_POSX,
-  //     parentY: gameConfig.PUYO_BIRTH_POSY,
-  //     angle: 0,
-  //   }
-  //   return newPuyo;
-  // }
 
   newPuyoSet() {
     if (this._isBeingVPuyoUsed) {
@@ -111,15 +102,19 @@ export class Current {
     } else {
       if (this._puyoPool.length === 0) { this.initPuyoPool(); }
 
-      this._currentPuyo = (!stateHandle.checkPrevState(GameState.UNINIT))
-        ? this._nextPuyo
-        // : this.getRandomPuyo();
-        : this.usePuyoPool();
+      // this._currentPuyo = (!stateHandle.checkPrevState(GameState.UNINIT))
+      //   ? this._nextPuyo
+      //   : this.usePuyoPool();
+      if (!stateHandle.checkPrevState(GameState.UNINIT)) {
+        this._currentPuyo = this._nextPuyo;
+        this.initNextMovingCount();
+      } else {
+        this._currentPuyo = this.usePuyoPool();
+      }
       this._nextPuyo = (this._nextPuyo !== null)
         ? this._doubleNextPuyo
-        // : this.getRandomPuyo();
         : this.usePuyoPool();
-      this._doubleNextPuyo = this.usePuyoPool(); // this.getRandomPuyo();
+      this._doubleNextPuyo = this.usePuyoPool();
     }
   }
 
@@ -184,6 +179,11 @@ export class Current {
       angle: 0,
     }
   }
+
+
+  get nextMovingCount() { return this._nextMovingCount; }
+  initNextMovingCount() { this._nextMovingCount = 0; }
+  incrementNextMovingCount() { this._nextMovingCount++; }
 
   setCallback(afterVPuyoSwitching: () => void) {
     this._afterVPuyoSwitching = afterVPuyoSwitching;
