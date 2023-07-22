@@ -209,9 +209,9 @@ export class MountainBase {
   }
 
   initAll() {
-    this.initTargetChain();
-    this.initInternalInfo();
     this.initGameResult();
+    this.initInternalInfo();
+    this.initTargetChain();
   }
 
   get floatingSeedPuyos() { return this._floatingSeedPuyos; }
