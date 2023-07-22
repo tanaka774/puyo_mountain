@@ -12,7 +12,7 @@ import { DrawWithCanvas } from "./drawWithCanvas"
 import { Input } from "./input"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
-import { GameMode, Mountain } from "./mountain"
+import { GameMode, Mountain } from "./mountain/mountain"
 import { HtmlHandle } from "./htmlHandle"
 import { DrawWithSVG } from "./drawWithSVG"
 import { ApiHandle } from "./apiHandle"
@@ -98,7 +98,7 @@ export class Game {
           stateHandle.setState(GameState.UNINIT);
           this._mountain.initInternalInfo();
           this._current.initVPuyo();
-          this._timer.initTimer();
+          this._timer.startTimer();
         }
         break;
       case GameState.UNINIT:
@@ -168,36 +168,25 @@ export class Game {
         if (this._chain.vanishPuyos.length !== 0) {
           this._chain.incrementChainCount();
           stateHandle.setState(GameState.CHAIN_VANISHING);
-          // TODO: this should be called just once as enter function
-          // this._chain.erasePuyos(this._board.board); // temp here, should go into VANISHING
         } else {
           if (!this.isGameOver()) {
             stateHandle.setState(GameState.PREPARE_NEXT);
           }
           else stateHandle.setState(GameState.GAMEOVER);
 
-
           // TODO: don't confuse mountain process like this
           if (this._chain.chainCount >= this._mountain.currentTargetChainNum) {
-            stateHandle.setState(GameState.GENE_SEED_PUYOS);
-            this._mountain.addValidVanishPuyoNum(this._mountain.currentTargetChainNum * 4);
-            this._mountain.nextTargetChain();
-            this._chain.initConnectedPuyos();
-            if (this._mountain.everyPhaseEnds)
-              stateHandle.setState(GameState.GAMECLEAR);
+            this._mountain.goNextLevel(
+              () => stateHandle.setState(GameState.GENE_SEED_PUYOS),
+              () => stateHandle.setState(GameState.GAMECLEAR),
+            )
           } else {
             // if no chain happens, just 0 is added
             this._mountain.addUnnecessaryVanishPuyoNum(this._chain.vanishPuyoNum);
           }
           this._chain.initVanishPuyoNum();
-
         }
 
-        // chainfindfunction(
-        //   () => stateHandle.setState(GameState.CHAIN_VANISHING), // chain exists
-        //   () => stateHandle.setState(GameState.PREPARE_NEXT), // no chain
-        //   () => stateHandle.setState(GameState.GAMEOVER) // no chain and over
-        // );
         break;
       case GameState.CHAIN_VANISHING:
         if (stateHandle.isEnter()) {
@@ -262,12 +251,12 @@ export class Game {
   }
 
   beforeStateCheck() {
-    if (this._bounce.willBounce
-      // && (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
-      && (stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
-    ) {
-      // stateHandle.setState(GameState.JUST_DRAWING);
-    }
+    // if (this._bounce.willBounce
+    //   // && (!stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
+    //   && (stateHandle.checkCurrentState(GameState.FALLING_ABOVE_CHAIN))
+    // ) {
+    //   // stateHandle.setState(GameState.JUST_DRAWING);
+    // }
   }
 
   isGameOver() {

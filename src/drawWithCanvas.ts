@@ -8,7 +8,7 @@ import { Board } from "./board"
 import { Current } from "./current"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
-import { Mountain } from "./mountain"
+import { Mountain } from "./mountain/mountain"
 import { FontHandle } from "./fontHandle"
 
 
@@ -749,8 +749,7 @@ export class DrawWithCanvas {
     const drawY = (gameConfig.BOARD_TOP_EDGE + 1) * gameConfig.CELL_SIZE;
     const diffX = (chainCount >= 10) ? -1.5 : -0.5;
     const drawX = (gameConfig.BOARD_LEFT_EDGE + diffX) * gameConfig.CELL_SIZE;
-    const text = `${chainCount} れんさすべし`;
-    // const text = `12 れんさすべし`; //for debug
+
     this._fontHandle.fontFace.load()
       .then(() => {
         this.ctx.font = "bold 26px custom";
@@ -759,11 +758,25 @@ export class DrawWithCanvas {
         this.ctx.font = "bold 26px Arial";
         console.error(err)
       })
-    this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
-    this.ctx.fillText(`${text}`, drawX, drawY);
-    // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
-    // this.ctx.lineWidth = 1;
-    // this.ctx.strokeText(`${text}`, drawX, drawY);
+
+      if (!this._mountain.isLastPhase()) {
+      const text = `${chainCount} れんさすべし`;
+      // const text = `12 れんさすべし`; //for debug
+      this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
+      this.ctx.fillText(`${text}`, drawX, drawY);
+      // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
+      // this.ctx.lineWidth = 1;
+      // this.ctx.strokeText(`${text}`, drawX, drawY);
+    } else {
+      const text1 = `${chainCount} れんさ`;
+      const text2 = 'ぜんけしすべし';
+      this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
+      this.ctx.fillText(`${text1}`, drawX + 1 * gameConfig.CELL_SIZE, drawY);
+      this.ctx.fillText(`${text2}`, drawX, drawY + 1 * gameConfig.CELL_SIZE);
+      // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
+      // this.ctx.lineWidth = 1;
+      // this.ctx.strokeText(`${text}`, drawX, drawY);
+    }
   }
 
 }

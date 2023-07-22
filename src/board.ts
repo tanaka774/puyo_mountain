@@ -38,6 +38,15 @@ export class Board {
     this._board = this.createBoard();
   }
 
+  isBoardPlain() {
+    for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE - 1; y--) {
+      for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+        if (this.board[y][x] !== gameConfig.NO_COLOR) return false;
+      }
+    }
+    return true;
+  }
+
   lockPuyo(board, posX, posY, color, recordFlag) {
     // TODO: remember x, y value here and use for chain process or something
     board[posY][posX] = color;

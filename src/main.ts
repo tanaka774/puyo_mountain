@@ -13,12 +13,13 @@ import { Bounce } from "./bounce"
 import { Board } from "./board"
 import { Current } from "./current"
 import { Rotate } from "./rotate"
-import { Difficulty, GameMode, Mountain } from "./mountain"
+import { GameMode, Mountain } from "./mountain/mountain"
 import { HtmlHandle } from "./htmlHandle"
 import { DrawWithSVG } from "./drawWithSVG"
 import { ApiHandle } from "./apiHandle"
 import { Timer } from "./timer"
 import { FontHandle } from "./fontHandle"
+import { Difficulty } from "./mountain/mountainArcade"
 
 function main() {
   const fontHandle = new FontHandle();
@@ -32,7 +33,7 @@ function main() {
   const chain = new Chain(board);
   const move = new Move(current, split);
   const rotate = new Rotate(current, move);
-  const mountain = new Mountain(board, move, chain);
+  const mountain = new Mountain(board, chain);
   const input = new Input(board, current, move, rotate);
   const draw = new DrawWithCanvas(fontHandle, bounce, board, current, move, rotate,
     split, chain, mountain, 'mainCanvas', 'nextPuyoCanvas');
@@ -64,6 +65,7 @@ function main() {
       chain.initConnectedPuyos();
       split.initSplittedPuyo();
       mountain.initAll();
+      timer.initTimer();
     }
 
     menu.setCallback(

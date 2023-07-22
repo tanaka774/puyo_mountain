@@ -7,16 +7,22 @@ export class Timer {
   private _formattedTime: string;
   constructor(
   ) {
-    this._formattedTime = '00:00';
-    this._timerStarted = false;
+    this.initTimer();
   }
 
-  initTimer() {
+  startTimer() {
     if (this._timerStarted) return;
     this._startTime = Date.now();
     this._currentTime = Date.now();
     setInterval(this.updateTimer.bind(this), 1000);
     this._timerStarted = true;
+  }
+
+  initTimer() {
+    this._formattedTime = '00:00';
+    this._startTime = Date.now();
+    this._currentTime = Date.now();
+    this._timerStarted = false; 
   }
 
   formatTime(time) {

@@ -1,52 +1,38 @@
-import { gameConfig } from "./config";
-import { Chain } from "./chain";
-import { Move } from "./move";
-import { baseSinglePuyo } from "./types";
-import { Board } from "./board";
+import { gameConfig } from "../config";
+import { Chain } from "../chain";
+import { Move } from "../move";
+import { baseSinglePuyo } from "../types";
+import { Board } from "../board";
+import { Difficulty } from "./mountainArcade";
 
-
-export enum Difficulty {
-  EASY,
-  NORMAL,
-  HARD
-}
 
 export enum GameMode {
   ARCADE, ENDURANCE,
 }
 
-export class Mountain {
-  private _seedPuyos: baseSinglePuyo[];
-  private _floatingSeedPuyos: baseSinglePuyo[];
-  private _currentDifficulty: Difficulty;
-  private _currentTargetChainNum: number;
-  private _currentTargetChainIndex: number;
-  private _targetChainNums: number[][];
-  private _validVanishPuyoNum: number;
-  private _unnecessaryVanishPuyoNum: number;
-  private _seedPuyoVariability: number[]; // rough seedpuyo numbers of each Column
-  private _currentLevel: number;
-  private _elapsedTime: number; // consider its type
-  private _virtualBoard: number[][];
-  private _phase: number;
-  private _totalChainNum: number;
-  private _unnecessaryChainNum: number;
-  private _everyPhaseEnds: boolean;
+export class MountainBase {
+  protected _seedPuyos: baseSinglePuyo[];
+  protected _floatingSeedPuyos: baseSinglePuyo[];
+  protected _currentTargetChainNum: number;
+  protected _currentTargetChainIndex: number;
+  protected _targetChainNums: number[][];
+  protected _validVanishPuyoNum: number;
+  protected _unnecessaryVanishPuyoNum: number;
+  protected _seedPuyoVariability: number[]; // rough seedpuyo numbers of each Column
+  protected _currentLevel: number;
+  protected _elapsedTime: number; // consider its type
+  protected _virtualBoard: number[][];
+  protected _phase: number;
+  protected _totalChainNum: number;
+  protected _unnecessaryChainNum: number;
+  protected _everyPhaseEnds: boolean;
   private _currentMode: GameMode;
-  private _enduranceTotalTargetChainNum: number;
-  private _enduranceChainNum: number;
-  private _enduranceChainVariablity: number[];
-  private _enduranceMinTargetChainNum: number;
-  private _enduranceMaxTargetChainNum: number;
-  private _resultGrade: string;
 
   constructor(
-    private _board: Board,
-    private _move: Move,
-    private _chain: Chain,
-    // difficulty: Difficulty,
+    protected _board: Board,
+    // private _move: Move,
+    protected _chain: Chain,
   ) {
-    // this._currentDifficulty = difficulty;
     this.initInternalInfo();
     this.initGameResult();
     // this._phase = 1;
@@ -54,62 +40,8 @@ export class Mountain {
     // this._validVanishPuyoNum = 0;
     // this._unnecessaryVanishPuyoNum = 0;
     // this.initTargetChain();
-
-    this._enduranceTotalTargetChainNum = gameConfig.ENDURANCE_TOTAL;
-    this._enduranceMinTargetChainNum = gameConfig.ENDURANCE_MIN_ONCE;
-    this._enduranceMaxTargetChainNum = gameConfig.ENDURANCE_MAX_ONCE;
-    // this.initEnduranceChainNums();
   }
 
-
-  initEnduranceChainNums() {
-    // keep same probability of each chain num as possible as you can
-
-    const target = this._enduranceTotalTargetChainNum;
-    const minChainNum = this._enduranceMinTargetChainNum;
-    const maxChainNum = this._enduranceMaxTargetChainNum;
-    const range = maxChainNum - minChainNum + 1;
-    const oneLoopSum = (maxChainNum + minChainNum) * range / 2;
-    const maxFrequency = Math.floor(target / oneLoopSum);
-    const frequencies = Array.from({ length: range }).fill(maxFrequency) as number[];
-    let shortNum = target - oneLoopSum * maxFrequency;
-
-    let addNum = minChainNum;
-    while (true) {
-      if (shortNum >= addNum) {
-        shortNum -= addNum;
-        frequencies[addNum - minChainNum]++;
-      } else if (shortNum >= minChainNum && shortNum <= maxChainNum) {
-        frequencies[shortNum - minChainNum]++;
-        shortNum = 0;
-        break;
-      } else if (shortNum < minChainNum) {
-        break;
-      }
-
-      if (addNum >= maxChainNum) addNum = minChainNum;
-      else addNum++;
-    }
-
-    // if some margin to target exists, increment higher chain num 
-    while (shortNum > 0) {
-      for (let index = maxChainNum - minChainNum; index > 0; index--) {
-        frequencies[index]++;
-        frequencies[index - 1]--;
-        if (--shortNum === 0) break;
-      }
-    }
-
-    this._enduranceChainVariablity = [...frequencies];
-  }
-
-  getNextEnduranceChainNum() {
-    const getRandomIndex = () => Math.floor(Math.random() * this._enduranceChainVariablity.length);
-    let index = getRandomIndex();
-    while (this._enduranceChainVariablity[index] === 0) { index = getRandomIndex(); }
-    this._enduranceChainVariablity[index]--;
-    return index + this._enduranceMinTargetChainNum;
-  }
 
 
   generateSeedPuyos() {
@@ -251,72 +183,9 @@ export class Mountain {
     });
   }
 
+  nextTargetChain() {/*child implements this*/}
 
-
-  detectTargetChain() { }
-
-  calculateTime() { }
-
-  isLevelClear() { }
-
-  goNextLevel() { }
-
-  calculateScore() { }
-
-  isClearGame() { }
-
-  nextTargetChain() {
-    // TODO: separate function according to gamemode
-    // temp, for endurance
-    if (this._currentMode === GameMode.ENDURANCE) {
-      this._totalChainNum += this._currentTargetChainNum;
-      if (this._totalChainNum >= this._enduranceTotalTargetChainNum) {
-        // or _enduranceChainVariablity.every((ele) => ele === 0)
-        this._everyPhaseEnds = true;
-        return;
-      }
-      // this._currentTargetChainNum = Math.floor(Math.random() * 7) + 6;
-      this._currentTargetChainNum = this.getNextEnduranceChainNum();
-    } else if (this._currentMode === GameMode.ARCADE) {
-      // for ARCADE
-      if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex &&
-        this._targetChainNums.length === this._phase
-      ) {
-        // end of game
-        this._everyPhaseEnds = true;
-        return;
-      }
-
-      if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex) {
-        this._phase++;
-        this._currentTargetChainIndex = 0;
-      } else {
-        this._currentTargetChainIndex++;
-      }
-
-      this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
-    }
-  }
-
-
-  initTargetChain() {
-    if (this._currentMode === GameMode.ARCADE) {
-      // this._targetChainNums = [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]]
-      this._targetChainNums =
-        (this._currentDifficulty === Difficulty.EASY) ? [[4, 4]] :
-          (this._currentDifficulty === Difficulty.NORMAL) ? [[6, 6], [6, 6], [6, 6]] :
-            (this._currentDifficulty === Difficulty.HARD) ? [[8, 8], [8, 8], [8, 8]] :
-              [[]];
-
-      this._currentTargetChainIndex = 0;
-      this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
-    } else if (this._currentMode === GameMode.ENDURANCE) {
-      this.initEnduranceChainNums();
-      this._currentTargetChainNum = this.getNextEnduranceChainNum();
-    }
-    //common
-    this._totalChainNum = 0;
-  }
+  initTargetChain() {/*child implements this*/}
 
   initVariability() {
     this._seedPuyoVariability =
@@ -337,7 +206,6 @@ export class Mountain {
     this._everyPhaseEnds = false;
     this._validVanishPuyoNum = 0;
     this._unnecessaryVanishPuyoNum = 0;
-    this._resultGrade = '';
   }
 
   initAll() {
@@ -360,19 +228,21 @@ export class Mountain {
 
   get phase() { return this._phase; }
   get everyPhaseEnds() { return this._everyPhaseEnds; }
+  // isLastPhase() { /*child implements this*/  }
 
   get validVanishPuyoNum() { return this._validVanishPuyoNum; }
   get unnecessaryVanishPuyoNum() { return this._unnecessaryVanishPuyoNum; }
   addValidVanishPuyoNum(val: number) { this._validVanishPuyoNum += val; }
   addUnnecessaryVanishPuyoNum(val: number) { this._unnecessaryVanishPuyoNum += val; }
 
-  setGameMode(mode: GameMode) { this._currentMode = mode; }
-  get currentMode() { return this._currentMode; }
-
   get totalChainNum() { return this._totalChainNum; }
-  get enduranceTotalTargetChainNum() { return this._enduranceTotalTargetChainNum; }
+  
+  goNextLevel(setStateGeneSeed:() => void, setStateGameClear: () => void) {/*child implements this*/ }
 
-  setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }
-
-  get resultGrade() { return this._resultGrade; }
+  // unused??
+  detectTargetChain() { }
+  calculateTime() { }
+  isLevelClear() { }
+  calculateScore() { }
+  isClearGame() { }
 }
