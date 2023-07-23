@@ -6,6 +6,7 @@ export default async function handler(
   response: VercelResponse,
 ) {
   try {
+    // this is for debug!!!!
     const userName = request.query.userName as string;
     const playDuration = request.query.playDuration as string;
     const timestamp = request.query.timestamp as string;

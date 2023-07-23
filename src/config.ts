@@ -69,6 +69,7 @@ const PUYO_POOL_LOOP = 16;
 const ENDURANCE_TOTAL = 6;
 const ENDURANCE_MIN_ONCE = 6;
 const ENDURANCE_MAX_ONCE = 12;
+const BOTTOM_SCORE_RANK = 30;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -104,6 +105,7 @@ export const gameConfig = Object.freeze({
   ENDURANCE_TOTAL,
   ENDURANCE_MIN_ONCE,
   ENDURANCE_MAX_ONCE,
+  BOTTOM_SCORE_RANK,
 })
 
 

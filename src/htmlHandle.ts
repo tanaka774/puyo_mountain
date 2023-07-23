@@ -1,5 +1,6 @@
 import { ApiHandle } from "./apiHandle";
 import { Chain } from "./chain";
+import { gameConfig } from "./config";
 import { GameMode, Mountain } from "./mountain/mountain";
 import { GameState, stateHandle } from "./state";
 import { Timer } from "./timer";
@@ -89,7 +90,7 @@ export class HtmlHandle {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
-    const bottomRank = 30; // TODO: consider proper place not here
+    const bottomRank = gameConfig.BOTTOM_SCORE_RANK; // TODO: consider proper place not here
     const gamemode = 'gamemode1';
 
     const rankInDialog = document.createElement("dialog");
@@ -107,22 +108,24 @@ export class HtmlHandle {
     if (seasonRankToEnter <= bottomRank) {
       const whatRankDiv = document.createElement("div");
       // TODO: want to separate line!
-      whatRankDiv.textContent =
-        `今回のタイム${hours}h${minutes}m${seconds}s\n
-      総合${wholeRankToEnter}位　シーズン${seasonRankToEnter}位にランクインしました`;
+      whatRankDiv.innerHTML =
+        `今回のタイム${hours}h${minutes}m${seconds}s <br>
+      総合${wholeRankToEnter}位　シーズン${seasonRankToEnter}位にランクインしました <br>`;
       rankInDialog.appendChild(whatRankDiv);
 
       const inputLabel = document.createElement("label");
       inputLabel.setAttribute("for", "userInput");
-      inputLabel.textContent = "ユーザーネームを入力してください(10文字以内)";
+      inputLabel.innerHTML = "ユーザーネームを入力してください(10文字以内)<br>";
       rankInDialog.appendChild(inputLabel);
 
+      const tempDiv = document.createElement("div");
       const userInput = document.createElement("input");
       userInput.setAttribute("type", "text");
       userInput.setAttribute("id", "userInput");
       userInput.setAttribute("maxlength", "10");
       userInput.required = true; // this time "submit" isn't used so this is unnecessary
-      rankInDialog.appendChild(userInput);
+      tempDiv.appendChild(userInput);
+      rankInDialog.appendChild(tempDiv);
 
       const sendButton = document.createElement("button");
       sendButton.textContent = "送信する";
@@ -156,7 +159,7 @@ export class HtmlHandle {
           .catch((error) => {
             console.error(error);
             rankInDialog.innerHTML = '';
-            rankInDialog.innerText = `問題が発生しました、管理者に問い合わせてください 今回のタイム${hours}h${minutes}m${seconds}s`;
+            rankInDialog.innerHTML = `問題が発生しました、管理者に問い合わせてください <br>今回のタイム${hours}h${minutes}m${seconds}s`;
             this.addCloseButton(rankInDialog);
           })
 
@@ -178,9 +181,9 @@ export class HtmlHandle {
       rankInDialog.appendChild(notSendButton);
 
     } else {
-      rankInDialog.innerText =
-        `今回のタイム${hours}h${minutes}m${seconds}s 
-      今回はランク外でした`
+      rankInDialog.innerHTML =
+        `今回のタイム${hours}h${minutes}m${seconds}s <br>
+      今回はランク外でした<br>`
       this.addCloseButton(rankInDialog);
     }
 
@@ -208,7 +211,7 @@ export class HtmlHandle {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
-    const bottomRank = 30; // TODO: consider proper place not here
+    const bottomRank = gameConfig.BOTTOM_SCORE_RANK; // TODO: consider proper place not here
     const gamemode = 'gamemode1';
 
     const wholeSelect = document.createElement("select");
