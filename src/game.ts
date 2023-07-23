@@ -48,8 +48,7 @@ export class Game {
     this._board.initLockWaitCount();
     this._rotate.quickTurn.isPossible = false;
     this._chain.initChainCount();
-    // TODO: this is for debug
-    this._input.keyInputInit();
+    
     // erase puyos more than above gameConfig.BOARD_TOP_EDGE-2
     // TODO: this implementaion is not officially right
     for (let y = 0; y < gameConfig.BOARD_TOP_EDGE - 1; y++) {

@@ -177,7 +177,7 @@ export class DrawWithCanvas {
 
     // draw "x" on birth pos
     const birthX = (gameConfig.PUYO_BIRTH_POSX - 1) * cs;
-    const birthY = (gameConfig.PUYO_BIRTH_POSY - 1) * cs;
+    const birthY = (gameConfig.PUYO_BIRTH_POSY - 2) * cs;
     const modifier = cs / 4;
     this.ctx.strokeStyle = `rgba(255, 82, 93, 0.4)`;
     this.ctx.lineWidth = 4;

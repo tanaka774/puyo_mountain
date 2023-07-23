@@ -38,8 +38,8 @@ export class Chain {
   ) {
     let connectedPuyoNums = 0;
     const checkedCells = Array.from(
-      { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + 5 },
-      () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + 2).fill(false));
+      { length: (gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE) + gameConfig.BOARD_HEIGHT_MARGIN },
+      () => Array((gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE) + gameConfig.BOARD_WIDTH_MARGIN).fill(false));
 
     if (willChangeConnect) this.initConnectedPuyos();
 
