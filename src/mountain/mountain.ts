@@ -132,6 +132,10 @@ export class Mountain {
     this._mountainBase.goNextLevel(setStateGeneSeed, setStateGameClear);
   }
 
+  setCallback(changeBackground:(color:string) => void) {
+    this._mountainBase.setCallback(changeBackground);
+  }
+    
   detectTargetChain() { }
   calculateTime() { }
   isLevelClear() { }

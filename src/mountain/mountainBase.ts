@@ -26,6 +26,7 @@ export class MountainBase {
   protected _totalChainNum: number;
   protected _unnecessaryChainNum: number;
   protected _everyPhaseEnds: boolean;
+  protected _changeBackGround: (color:string) => void;
   private _currentMode: GameMode;
 
   constructor(
@@ -238,6 +239,10 @@ export class MountainBase {
   get totalChainNum() { return this._totalChainNum; }
   
   goNextLevel(setStateGeneSeed:() => void, setStateGameClear: () => void) {/*child implements this*/ }
+
+  setCallback(changeBackground:(color:string) => void) {
+    this._changeBackGround = changeBackground;
+  }
 
   // unused??
   detectTargetChain() { }

@@ -135,10 +135,10 @@ export class Input {
     if (this.isRightKeyPressed && this.isLeftKeyPressed) return;
 
     if (this.isRightKeyPressed)
-      this.throttleEXRight(() => { this.rightKeyHandle() }, 140, 50, 200);
+      this.throttleEXRight(() => { this.rightKeyHandle() }, 140, 60, 200);
     if (this.isLeftKeyPressed)
       // this.throttleEXLeft(() => { this.leftKeyHandle() }, 200, 70, 300);
-      this.throttleEXLeft(() => { this.leftKeyHandle() }, 140, 50, 200);
+      this.throttleEXLeft(() => { this.leftKeyHandle() }, 140, 60, 200);
   }
 
   downKeyHandle() {

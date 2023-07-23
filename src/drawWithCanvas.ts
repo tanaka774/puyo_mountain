@@ -45,7 +45,7 @@ export class DrawWithCanvas {
     this.VPuyoCtx = this.VPuyoCanvas.getContext('2d');
 
     // call just once
-    this.drawWholeBackground();
+    this.drawWholeBackground("rgb(102, 0, 204)");
     // this.drawUIInfo();
   }
 
@@ -104,7 +104,7 @@ export class DrawWithCanvas {
     this.VPuyoCtx.clearRect(0, 0, this.VPuyoCanvas.width, this.VPuyoCanvas.height);
   }
 
-  drawWholeBackground() {
+  drawWholeBackground(upperColor: string) {
     const wholeCanvas = document.getElementById("canvasBackground") as HTMLCanvasElement;
     const wholeCtx = wholeCanvas.getContext("2d");
     wholeCanvas.width = window.innerWidth;
@@ -147,7 +147,7 @@ export class DrawWithCanvas {
     }
 
     // TODO: more investigating for better background, want to mix green on mountain
-    const upperColor = "rgb(255, 140, 0)";
+    // const upperColor = "rgb(102, 0, 204)";
     const color1 = 'black';
     const color2 = 'rgb(69, 69, 69)';
     const color3 = 'gray';
@@ -206,7 +206,14 @@ export class DrawWithCanvas {
   }
 
   drawNextBoard() {
-    this.drawUIInfo();
+    // this.drawUIInfo();
+    // TODO: move up a little??
+    // UI
+    const backColor = 'rgba(200,200,200,0.7)';
+    const cs = gameConfig.CELL_SIZE;
+    this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
+    this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
+
     // current puyo goes up from next pos
     const nextFixX = 0.5;
     const nextFixY = 2.5;
@@ -240,7 +247,7 @@ export class DrawWithCanvas {
     if (this._current.versatilePuyo) {
       this.drawWaitingPuyo(this.VPuyoCtx, this._current.versatilePuyo, 0.5, 1);
     }
-    this.VPuyoCtx.fillStyle = `rgba(30, 30, 30, 0.8)`;
+    this.VPuyoCtx.fillStyle = `rgba(151, 255, 151, 0.8)`;
     this.VPuyoCtx.font = "bold 18px Comic Sans MS";
     this.VPuyoCtx.fillText('Vぷよ', cs * 0.4, cs * startY);
     // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
@@ -258,29 +265,12 @@ export class DrawWithCanvas {
     this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
   }
 
-  drawUIInfo() {
-    const backColor = 'rgba(200,200,200,0.7)';
-    const cs = gameConfig.CELL_SIZE;
-    this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
-    this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
-    // this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 8.5, cs * 2, cs * 3, cs / 2, 'rgba(50,50,50,0.7)');
-    // this._fontHandle.fontFace.load()
-    // .then(() => {
-    //     this.nextPuyoCtx.font = "bold 20px custom";
-    // })
-    // .catch((err) => {
-    //   this.nextPuyoCtx.font = "bold 20px Arial";
-    //   console.error(err);
-    // })
-    // this.nextPuyoCtx.fillStyle = `rgba(30, 30, 30, 0.8)`;
-    // this.nextPuyoCtx.font = "bold 18px Comic Sans MS";
-    // this.nextPuyoCtx.fillText('Vぷよ', cs * 0.3, cs * 8.3);
-    // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
-    // this.nextPuyoCtx.lineWidth = 0.001;
-    // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
-
-    // TODO: use smaller font size???
-  }
+  // drawUIInfo() {
+  //   const backColor = 'rgba(200,200,200,0.7)';
+  //   const cs = gameConfig.CELL_SIZE;
+  //   this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
+  //   this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
+  // }
 
   private drawRoundedRect = (ctx, x, y, width, height, radius, color: string) => {
     ctx.beginPath();
@@ -759,7 +749,7 @@ export class DrawWithCanvas {
         console.error(err)
       })
 
-      if (!this._mountain.isLastPhase()) {
+    if (!this._mountain.isLastPhase()) {
       const text = `${chainCount} れんさすべし`;
       // const text = `12 れんさすべし`; //for debug
       this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;

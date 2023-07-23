@@ -75,6 +75,8 @@ function main() {
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.EASY);
         mountain.initTargetChain();
+        // this must be after setGamemode
+        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
       () => {
         // arcade normal
@@ -82,6 +84,7 @@ function main() {
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.NORMAL);
         mountain.initTargetChain();
+        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
       () => {
         // arcade hard
@@ -89,18 +92,21 @@ function main() {
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.HARD);
         mountain.initTargetChain();
+        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
       () => {
         // endurance mode1
         stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.initTargetChain();
+        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
       () => {
         // endurance mode2
         stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.initTargetChain();
+        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
       () => {
         // watch highscore
