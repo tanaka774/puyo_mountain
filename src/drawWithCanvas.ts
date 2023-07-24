@@ -10,6 +10,7 @@ import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
 import { Mountain } from "./mountain/mountain"
 import { FontHandle } from "./fontHandle"
+import { Difficulty } from "./mountain/mountainArcade"
 
 
 export class DrawWithCanvas {
@@ -755,20 +756,20 @@ export class DrawWithCanvas {
         console.error(err)
       })
 
-    if (!this._mountain.isLastPhase()) {
-      const text = `${chainCount} れんさすべし`;
-      // const text = `12 れんさすべし`; //for debug
-      this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
-      this.ctx.fillText(`${text}`, drawX, drawY);
-      // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
-      // this.ctx.lineWidth = 1;
-      // this.ctx.strokeText(`${text}`, drawX, drawY);
-    } else {
+    if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
       const text1 = `${chainCount} れんさ`;
       const text2 = 'ぜんけしすべし';
       this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
       this.ctx.fillText(`${text1}`, drawX + 1 * gameConfig.CELL_SIZE, drawY);
       this.ctx.fillText(`${text2}`, drawX, drawY + 1 * gameConfig.CELL_SIZE);
+      // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
+      // this.ctx.lineWidth = 1;
+      // this.ctx.strokeText(`${text}`, drawX, drawY);
+    } else {
+      const text = `${chainCount} れんさすべし`;
+      // const text = `12 れんさすべし`; //for debug
+      this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
+      this.ctx.fillText(`${text}`, drawX, drawY);
       // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
       // this.ctx.lineWidth = 1;
       // this.ctx.strokeText(`${text}`, drawX, drawY);

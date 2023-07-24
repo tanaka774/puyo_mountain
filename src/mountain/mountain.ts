@@ -123,6 +123,11 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
+  checkDifficulty(difficulty: Difficulty) {
+    if (this._mountainBase instanceof MountainArcade) return this._mountainBase.checkDifficulty(difficulty);
+    else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
+  }
+
   get resultGrade() {
     if (this._mountainBase instanceof MountainArcade) return this._mountainBase.resultGrade;
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);

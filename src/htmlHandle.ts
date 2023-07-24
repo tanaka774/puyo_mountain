@@ -2,6 +2,7 @@ import { ApiHandle } from "./apiHandle";
 import { Chain } from "./chain";
 import { gameConfig } from "./config";
 import { GameMode, Mountain } from "./mountain/mountain";
+import { Difficulty } from "./mountain/mountainArcade";
 import { GameState, stateHandle } from "./state";
 import { Timer } from "./timer";
 
@@ -44,10 +45,10 @@ export class HtmlHandle {
     }
 
     if (this._mountain.currentMode === GameMode.ARCADE) {
-      if (!this._mountain.isLastPhase()) {
-        this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
-      } else {
+      if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
         this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖全消しすべし`
+      } else {
+        this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
       }
     } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
       this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`

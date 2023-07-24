@@ -22,14 +22,15 @@ export class MountainArcade extends MountainBase {
   ) {
     super(_board, _chain);
     // same length as chainnums
-    this._backgroundColors = ["rgb(44,125,76)", "rgb(188,135,62)",  "rgb(84,36,28)", "rgb(89,190,200)"]
+    this._backgroundColors = ["rgb(44,125,76)", "rgb(188,135,62)", "rgb(84,36,28)", "rgb(89,190,200)"]
   }
 
   protected decideSeedPuyoNum(): number {
-    const modi = 
-    (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
-    (this.checkDifficulty(Difficulty.NORMAL)) ? 0 :
-    (this.checkDifficulty(Difficulty.HARD)) ? -0.75 : 0;
+    let modi =
+      (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
+        (this.checkDifficulty(Difficulty.NORMAL)) ? 0 :
+          (this.checkDifficulty(Difficulty.HARD)) ? -0.75 : 0;
+    modi = (this.isLastPhase()) ? modi - 0.3 : modi;
     const divider = 2 + modi + (2 - this._phase / this._targetChainNums.length);
     const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
     return seedPuyoNum;
@@ -40,7 +41,7 @@ export class MountainArcade extends MountainBase {
       this._targetChainNums.length === this._phase
     ) {
       // end of game
-       // TODO: unused?
+      // TODO: unused?
       this._everyPhaseEnds = true;
       return;
     }
@@ -64,9 +65,9 @@ export class MountainArcade extends MountainBase {
     //       (this._currentDifficulty === Difficulty.HARD) ? [[6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]] :
     //         [[]];
     this._targetChainNums =
-      (this._currentDifficulty === Difficulty.EASY) ? [[2, 2], [2]] :
-        (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [12]] :
-          (this._currentDifficulty === Difficulty.HARD) ? [[8, 8], [8, 8], [8, 8]] :
+      (this._currentDifficulty === Difficulty.EASY) ? [[2, 2], [2, 2], [2, 2], [2]] :
+        (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [13]] :
+          (this._currentDifficulty === Difficulty.HARD) ? [[2, 2], [2, 2], [2, 2], [2]] :
             [[]];
 
     this._currentTargetChainIndex = 0;
@@ -90,11 +91,12 @@ export class MountainArcade extends MountainBase {
   }
 
   goNextLevel(setStateGeneSeed: () => void, setStateGameClear: () => void): void {
-    if (this.isLastPhase() && this._board.isBoardPlain()
+    if ((this.checkDifficulty(Difficulty.HARD) && this.isLastPhase() && this._board.isBoardPlain()) ||
+      ((this.checkDifficulty(Difficulty.EASY) || (this.checkDifficulty(Difficulty.NORMAL))) && this.isLastPhase())
     ) {
       setStateGameClear();
       this._changeBackGround(this._backgroundColors[this._backgroundColors.length - 1]);
-    } else if(!this.isLastPhase()) {
+    } else if (!this.isLastPhase()) {
       setStateGeneSeed();
       this.addValidVanishPuyoNum(this.currentTargetChainNum * 4);
       this.nextTargetChain();

@@ -8,9 +8,6 @@ export class Bounce {
   private _bouncePuyos: Map<string, number> = new Map(); // manage each puyo's quantities ("x,y", quantities)
 
   start(x, y) {
-    // this is related to erasing top puyo beforeNext() 
-    if (y < gameConfig.BOARD_TOP_EDGE - 1) return;
-
     this._willBounce = true;
     for (let n = 0; (n <= this._bouncePuyoNum) && (y + n < gameConfig.BOARD_BOTTOM_EDGE); n++) {
       this.setBounceQuantities(x, y + n, 0);
@@ -41,7 +38,11 @@ export class Bounce {
 
   get willBounce() { return this._willBounce; }
   getBounceQuantities(x, y) { return this._bouncePuyos.get(`${x},${y}`); }
-  setBounceQuantities(x, y, val) { this._bouncePuyos.set(`${x},${y}`, val); }
+  setBounceQuantities(x, y, val) {
+    // this is related to erasing top puyo beforeNext() 
+    if (y >= gameConfig.BOARD_TOP_EDGE - 1)
+      this._bouncePuyos.set(`${x},${y}`, val);
+  }
   deleteBouncePuyo(x, y) { this._bouncePuyos.delete(`${x},${y}`); }
   searchBouncePuyo(x, y) { return this._bouncePuyos.has(`${x},${y}`); }
 }
