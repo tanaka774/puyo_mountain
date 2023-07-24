@@ -13,7 +13,8 @@ import { FontHandle } from "./fontHandle"
 
 
 export class DrawWithCanvas {
-  private mainCanvas: HTMLCanvasElement;
+  // TODO: add _
+  private _mainCanvas: HTMLCanvasElement;
   // TODO: type should be nullable?
   private ctx: CanvasRenderingContext2D;
   private nextPuyoCanvas: HTMLCanvasElement;
@@ -37,8 +38,8 @@ export class DrawWithCanvas {
     mainCanvasName: string,
     nextPuyoCanvasName: string,
   ) {
-    this.mainCanvas = document.getElementById(mainCanvasName) as HTMLCanvasElement;
-    this.ctx = this.mainCanvas.getContext('2d');
+    this._mainCanvas = document.getElementById(mainCanvasName) as HTMLCanvasElement;
+    this.ctx = this._mainCanvas.getContext('2d');
     this.nextPuyoCanvas = document.getElementById(nextPuyoCanvasName) as HTMLCanvasElement;
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
     this.VPuyoCanvas = document.getElementById('VPuyoCanvas') as HTMLCanvasElement;
@@ -53,6 +54,9 @@ export class DrawWithCanvas {
     this.clear();
 
     this.drawBoardBackground();
+
+    // in pause state, don't show current board
+    if(stateHandle.checkCurrentState(GameState.PAUSING)) {return;}
 
     this.drawBoardPuyos();
 
@@ -99,7 +103,7 @@ export class DrawWithCanvas {
   }
 
   clear() {
-    this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+    this.ctx.clearRect(0, 0, this._mainCanvas.width, this._mainCanvas.height);
     this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
     this.VPuyoCtx.clearRect(0, 0, this.VPuyoCanvas.width, this.VPuyoCanvas.height);
   }
@@ -169,11 +173,11 @@ export class DrawWithCanvas {
     const cs = gameConfig.CELL_SIZE;
     const alpha = 0.7;
     this.ctx.fillStyle = `rgba(160,160,160,${alpha})`;
-    this.ctx.fillRect(0, 0, this.mainCanvas.width, cs * 1);
+    this.ctx.fillRect(0, 0, this._mainCanvas.width, cs * 1);
     this.ctx.fillStyle = `rgba(200,200,200,${alpha})`;
-    this.ctx.fillRect(0, cs * 1, this.mainCanvas.width, cs * 1);
+    this.ctx.fillRect(0, cs * 1, this._mainCanvas.width, cs * 1);
     this.ctx.fillStyle = `rgba(240,240,240,${alpha})`;
-    this.ctx.fillRect(0, cs * 2, this.mainCanvas.width, cs * 12);
+    this.ctx.fillRect(0, cs * 2, this._mainCanvas.width, cs * 12);
 
     // draw "x" on birth pos
     const birthX = (gameConfig.PUYO_BIRTH_POSX - 1) * cs;
@@ -341,6 +345,8 @@ export class DrawWithCanvas {
   }
 
   drawPuyo(ctx: CanvasRenderingContext2D, x, y, color: string, willStorke = true) {
+    // if(stateHandle.checkCurrentState(GameState.PAUSING)) {return;}
+
     const drawPosX = (x - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
     const drawPosY = (y - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
 
@@ -769,4 +775,5 @@ export class DrawWithCanvas {
     }
   }
 
+  get mainCanvas() {return this._mainCanvas; }
 }

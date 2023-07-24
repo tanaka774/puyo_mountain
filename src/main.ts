@@ -63,6 +63,7 @@ function main() {
       current.initManiPuyos();
       chain.initFloatingPuyos();
       chain.initConnectedPuyos();
+      chain.initVanishPuyos();
       split.initSplittedPuyo();
       mountain.initAll();
       timer.initTimer();

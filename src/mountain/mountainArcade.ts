@@ -25,6 +25,16 @@ export class MountainArcade extends MountainBase {
     this._backgroundColors = ["rgb(44,125,76)", "rgb(188,135,62)",  "rgb(84,36,28)", "rgb(89,190,200)"]
   }
 
+  protected decideSeedPuyoNum(): number {
+    const modi = 
+    (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
+    (this.checkDifficulty(Difficulty.NORMAL)) ? 0 :
+    (this.checkDifficulty(Difficulty.HARD)) ? -0.75 : 0;
+    const divider = 2 + modi + (2 - this._phase / this._targetChainNums.length);
+    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    return seedPuyoNum;
+  }
+
   nextTargetChain() {
     if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex &&
       this._targetChainNums.length === this._phase
@@ -92,11 +102,10 @@ export class MountainArcade extends MountainBase {
     }
   }
 
-  // setCallback(changeBackground:(color:string) => void) {
-  //   this._changeBackGround = changeBackground;
-  // }
-
   setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }
+  checkDifficulty(difficulty: Difficulty): boolean {
+    return this._currentDifficulty === difficulty;
+  }
 
   get resultGrade() { return this._resultGrade; }
 }

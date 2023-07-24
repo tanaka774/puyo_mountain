@@ -59,15 +59,20 @@ export class MountainBase {
       }
     });
   }
+  
+  protected decideSeedPuyoNum(): number {
+    /* child implements this */ return 0;
+  }
 
   decideVariablilty() {
     // TODO: may change according to difficulty? this is test now!
     // need more randomness
     const getRandomNum = (num) => Math.floor(Math.random() * num)
-    const divider = (this._currentMode === GameMode.ARCADE)
-      ? 2 + (2 - this._phase / this._targetChainNums.length)
-      : 3;
-    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    // const divider = (this._currentMode === GameMode.ARCADE)
+    //   ? 2 + (2 - this._phase / this._targetChainNums.length)
+    //   : 3;
+    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    const seedPuyoNum = this.decideSeedPuyoNum();
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
     // TODO: need to limit side range
@@ -75,7 +80,7 @@ export class MountainBase {
     const distributionNum = getRandomNum(boardWidth - 4) + 4;
     // const deviation = seedPuyoNum / distributionNum * 3 / 5; 
     const onceLimit = 2 / 3;
-    const heightLimit = boardHeight - 3;
+    const heightLimit = boardHeight - 5;
     const setVariability = (index, val) => { this._seedPuyoVariability[index] = Math.min(val, heightLimit); }
 
     for (let n = 0; n < distributionNum; n++) {
