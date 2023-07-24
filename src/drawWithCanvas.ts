@@ -737,7 +737,7 @@ export class DrawWithCanvas {
     // TODO: use custom font of ultimate pop-style one
     const chainCount = this._mountain.currentTargetChainNum;
     const drawY = (gameConfig.BOARD_TOP_EDGE + 1) * gameConfig.CELL_SIZE;
-    const diffX = (chainCount >= 10) ? -1.5 : -0.5;
+    const diffX = (chainCount >= 10) ? -1.0 : -0.5;
     const drawX = (gameConfig.BOARD_LEFT_EDGE + diffX) * gameConfig.CELL_SIZE;
 
     this._fontHandle.fontFace.load()

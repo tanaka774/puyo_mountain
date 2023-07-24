@@ -57,21 +57,6 @@ export class HtmlHandle {
     // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
     this._timerElement.innerText = this._timer.formattedTime;
 
-    // if (stateHandle.checkCurrentState(GameState.GAMECLEAR) || stateHandle.checkCurrentState(GameState.MENU)) {
-    //   const resultTime: string = this._formattedTime;
-    //   const mainCanvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
-    //   const ctx = mainCanvas.getContext('2d');
-    //   ctx.fillStyle = "lightblue";
-    //   ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-    //   ctx.font = "24px Arial";
-    //   ctx.fillStyle = "black";
-    //   const resultScore = `　総合スコア　${this._mountain.resultGrade}`;
-    //   const resultPlayTime = `　プレイ時間　${this._formattedTime}`
-    //   const resultUnne = `　不要に消したぷよ数　${this._mountain.unnecessaryVanishPuyoNum}`
-    //   ctx.fillText(resultScore, 0, 100, 160);
-    //   ctx.fillText(resultPlayTime, 0, 200, 160);
-    //   ctx.fillText(resultUnne, 0, 300, 160);
-    // }
 
   }
 
@@ -90,7 +75,7 @@ export class HtmlHandle {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
-    const bottomRank = gameConfig.BOTTOM_SCORE_RANK; // TODO: consider proper place not here
+    const bottomRank = gameConfig.BOTTOM_SCORE_RANK;
     const gamemode = 'gamemode1';
 
     const rankInDialog = document.createElement("dialog");
@@ -334,6 +319,41 @@ export class HtmlHandle {
     //   div.textContent = `${entry.username}, ${entry.wholerank}, ${entry.seasonrank}`;
     //   dynamicContent.appendChild(div);
     // });
+  }
+
+  showArcadeResult() {
+    const [hours, minutes, seconds] = this._timer.getElapsedTimeDigits();
+    const playDuration = `${hours}h ${minutes}m ${seconds}s`
+    const resultDialog = document.createElement("dialog");
+    document.body.appendChild(resultDialog);
+    resultDialog.showModal();
+    resultDialog.addEventListener("close", async (e) => {
+      // unused?
+    });
+
+    const resultScore = `総合スコア ${this._mountain.resultGrade}<br><br><br><br>`;
+    const resultPlayTime = `プレイ時間 ${playDuration}<br><br>`
+    const resultUnne = `不要に消したぷよ数 ${this._mountain.unnecessaryVanishPuyoNum}<br><br>`
+
+    const tempDiv = document.createElement('div');
+    tempDiv.style.fontSize = "26px"
+    tempDiv.innerHTML = `${resultScore}${resultPlayTime}${resultUnne}`;
+    resultDialog.appendChild(tempDiv);
+    this.addCloseButton(resultDialog);
+
+    // const resultTime: string = this._formattedTime;
+    // const mainCanvas = document.getElementById('mainCanvas') as HTMLCanvasElement;
+    // const ctx = mainCanvas.getContext('2d');
+    // ctx.fillStyle = "lightblue";
+    // ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+    // ctx.font = "24px Arial";
+    // ctx.fillStyle = "black";
+    // const resultScore = `　総合スコア　${this._mountain.resultGrade}`;
+    // const resultPlayTime = `　プレイ時間　${this._formattedTime}`
+    // const resultUnne = `　不要に消したぷよ数　${this._mountain.unnecessaryVanishPuyoNum}`
+    // ctx.fillText(resultScore, 0, 100, 160);
+    // ctx.fillText(resultPlayTime, 0, 200, 160);
+    // ctx.fillText(resultUnne, 0, 300, 160);
   }
 
   private addCloseButton(dialogElement: HTMLDialogElement) {

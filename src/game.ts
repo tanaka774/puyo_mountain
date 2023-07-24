@@ -48,7 +48,7 @@ export class Game {
     this._board.initLockWaitCount();
     this._rotate.quickTurn.isPossible = false;
     this._chain.initChainCount();
-    
+
     // erase puyos more than above gameConfig.BOARD_TOP_EDGE-2
     // TODO: this implementaion is not officially right
     for (let y = 0; y < gameConfig.BOARD_TOP_EDGE - 1; y++) {
@@ -231,9 +231,7 @@ export class Game {
         if (stateHandle.isEnter()) {
           this._menu.generateButtons(MenuSelect.GAME_CLEAR);
 
-          if (this._mountain.currentMode === GameMode.ENDURANCE) {
-            this.afterEnduranceGameClear();
-          }
+          this.afterGameClear();
         }
         break;
       case GameState.PAUSING:
@@ -286,11 +284,12 @@ export class Game {
     })
   }
 
-  async afterEnduranceGameClear() {
-    try {
-      this._htmlHandle.showRankInModal();
-    } catch (error) {
-      console.error(error);
+  afterGameClear() {
+    if (this._mountain.currentMode === GameMode.ENDURANCE) {
+      this._htmlHandle.showRankInModal()
+        .catch((err) => console.error(err));
+    } else if (this._mountain.currentMode === GameMode.ARCADE) {
+      this._htmlHandle.showArcadeResult();
     }
   }
 }

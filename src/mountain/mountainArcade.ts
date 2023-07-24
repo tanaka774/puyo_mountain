@@ -36,6 +36,7 @@ export class MountainArcade extends MountainBase {
     }
 
     if (this._targetChainNums[this._phase - 1].length - 1 === this._currentTargetChainIndex) {
+      // go to next phase
       this._phase++;
       this._currentTargetChainIndex = 0;
       this._changeBackGround(this._backgroundColors[this._phase - 2]);
@@ -53,8 +54,8 @@ export class MountainArcade extends MountainBase {
     //       (this._currentDifficulty === Difficulty.HARD) ? [[6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]] :
     //         [[]];
     this._targetChainNums =
-      (this._currentDifficulty === Difficulty.EASY) ? [[2, 2],[2, 2],[2, 2], [2]] :
-        (this._currentDifficulty === Difficulty.NORMAL) ? [[6, 6], [6, 6], [6, 6]] :
+      (this._currentDifficulty === Difficulty.EASY) ? [[2, 2], [2]] :
+        (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [12]] :
           (this._currentDifficulty === Difficulty.HARD) ? [[8, 8], [8, 8], [8, 8]] :
             [[]];
 
