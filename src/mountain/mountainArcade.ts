@@ -65,7 +65,7 @@ export class MountainArcade extends MountainBase {
     //       (this._currentDifficulty === Difficulty.HARD) ? [[6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]] :
     //         [[]];
     this._targetChainNums =
-      (this._currentDifficulty === Difficulty.EASY) ? [[2, 2], [2, 2], [2, 2], [2]] :
+      (this._currentDifficulty === Difficulty.EASY) ? [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [12]] :
         (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [13]] :
           (this._currentDifficulty === Difficulty.HARD) ? [[2, 2], [2, 2], [2, 2], [2]] :
             [[]];
@@ -102,6 +102,18 @@ export class MountainArcade extends MountainBase {
       this.nextTargetChain();
       this._chain.initConnectedPuyos();
     }
+  }
+
+  getGameStatus(): string {
+    let res:string;
+    if (this.isLastPhase() && this.checkDifficulty(Difficulty.HARD)) {
+      res = `${this._currentTargetChainNum} 連鎖全消しすべし`
+    } else if (this.isLastPhase()) {
+      res = `${this._currentTargetChainNum} 連鎖すべし 最終フェーズ`
+    } else {
+      res = `${this._currentTargetChainNum} 連鎖すべし フェーズ ${this._phase}`
+    }
+    return res;
   }
 
   setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }

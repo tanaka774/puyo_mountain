@@ -26,7 +26,7 @@ export class MountainBase {
   protected _totalChainNum: number;
   protected _unnecessaryChainNum: number;
   protected _everyPhaseEnds: boolean;
-  protected _changeBackGround: (color:string) => void;
+  protected _changeBackGround: (color: string) => void;
   private _currentMode: GameMode;
 
   constructor(
@@ -59,15 +59,15 @@ export class MountainBase {
       }
     });
   }
-  
+
   protected decideSeedPuyoNum(): number {
-    /* child implements this */ 
+    /* child implements this */
     const divider = 3;
     const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
     return seedPuyoNum;
   }
 
-  protected decideDistributionNum() :number {
+  protected decideDistributionNum(): number {
     const getRandomNum = (num) => Math.floor(Math.random() * num);
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     return getRandomNum(boardWidth - 4) + 4;
@@ -102,12 +102,14 @@ export class MountainBase {
 
       let puyoNum = getRandomNum(seedPuyoNum * onceLimit);
 
-      if (currentSeedPuyoSum + puyoNum > seedPuyoNum - (distributionNum - n)) {
-        // is this right???
-        setVariability(randomIndex, Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum));
-      } else {
-        setVariability(randomIndex, puyoNum);
-      }
+      setVariability(randomIndex, puyoNum);
+
+      // if (currentSeedPuyoSum + puyoNum > seedPuyoNum - (distributionNum - n)) {
+      //   // is this right???
+      //   setVariability(randomIndex, Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum));
+      // } else {
+      //   setVariability(randomIndex, puyoNum);
+      // }
     }
 
     // prevent seedpuyo from filling birth puyo pos
@@ -194,9 +196,9 @@ export class MountainBase {
     });
   }
 
-  nextTargetChain() {/*child implements this*/}
+  nextTargetChain() {/*child implements this*/ }
 
-  initTargetChain() {/*child implements this*/}
+  initTargetChain() {/*child implements this*/ }
 
   initVariability() {
     this._seedPuyoVariability =
@@ -247,10 +249,16 @@ export class MountainBase {
   addUnnecessaryVanishPuyoNum(val: number) { this._unnecessaryVanishPuyoNum += val; }
 
   get totalChainNum() { return this._totalChainNum; }
-  
-  goNextLevel(setStateGeneSeed:() => void, setStateGameClear: () => void) {/*child implements this*/ }
 
-  setCallback(changeBackground:(color:string) => void) {
+  goNextLevel(setStateGeneSeed: () => void, setStateGameClear: () => void) {/*child implements this*/ }
+
+  setSelectedValue(puyoAmount: string, distribution: string, minChainNum: string, maxChainNum: string) {
+    /*custom implements this*/
+  }
+
+  getGameStatus(): string { return 'child implements this'; }
+
+  setCallback(changeBackground: (color: string) => void) {
     this._changeBackGround = changeBackground;
   }
 

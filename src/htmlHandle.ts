@@ -44,15 +44,18 @@ export class HtmlHandle {
       this._timerElement.style.display = '';
     }
 
-    if (this._mountain.currentMode === GameMode.ARCADE) {
-      if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
-        this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖全消しすべし`
-      } else {
-        this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
-      }
-    } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
-      this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
-    }
+    // if (this._mountain.currentMode === GameMode.ARCADE) {
+    //   if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
+    //     this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖全消しすべし`
+    //   } else if (this._mountain.isLastPhase()) {
+    //     this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 最終フェーズ`
+    //   } else {
+    //     this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
+    //   }
+    // } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
+    //   this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
+    // }
+    this._targetChainNumShow.textContent = this._mountain.getGameStatus();
     // this._chainNumShow.textContent = ` 最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainNumShow.textContent = `MAX: ${this._chain.maxVirtualChainCount}`
     // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
@@ -137,7 +140,6 @@ export class HtmlHandle {
             this._apiHandle.updateWholeRank()
               .then(() => {
                 this._apiHandle.updateSeasonRank(year, month, month + 2)
-                  .then(() => { })
                   .catch((err) => { console.error(err); })
               })
               .catch((err) => { console.error(err); })
@@ -357,9 +359,118 @@ export class HtmlHandle {
     // ctx.fillText(resultUnne, 0, 300, 160);
   }
 
-  private addCloseButton(dialogElement: HTMLDialogElement) {
+  showCustomConfig() {
+    const configDialog = document.createElement("dialog");
+    document.body.appendChild(configDialog);
+    configDialog.showModal();
+    configDialog.addEventListener("close", async (e) => {
+      // unused?
+    });
+
+    const putIntoDiv = (element: HTMLElement, parent: HTMLElement) => {
+      const tempDiv = document.createElement('div');
+      tempDiv.appendChild(element);
+      parent.appendChild(tempDiv);
+    }
+
+    const addOption = (text, value, select: HTMLSelectElement, isDefault = false) => {
+      const newOption = document.createElement('option');
+      newOption.textContent = text;
+      newOption.value = value;
+      newOption.selected = isDefault;
+      select.appendChild(newOption);
+    }
+
+    const addLabel = (id: string, text: string, parent: HTMLElement) => {
+      const inputLabel = document.createElement("label");
+      inputLabel.setAttribute("for", id);
+      inputLabel.innerHTML = `${text}`;
+      inputLabel.style.fontSize = '20px';
+      parent.appendChild(inputLabel);
+    }
+
+    const append = (element: HTMLElement) => {
+      configDialog.appendChild(element);
+      configDialog.appendChild(document.createElement('div'));
+    }
+
+    const puyoAmountSelect = document.createElement('select');
+    puyoAmountSelect.setAttribute('id', 'puyoAmount');
+    addOption('無', 'nothing', puyoAmountSelect);
+    addOption('かなり少', 'pretty-small', puyoAmountSelect);
+    addOption('少', 'small', puyoAmountSelect);
+    addOption('標準', 'normal', puyoAmountSelect, true);
+    addOption('多', 'large', puyoAmountSelect);
+    addOption('かなり多', 'pretty-large', puyoAmountSelect);
+    addOption('ランダム', 'random', puyoAmountSelect);
+    addLabel('puyoAmount', '種ぷよの量 ', configDialog);
+    // configDialog.appendChild(puyoAmountSelect);
+    append(puyoAmountSelect);
+
+    const distributionSelect = document.createElement('select');
+    distributionSelect.setAttribute('id', 'distribution');
+    addOption('狭', 'narrow', distributionSelect);
+    addOption('標準', 'normal', distributionSelect, true);
+    addOption('広', 'wide', distributionSelect);
+    addLabel('distribution', '種ぷよの幅 ', configDialog);
+    // configDialog.appendChild(distributionSelect);
+    append(distributionSelect);
+
+    const maxNum = 20;
+    const minChainNumSelect = document.createElement('select');
+    distributionSelect.setAttribute('id', 'minChainNum');
+    for (let n = 1; n <= maxNum; n++) {
+      addOption(`${n}`, `${n}`, minChainNumSelect);
+    }
+    addLabel('minChainNum', '最小必要連鎖数 ', configDialog);
+    // configDialog.appendChild(minChainNumSelect);
+    append(minChainNumSelect);
+
+    const maxChainNumSelect = document.createElement('select');
+    distributionSelect.setAttribute('id', 'maxChainNum');
+    for (let n = 1; n <= maxNum; n++) {
+      addOption(`${n}`, `${n}`, maxChainNumSelect);
+    }
+    addLabel('maxChainNum', '最大必要連鎖数 ', configDialog);
+    // configDialog.appendChild(maxChainNumSelect);
+    append(maxChainNumSelect);
+
+    minChainNumSelect.addEventListener('change', () => {
+      if (Number(minChainNumSelect.value) > Number(maxChainNumSelect.value))
+        maxChainNumSelect.value = minChainNumSelect.value;
+    })
+    maxChainNumSelect.addEventListener('change', () => {
+      if (Number(maxChainNumSelect.value) < Number(minChainNumSelect.value))
+        minChainNumSelect.value = maxChainNumSelect.value;
+    })
+
+    const startButton = document.createElement('button');
+    append(startButton);
+    startButton.textContent = '始める';
+    startButton.addEventListener('click', (e) => {
+      const p = puyoAmountSelect.value;
+      const d = distributionSelect.value;
+      const mi = minChainNumSelect.value;
+      const ma = maxChainNumSelect.value;
+      // e.preventDefault();
+      this._mountain.setGameMode(GameMode.CUSTOM);
+      this._mountain.setSelectedValue(p, d, mi, ma);
+      this._mountain.initTargetChain();
+      stateHandle.setState(GameState.GENE_SEED_PUYOS);
+      configDialog.close();
+
+      // close game menu here
+      const menu = document.getElementById('menu') as HTMLDialogElement;
+      menu.close();
+    })
+
+    configDialog.appendChild(document.createElement('div'));
+    this.addCloseButton(configDialog, '戻る');
+  }
+
+  private addCloseButton(dialogElement: HTMLDialogElement, text: string = '閉じる') {
     const closeButton = document.createElement("button");
-    closeButton.textContent = "閉じる";
+    closeButton.textContent = text;
     closeButton.addEventListener("click", (e) => {
       e.preventDefault();
       dialogElement.close();

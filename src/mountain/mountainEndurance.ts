@@ -134,5 +134,9 @@ export class MountainEndurance extends MountainBase {
     }
   }
 
+  getGameStatus(): string {
+    return `${this._currentTargetChainNum} 連鎖すべし 　${this._totalChainNum} / ${this._enduranceTotalTargetChainNum}`
+  }
+
   get enduranceTotalTargetChainNum() { return this._enduranceTotalTargetChainNum; }
 }

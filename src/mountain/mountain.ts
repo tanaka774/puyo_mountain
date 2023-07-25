@@ -6,10 +6,11 @@ import { Board } from "../board";
 import { MountainBase } from "./mountainBase";
 import { Difficulty, MountainArcade } from "./mountainArcade";
 import { MountainEndurance } from "./mountainEndurance";
+import { MountainCustom } from "./mountainCustom";
 
 
 export enum GameMode {
-  ARCADE, ENDURANCE,
+  ARCADE, ENDURANCE, CUSTOM
 }
 
 // TODO: make interface
@@ -17,6 +18,7 @@ export class Mountain {
   private _mountainBase: MountainBase;
   private _mountainArcade: MountainArcade;
   private _mountainEndurance: MountainEndurance;
+  private _mountainCustom: MountainCustom
   private _currentMode: GameMode;
 
   constructor(
@@ -28,6 +30,7 @@ export class Mountain {
     this._mountainBase = new MountainBase(_board, _chain);
     this._mountainArcade = new MountainArcade(_board, _chain);
     this._mountainEndurance = new MountainEndurance(_board, _chain);
+    this._mountainCustom = new MountainCustom(_board, _chain);
   }
 
   setGameMode(mode: GameMode) {
@@ -36,6 +39,8 @@ export class Mountain {
       this._mountainBase = this._mountainArcade;
     } else if (mode === GameMode.ENDURANCE) {
       this._mountainBase = this._mountainEndurance;
+    } else if (mode === GameMode.CUSTOM) {
+      this._mountainBase = this._mountainCustom;
     }
   }
   get currentMode() { return this._currentMode; }
@@ -137,10 +142,20 @@ export class Mountain {
     this._mountainBase.goNextLevel(setStateGeneSeed, setStateGameClear);
   }
 
-  setCallback(changeBackground:(color:string) => void) {
+  setSelectedValue(puyoAmount: string, distribution: string, minChainNum: string, maxChainNum: string) {
+    if (this._mountainBase instanceof MountainCustom)
+      this._mountainBase.setSelectedValue(puyoAmount, distribution, minChainNum, maxChainNum);
+    else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
+  }
+
+  getGameStatus(): string {
+    return this._mountainBase.getGameStatus();
+  }
+
+  setCallback(changeBackground: (color: string) => void) {
     this._mountainBase.setCallback(changeBackground);
   }
-    
+
   detectTargetChain() { }
   calculateTime() { }
   isLevelClear() { }

@@ -1,7 +1,6 @@
 import { gameConfig } from "./config";
 
 export class Bounce {
-  // TODO: these bounce should be saparated into other file.
   private _willBounce = false;
   private _BOUNCING_TIME = gameConfig.BOUNCING_TIME;
   private _bouncePuyoNum = gameConfig.BOUNCING_PUYO_NUM;
@@ -39,7 +38,7 @@ export class Bounce {
   get willBounce() { return this._willBounce; }
   getBounceQuantities(x, y) { return this._bouncePuyos.get(`${x},${y}`); }
   setBounceQuantities(x, y, val) {
-    // this is related to erasing top puyo beforeNext() 
+    // this is related to erasing top puyo in beforeNext() 
     if (y >= gameConfig.BOARD_TOP_EDGE - 1)
       this._bouncePuyos.set(`${x},${y}`, val);
   }

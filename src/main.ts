@@ -110,6 +110,11 @@ function main() {
         mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
       () => {
+        // custom mode
+        htmlHandle.showCustomConfig();
+        // setstate or setgamemode is executed in config
+      },
+      () => {
         // watch highscore
         htmlHandle.showHighScoresModal();
       },

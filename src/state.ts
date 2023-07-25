@@ -67,6 +67,7 @@ export const stateHandle = {
   willShowGameResult: function () {
     const res: boolean = this.checkCurrentState(GameState.JUST_DRAWING) ||
       this.checkCurrentState(GameState.PAUSING) ||
+      this.checkCurrentState(GameState.GAMEOVER) ||
       this.duringGamePlayWithoutJustDrawing();
     return res;
   },
