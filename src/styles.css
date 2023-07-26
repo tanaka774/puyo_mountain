@@ -66,6 +66,24 @@ html {
   z-index: -1;
 }
 
+.title {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3; 
+  /* background-color: rgba(255, 255, 255, 0.8);  */
+  /* padding: 10px 20px;  */
+  font-size: 40px;
+  color: rgb(114, 31, 31);
+  text-shadow: 
+  -1px -1px 0 rgb(220, 217, 165),
+   1px -1px 0 rgb(220, 217, 165),
+  -1px 1px 0 rgb(220, 217, 165),
+   1px 1px 0 rgb(220, 217, 165);
+  /* stroke: rgb(199, 208, 81);
+  stroke-width: 5px; */
+}
 
 .menu-container {
   background-color: rgba(20, 93, 78, 0.5);
@@ -78,7 +96,7 @@ html {
   bottom: 0;
   left: 0;
   right: 0; */
-  /* z-index: 2; */
+  z-index: 2;
 }
 
 .menu-container button {

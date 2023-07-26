@@ -44,33 +44,12 @@ export class HtmlHandle {
       this._timerElement.style.display = '';
     }
 
-    // if (this._mountain.currentMode === GameMode.ARCADE) {
-    //   if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
-    //     this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖全消しすべし`
-    //   } else if (this._mountain.isLastPhase()) {
-    //     this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 最終フェーズ`
-    //   } else {
-    //     this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし フェーズ ${this._mountain.phase}`
-    //   }
-    // } else if (this._mountain.currentMode === GameMode.ENDURANCE) {
-    //   this._targetChainNumShow.textContent = `${this._mountain.currentTargetChainNum} 連鎖すべし 　${this._mountain.totalChainNum} / ${this._mountain.enduranceTotalTargetChainNum}`
-    // }
     this._targetChainNumShow.textContent = this._mountain.getGameStatus();
     // this._chainNumShow.textContent = ` 最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainNumShow.textContent = `MAX: ${this._chain.maxVirtualChainCount}`
     // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
     this._timerElement.innerText = this._timer.formattedTime;
-
-
   }
-
-  // handlePause() {
-  //   // TODO: temp, prevent infinte loop
-  //   if (GameState.currentState === GameState.JUST_DRAWING) return;
-  //
-  //   if (GameState.currentState !== GameState.PAUSING) stateHandle.setState(GameState.PAUSING);
-  //   else stateHandle.setState(stateHandle.prevState);
-  // }
 
   async showRankInModal() { // (wholeRank, seasonRank, isInHighScore:boolean, playDuration, gamemode) {
 
@@ -462,6 +441,8 @@ export class HtmlHandle {
       // close game menu here
       const menu = document.getElementById('menu') as HTMLDialogElement;
       menu.close();
+      const title = document.getElementById('title');
+      title.style.display = 'none';
     })
 
     configDialog.appendChild(document.createElement('div'));

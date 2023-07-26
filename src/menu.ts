@@ -14,6 +14,7 @@ export class Menu {
   private _buttons: NodeListOf<HTMLButtonElement>;
   // private _menuContainer: HTMLDivElement;
   private _menuContainer: HTMLDialogElement;
+  private _titleElement: HTMLElement;
   private _selectedIndex: number;
   private arcadeEasy: () => void;
   private arcadeNormal: () => void;
@@ -34,6 +35,7 @@ export class Menu {
   constructor(
   private _fontHandle: FontHandle
   ) {
+    this._titleElement = document.getElementById("title");
     // TODO: menu should be generated and shown here???
     this.generateButtons(MenuSelect.START_MENU);
     // this._menuContainer.showModal();
@@ -113,7 +115,11 @@ export class Menu {
     // this._menuContainer.classList.remove('overlay');
   }
 
-  closeModal() {this._menuContainer.close(); }
+  closeModal() {
+    this._menuContainer.close(); 
+    this._titleElement.style.display = 'none';
+  }
+
   generateButtons(menuSelect: MenuSelect) {
     // this._menuContainer = document.getElementById("menu") as HTMLDivElement;
     this._menuContainer = document.getElementById("menu") as HTMLDialogElement;
@@ -121,6 +127,7 @@ export class Menu {
     this.deleteButtons();
     // this._menuContainer.classList.add('overlay');
     if (!this._menuContainer.open) this._menuContainer.showModal();
+    this._titleElement.style.display = '';
 
     const geneButton = (showText: string, callback: () => void) => {
       const tempButton = document.createElement('button');
