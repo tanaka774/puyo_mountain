@@ -8,5 +8,10 @@ export default defineConfig({
     outDir: 'dist', // Specify the output directory for the build
     emptyOutDir: true, // Empty the output directory before each build
   },
-    assetsInclude: ['/src/fonts/*.woff2'],
+  assetsInclude: ['/src/fonts/*.woff2'],
+  alias: {
+    "@fonts": ["/src/fonts"],
+    "@": ["/src"],
+  },
+  types: ["vite/client"],
 });

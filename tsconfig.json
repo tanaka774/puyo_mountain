@@ -4,9 +4,11 @@
     "target": "ESNext",
     "lib":  ["ESNext", "DOM"],
     "moduleResolution": "node",
-    // "baseUrl": ".",
-    // "paths": {
-    //   "@vercel/node": ["node_modules/@vercel/node"]
-    // },
+    "baseUrl": ".",
+    "paths": {
+      "@fonts/*": ["./src/fonts/*"],
+      "@/*": ["./src/*"],
+    },
+    "esModuleInterop": true,
   }
 }
