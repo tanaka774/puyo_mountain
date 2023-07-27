@@ -20,8 +20,10 @@ import { ApiHandle } from "./apiHandle"
 import { Timer } from "./timer"
 import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
+import { LSHandle } from "./localStorageHandle"
 
 function main() {
+  const lSHandle = new LSHandle();
   const fontHandle = new FontHandle();
   const menu = new Menu(fontHandle);
   const apiHandle = new ApiHandle();
@@ -39,7 +41,7 @@ function main() {
     split, chain, mountain, 'mainCanvas', 'nextPuyoCanvas');
   // const draw = new DrawWithSVG(bounce, board, current, move, rotate,
   //   split, chain, mountain);
-  const htmlHandle = new HtmlHandle(apiHandle, timer, chain, mountain);
+  const htmlHandle = new HtmlHandle(lSHandle, apiHandle, timer, chain, mountain);
   const game = new Game(menu, apiHandle, timer, bounce, board, current, move, rotate,
     split, chain, input, draw, mountain, htmlHandle);
 
@@ -113,6 +115,10 @@ function main() {
         // custom mode
         htmlHandle.showCustomConfig();
         // setstate or setgamemode is executed in config
+      },
+      () => {
+        // game setting
+        htmlHandle.showGameSetting();
       },
       () => {
         // watch highscore

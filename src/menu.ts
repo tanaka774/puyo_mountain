@@ -22,6 +22,7 @@ export class Menu {
   private enduranceMode1: () => void;
   private enduranceMode2: () => void;
   private customMode: () => void;
+  private gameSetting: () => void;
   private watchHighScores: () => void;
   private backToGameInPause: () => void;
   private backToMenuInPause: () => void;
@@ -146,7 +147,7 @@ export class Menu {
         geneButton('アーケードモード', () => this.generateButtons(MenuSelect.ARCADE_SELECT_1));
         geneButton('スコアモード', () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1));
         geneButton('カスタムモード', () => { this.customMode(); });
-        geneButton('せってい', () => { });
+        geneButton('せってい', () => { this.gameSetting(); });
         break;
       case MenuSelect.ARCADE_SELECT_1:
         geneButton('EASY', () => { this.arcadeEasy(); this.closeModal(); });
@@ -183,7 +184,7 @@ export class Menu {
     this._buttons[this._selectedIndex].classList.add('selected');
   }
 
-  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, customMode, watchHighScores,
+  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, customMode, gameSetting, watchHighScores,
     backToGameInPause, backToMenuInPause, retryAfterGameOver, backToMenuAfterGameOver, retryAfterGameClear, backToMenuAfterGameClear) {
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
@@ -191,6 +192,7 @@ export class Menu {
     this.enduranceMode1 = enduranceMode1;
     this.enduranceMode2 = enduranceMode2;
     this.customMode = customMode;
+    this.gameSetting = gameSetting;
     this.watchHighScores = watchHighScores;
     this.backToGameInPause = backToGameInPause;
     this.backToMenuInPause = backToMenuInPause;

@@ -7,7 +7,7 @@
   src: url(/src/fonts/BestTen-CRT.woff2) format("woff2");
 }
 
-html {  
+html {
   font-family: "custom", sans-serif;
   /*font-size: 24px;*/
 }
@@ -17,7 +17,7 @@ html {
   justify-content: center;
   position: relative;
   /* TODO: actually I want to align center vertically not like this*/
-  top: 50px; 
+  top: 50px;
   /* align-items: center; */
   /* margin: 10px;  */
   z-index: 1;
@@ -40,12 +40,12 @@ html {
 }
 
 
-.game-info { 
+.game-info {
   background-color: rgba(203, 201, 201, 0.7);
   text-align: center;
 }
 
-.main-container .game-info{
+.main-container .game-info {
   margin-top: 3px;
   font-size: larger;
 }
@@ -71,16 +71,16 @@ html {
   top: 15%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3; 
+  z-index: 3;
   /* background-color: rgba(255, 255, 255, 0.8);  */
   /* padding: 10px 20px;  */
   font-size: 40px;
   color: rgb(114, 31, 31);
-  text-shadow: 
-  -1px -1px 0 rgb(220, 217, 165),
-   1px -1px 0 rgb(220, 217, 165),
-  -1px 1px 0 rgb(220, 217, 165),
-   1px 1px 0 rgb(220, 217, 165);
+  text-shadow:
+    -1px -1px 0 rgb(220, 217, 165),
+    1px -1px 0 rgb(220, 217, 165),
+    -1px 1px 0 rgb(220, 217, 165),
+    1px 1px 0 rgb(220, 217, 165);
   /* stroke: rgb(199, 208, 81);
   stroke-width: 5px; */
 }
@@ -122,11 +122,30 @@ html {
 
 .score-container {
   /* background-color: #2f1d04; */
-  color:azure;
+  color: azure;
   overflow-y: auto;
   /* height: 50px; */
 
   /* display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;  */
+}
+
+.circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin: 10px;
+  display: inline-block;
+}
+
+.circleColorPicker {
+  width: 40px;
+  height: 40px;
+  /* border-radius: 50%; */
+  border: none;
+  padding: 0;
+  appearance: none;
+  margin: 5px;
+  clip-path: circle(35% at 50% 50%);
 }

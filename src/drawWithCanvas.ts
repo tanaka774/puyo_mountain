@@ -1,5 +1,5 @@
 import { baseManiPuyo } from "./types"
-import { gameConfig } from "./config"
+import { PUYO_COLORS, gameConfig } from "./config"
 import { GameState, stateHandle } from "./state"
 import { Split } from "./split"
 import { Move } from "./move"
@@ -66,24 +66,24 @@ export class DrawWithCanvas {
 
     if (this._mountain.floatingSeedPuyos.length > 0) {
       for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
-        this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, gameConfig.PUYO_COLORS[floatingSeedPuyo.color]);
+        this.drawPuyo(this.ctx, floatingSeedPuyo.posX, floatingSeedPuyo.posY, PUYO_COLORS[floatingSeedPuyo.color]);
       }
       this.showCurrentChainCount();
     }
 
     for (const floatingPuyo of this._chain.floatingPuyos) {
-      this.drawPuyo(this.ctx, floatingPuyo.posX, floatingPuyo.posY, gameConfig.PUYO_COLORS[floatingPuyo.color]);
+      this.drawPuyo(this.ctx, floatingPuyo.posX, floatingPuyo.posY, PUYO_COLORS[floatingPuyo.color]);
     }
 
     if (this._split.splittedPuyo) {
-      this.drawPuyo(this.ctx, this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, gameConfig.PUYO_COLORS[this._split.splittedPuyo.color]);
+      this.drawPuyo(this.ctx, this._split.splittedPuyo.posX, this._split.splittedPuyo.posY, PUYO_COLORS[this._split.splittedPuyo.color]);
     }
 
     if (this._current.currentPuyo) {
-      this.drawPuyo(this.ctx, this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor]);
+      this.drawPuyo(this.ctx, this._current.currentPuyo.parentX, this._current.currentPuyo.parentY, PUYO_COLORS[this._current.currentPuyo.parentColor]);
 
       const [childX, childY] = this._current.getChildPos(this._current.currentPuyo);
-      this.drawPuyo(this.ctx, childX, childY, gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor]);
+      this.drawPuyo(this.ctx, childX, childY, PUYO_COLORS[this._current.currentPuyo.childColor]);
     }
 
     // this.drawAfterimageHor();
@@ -202,7 +202,7 @@ export class DrawWithCanvas {
         for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
           const cell = this._board.board[y][x];
           if (cell !== gameConfig.NO_COLOR) {
-            this.drawPuyo(this.ctx, x, y, gameConfig.PUYO_COLORS[cell])
+            this.drawPuyo(this.ctx, x, y, PUYO_COLORS[cell])
           }
         }
       }
@@ -266,8 +266,8 @@ export class DrawWithCanvas {
   }
 
   private drawWaitingPuyo(ctx: CanvasRenderingContext2D, puyo: baseManiPuyo, x, y) {
-    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.parentColor]);
-    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, gameConfig.PUYO_COLORS[puyo.childColor]);
+    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, PUYO_COLORS[puyo.parentColor]);
+    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, PUYO_COLORS[puyo.childColor]);
   }
 
   // drawUIInfo() {
@@ -415,15 +415,15 @@ export class DrawWithCanvas {
       const radiusY = gameConfig.CELL_SIZE * 3 / 7;
 
       if (diffX === 0 && diffY === 1) {
-        this.drawGlueToDown(gameConfig.CELL_SIZE, x, y, x, y + diffY, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
+        this.drawGlueToDown(gameConfig.CELL_SIZE, x, y, x, y + diffY, radiusX, radiusY, PUYO_COLORS[color]);
       } else if (diffX === 1 && diffY === 0) {
-        this.drawGlueToRight(gameConfig.CELL_SIZE, x, y, x + diffX, y, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
+        this.drawGlueToRight(gameConfig.CELL_SIZE, x, y, x + diffX, y, radiusX, radiusY, PUYO_COLORS[color]);
       } else if (diffX === 0 && diffY === -1) {
         // need to verify
-        this.drawGlueToDown(gameConfig.CELL_SIZE, x, y + diffY, x, y, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
+        this.drawGlueToDown(gameConfig.CELL_SIZE, x, y + diffY, x, y, radiusX, radiusY, PUYO_COLORS[color]);
       } else if (diffX === -1 && diffY === 0) {
         // need to verify
-        this.drawGlueToRight(gameConfig.CELL_SIZE, x + diffX, y, x, y, radiusX, radiusY, gameConfig.PUYO_COLORS[color]);
+        this.drawGlueToRight(gameConfig.CELL_SIZE, x + diffX, y, x, y, radiusX, radiusY, PUYO_COLORS[color]);
       }
     })
   }
@@ -444,7 +444,7 @@ export class DrawWithCanvas {
         const rotatingX = this._current.currentPuyo.parentX + Math.cos((angle * (-1) + 270) * Math.PI / 180);
         const rotatingY = this._current.currentPuyo.parentY - Math.sin((angle * (-1) + 270) * Math.PI / 180);
         const alpha = 0.2 + 0.2 * n / devideNum;
-        this.drawPuyo(this.ctx, rotatingX, rotatingY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+        this.drawPuyo(this.ctx, rotatingX, rotatingY, this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
       this._rotate.rotateDrawing.drawCount--;
@@ -471,7 +471,7 @@ export class DrawWithCanvas {
         const alpha = 0.2 + 0.2 * n / devideNum;
         const drawX = this._rotate.pushupDrawing.preChildX;
         const drawY = this._rotate.pushupDrawing.preChildY - this._rotate.pushupDrawing.upY * (n / devideNum);
-        this.drawPuyo(this.ctx, drawX, drawY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+        this.drawPuyo(this.ctx, drawX, drawY, this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
       this._rotate.pushupDrawing.drawCount--;
@@ -492,9 +492,9 @@ export class DrawWithCanvas {
       for (let n = 1; n < devideNum; n++) {
         const alpha = 0.2 + 0.1 * n / devideNum;
         if (!(diffX < 0 && this._current.currentPuyo.angle === 270))
-          this.drawPuyo(this.ctx, this._current.currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), this._current.currentPuyo.parentY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.parentColor], alpha), false);
+          this.drawPuyo(this.ctx, this._current.currentPuyo.parentX - (diffX * (2 / 5 * n / devideNum)), this._current.currentPuyo.parentY, this.addAlpha(PUYO_COLORS[this._current.currentPuyo.parentColor], alpha), false);
         if (!(diffX > 0 && this._current.currentPuyo.angle === 90))
-          this.drawPuyo(this.ctx, childX - (diffX * (2 / 5 * n / devideNum)), childY, this.addAlpha(gameConfig.PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+          this.drawPuyo(this.ctx, childX - (diffX * (2 / 5 * n / devideNum)), childY, this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
       }
 
       this._move.movingHorDrawing.drawCount--;
