@@ -25,20 +25,22 @@ export class Input {
     // TODO: be careful enough for these eventlistener
     document.addEventListener('keydown', e => {
       // is this condition necessary? yes for rotation
+      // if (this.canTakeInput()) {
+      if (e.key === 'ArrowLeft') {
+        // if (!this.isRightKeyPressed)
+        this.isLeftKeyPressed = true;
+      }
+      if (e.key === 'ArrowRight') {
+        // if (!this.isLeftKeyPressed)
+        this.isRightKeyPressed = true;
+      }
+      if (e.key === 'ArrowDown') { this.isDownKeyPressed = true; }
+
       if (this.canTakeInput()) {
-        if (e.key === 'ArrowLeft') {
-          // if (!this.isRightKeyPressed)
-          this.isLeftKeyPressed = true;
-        }
-        if (e.key === 'ArrowRight') {
-          // if (!this.isLeftKeyPressed)
-          this.isRightKeyPressed = true;
-        }
-        if (e.key === 'ArrowDown') { this.isDownKeyPressed = true; }
         if (e.key === 'z') { this._rotate.rotatePuyo(this._board, -90); }
         if (e.key === 'x') { this._rotate.rotatePuyo(this._board, 90); }
       } else {
-        this.keyInputInit();
+        // this.keyInputInit();
       }
     });
 
@@ -102,7 +104,7 @@ export class Input {
     let leftThrottleHandler;
     // let rotateThrottleHandler;
     let initialized = false;
-    return function() {
+    return function () {
       if (!initialized) {
         // downThrottleHandler = throttle(this.downKeyHandle, 10); // not affecting with value less than this(10)
         // horThrottleHandler = throttle(this.horKeyhandle, 90);
@@ -135,17 +137,17 @@ export class Input {
     if (this.isRightKeyPressed && this.isLeftKeyPressed) return;
 
     if (this.isRightKeyPressed)
-      this.throttleEXRight(() => { this.rightKeyHandle() }, 140, 70, 200);
+      this.throttleEXRight(() => { this.rightKeyHandle() }, 150, 120, 200);
     if (this.isLeftKeyPressed)
       // this.throttleEXLeft(() => { this.leftKeyHandle() }, 200, 70, 300);
-      this.throttleEXLeft(() => { this.leftKeyHandle() }, 140, 70, 200);
+      this.throttleEXLeft(() => { this.leftKeyHandle() }, 150, 120, 200);
   }
 
   downKeyHandle() {
     // if (!canTakeInput()) return;
 
     // if (this.isDownKeyPressed) {
-    let keyMoveDownRate = 20.0; // TODO: thro into config
+    let keyMoveDownRate: number = gameConfig.KEY_MOVE_DOWN_RATE; // TODO: thro into config
     // I'm afraid of more than 0.5, which could get this world upside down
     if (keyMoveDownRate * gameConfig.moveYDiff >= 0.5) keyMoveDownRate = 0.5 / gameConfig.moveYDiff;
     if (this._move.canPuyoMoveDown(this._board, keyMoveDownRate)) {
@@ -210,7 +212,7 @@ export class Input {
   keyPressedTwice(keyType, callbackInLimit, callbackAlways = null, limit) {
     let keyPressed = false;
     let firstKeyPressTime = 0;
-    return function(e) {
+    return function (e) {
       if (e.key !== keyType) return;
       if (!keyPressed) {
         keyPressed = true;
@@ -230,7 +232,7 @@ export class Input {
 
   throttle(callback, delay) {
     let lastExecution = 0;
-    return function(event = null) {
+    return function (event = null) {
       const now = Date.now();
       if (now - lastExecution >= delay) {
         callback();
