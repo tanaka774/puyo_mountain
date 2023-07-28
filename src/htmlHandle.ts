@@ -101,12 +101,14 @@ export class HtmlHandle {
       sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
         // TODO: prevent multiple clicks
+        sendButton.disabled = true;
 
         const userInput = document.getElementById("userInput") as HTMLInputElement;
         const userName = userInput.value;
 
         if (!userName || (userName === '')) {
-          alert('名前を入力してください!')
+          alert('名前を入力してください!');
+          sendButton.disabled = false;
           return;
         }
 
@@ -130,9 +132,11 @@ export class HtmlHandle {
             rankInDialog.innerHTML = `問題が発生しました、管理者に問い合わせてください <br>今回のタイム${hours}h${minutes}m${seconds}s`;
             this.addCloseButton(rankInDialog);
           })
-          .finally()
-
+          .finally(() => {
+            sendButton.disabled = false
+          })
       });
+
       rankInDialog.appendChild(sendButton);
 
       const notSendButton = document.createElement("button");
@@ -501,7 +505,6 @@ export class HtmlHandle {
         return null;
       }
 
-      // Extract the red, green, blue, and alpha components
       const red = parseInt(matches[1]);
       const green = parseInt(matches[2]);
       const blue = parseInt(matches[3]);
@@ -554,7 +557,7 @@ export class HtmlHandle {
       ["rgba(93, 91, 210, 1)", "rgba(240, 240, 240, 1)", "rgba(236, 174, 39, 1)", "rgba(26, 71, 40, 1)"]
     ];
 
-    const texts = [ 'セット：おなじみ',  'セット：ベジタブル',  'セット：イタリアン', 'セット：かまくら'];
+    const texts = ['セット：おなじみ', 'セット：ベジタブル', 'セット：イタリアン', 'セット：かまくら'];
 
     colorss.forEach((colors, index) => {
       makeRadioButton(`${index}`, texts[index], settingDialog, colors);
