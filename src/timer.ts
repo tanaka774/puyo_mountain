@@ -22,7 +22,7 @@ export class Timer {
     this._formattedTime = '00:00';
     this._startTime = Date.now();
     this._currentTime = Date.now();
-    this._timerStarted = false; 
+    this._timerStarted = false;
   }
 
   formatTime(time) {
@@ -46,16 +46,40 @@ export class Timer {
   }
 
   getElapsedTimeDigits() {
-    const elapsedTime = this._currentTime - this._startTime;
-    const dateElapsed =  new Date(elapsedTime); 
+    // const elapsedTime = this._currentTime - this._startTime;
+    // const dateElapsed = new Date(elapsedTime);
     const dateCurrent = new Date(this._currentTime);
     const dateStart = new Date(this._startTime);
 
     // dealing with timezone difference
     // TODO: if hours is more than 24, this implementation collapses
-    const hours = dateCurrent.getHours() - dateStart.getHours();   //.padStart(2, '0');
-    const minutes = dateElapsed.getMinutes();   //.padStart(2, '0');
-    const seconds = dateElapsed.getSeconds();   //.padStart(2, '0');
+    // TODO: be careful when surpassing each am/pm during game play
+    // const hours = dateCurrent.getHours() - dateStart.getHours();   //.padStart(2, '0');
+    // const minutes = dateElapsed.getMinutes();   //.padStart(2, '0');
+    // const seconds = dateElapsed.getSeconds();   //.padStart(2, '0');
+
+
+    const timeDiffInMs = dateCurrent.getTime() - dateStart.getTime();
+    const timeDiffInSeconds = timeDiffInMs / 1000; // Convert milliseconds to seconds
+    const roundedTimeDiffInSeconds = Math.round(timeDiffInSeconds);
+
+    // Calculate hours, minutes, and seconds
+    const hours = Math.floor(roundedTimeDiffInSeconds / 3600);
+    const remainingSecondsAfterHours = roundedTimeDiffInSeconds % 3600;
+    const minutes = Math.floor(remainingSecondsAfterHours / 60);
+    const seconds = remainingSecondsAfterHours % 60;
+
+    // // Format the time as 'hh:mm:ss'
+    // const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    // console.log(formattedTime); // Output: '00:29:30'
+
+
+    // debug
+    if (hours >= 1) {
+      console.log('this timeline is collapsing!!!')
+      console.log(dateCurrent.getHours(), dateStart.getHours());
+    }
 
     return [hours, minutes, seconds];
   }
