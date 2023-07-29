@@ -61,19 +61,71 @@ export class MountainBase {
   }
 
   protected decideSeedPuyoNum(): number {
-    /* child implements this */
-    const divider = 3;
-    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    // const divider = 3;
+    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    // return seedPuyoNum;
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const baseRand = 4;
+    const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
+    const meanPuyoHeight = 2;
+    const seedPuyoNum = boardWidth * meanPuyoHeight + randModi;
     return seedPuyoNum;
   }
 
   protected decideDistributionNum(): number {
-    const getRandomNum = (num) => Math.floor(Math.random() * num);
+    // const getRandomNum = (num) => Math.floor(Math.random() * num);
+    // const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    // return getRandomNum(boardWidth - 4) + 4;
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
-    return getRandomNum(boardWidth - 4) + 4;
+    const column = 3;
+    const distributionNum = getRandomNum(column) + 1 + (boardWidth - column);
+    return distributionNum;
   }
 
-  decideVariablilty() {
+  decideVariability() {
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
+    // const baseRand = 4;
+    // const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
+    const meanPuyoHeight = 2;
+    // const seedPuyoNum = boardWidth * meanPuyoHeight + randModi;
+    // const column = 3;
+    // const distributionNum = getRandomNum(column) + 1 + (boardWidth - column);
+    const seedPuyoNum = this.decideSeedPuyoNum();
+    const distributionNum = this.decideDistributionNum();
+
+    const heightLimit = boardHeight - 4;
+    const setVariability = (index, val) => { this._seedPuyoVariability[index] = Math.min(val, heightLimit); }
+
+    for (let n = 0; n < distributionNum; n++) {
+      let randomIndex = getRandomNum(boardWidth);
+      while (this._seedPuyoVariability[randomIndex] !== 0 && n > 0) {
+        randomIndex = getRandomNum(boardWidth);
+      }
+
+      const currentSeedPuyoSum = this._seedPuyoVariability.reduce((acc, cur) => { return acc + cur; }, 0);
+      if (currentSeedPuyoSum >= seedPuyoNum) break;
+      if (n === distributionNum - 1) {
+        setVariability(randomIndex, seedPuyoNum - currentSeedPuyoSum);
+        break;
+      }
+
+      if (distributionNum === boardWidth)
+        setVariability(randomIndex, 
+          getRandomNum(meanPuyoHeight * 1) +
+          getRandomNum(meanPuyoHeight * 1) +
+          getRandomNum(meanPuyoHeight * 1) +
+          getRandomNum(meanPuyoHeight * 1) +
+          getRandomNum(meanPuyoHeight * 1));
+      else setVariability(randomIndex, getRandomNum(meanPuyoHeight * 2) + getRandomNum(meanPuyoHeight * 2));
+      // setVariability(randomIndex, getRandomNum(meanPuyoHeight * 2) + getRandomNum(meanPuyoHeight * 2));
+    }
+  }
+
+  decideVariability_ori() {
     // TODO: may change according to difficulty? this is test now!
     // need more randomness
     const getRandomNum = (num) => Math.floor(Math.random() * num)
@@ -112,20 +164,20 @@ export class MountainBase {
       // }
     }
 
-    // prevent seedpuyo from filling birth puyo pos
-    const birthX = gameConfig.PUYO_BIRTH_POSX - 1;
-    const limitY = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.PUYO_BIRTH_POSY - 5;
-    if (this._seedPuyoVariability[birthX] > limitY) {
-      const diffY = this._seedPuyoVariability[birthX] - limitY;
+    // // prevent seedpuyo from filling birth puyo pos
+    // const birthX = gameConfig.PUYO_BIRTH_POSX - 1;
+    // const limitY = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.PUYO_BIRTH_POSY - 5;
+    // if (this._seedPuyoVariability[birthX] > limitY) {
+    //   const diffY = this._seedPuyoVariability[birthX] - limitY;
 
-      const minIndex = this._seedPuyoVariability.reduce((minIndex, curNum, curIndex, ori) => {
-        if (curNum < ori[minIndex]) { return curIndex; }
-        else { return minIndex; }
-      }, 0);
+    //   const minIndex = this._seedPuyoVariability.reduce((minIndex, curNum, curIndex, ori) => {
+    //     if (curNum < ori[minIndex]) { return curIndex; }
+    //     else { return minIndex; }
+    //   }, 0);
 
-      this._seedPuyoVariability[minIndex] += diffY;
-      this._seedPuyoVariability[birthX] = limitY;
-    }
+    //   this._seedPuyoVariability[minIndex] += diffY;
+    //   this._seedPuyoVariability[birthX] = limitY;
+    // }
   }
 
   changeExcessPuyo() {

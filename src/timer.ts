@@ -71,15 +71,8 @@ export class Timer {
 
     // // Format the time as 'hh:mm:ss'
     // const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
     // console.log(formattedTime); // Output: '00:29:30'
 
-
-    // debug
-    if (hours >= 1) {
-      console.log('this timeline is collapsing!!!')
-      console.log(dateCurrent.getHours(), dateStart.getHours());
-    }
 
     return [hours, minutes, seconds];
   }

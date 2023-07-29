@@ -1,7 +1,7 @@
 import { Board } from "src/board";
 import { MountainBase } from "./mountainBase";
-import { Move } from "src/move";
 import { Chain } from "src/chain";
+import { gameConfig } from "../config";
 
 
 export enum Difficulty {
@@ -26,13 +26,27 @@ export class MountainArcade extends MountainBase {
   }
 
   protected decideSeedPuyoNum(): number {
-    let modi =
+    // let modi =
+    //   (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
+    //     (this.checkDifficulty(Difficulty.NORMAL)) ? 0 :
+    //       (this.checkDifficulty(Difficulty.HARD)) ? -0.75 : 0;
+    // modi = (this.isLastPhase()) ? modi - 0.3 : modi;
+    // const divider = 2 + modi + (2 - this._phase / this._targetChainNums.length);
+    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    // return seedPuyoNum;
+
+    let difficultyRate =
       (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
-        (this.checkDifficulty(Difficulty.NORMAL)) ? 0 :
-          (this.checkDifficulty(Difficulty.HARD)) ? -0.75 : 0;
-    modi = (this.isLastPhase()) ? modi - 0.3 : modi;
-    const divider = 2 + modi + (2 - this._phase / this._targetChainNums.length);
-    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+        (this.checkDifficulty(Difficulty.NORMAL)) ? 1 :
+          (this.checkDifficulty(Difficulty.HARD)) ? 1.25 : 1;
+    let phaseRate = 1 + (0.1 * this._phase)
+
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const baseRand = 4;
+    const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
+    const meanPuyoHeight = 2;
+    const seedPuyoNum = Math.round((boardWidth * meanPuyoHeight + randModi) * difficultyRate * phaseRate);
     return seedPuyoNum;
   }
 
@@ -105,7 +119,7 @@ export class MountainArcade extends MountainBase {
   }
 
   getGameStatus(): string {
-    let res:string;
+    let res: string;
     if (this.isLastPhase() && this.checkDifficulty(Difficulty.HARD)) {
       res = `${this._currentTargetChainNum} 連鎖全消しすべし`
     } else if (this.isLastPhase()) {

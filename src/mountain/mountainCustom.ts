@@ -5,8 +5,8 @@ import { gameConfig } from "../config";
 
 // TODO: finish implementing!!!
 export class MountainCustom extends MountainBase {
-  private _selectedDivider: number | (() => number);
-  private _selectedDistributionNum: number;
+  private _selectedDivider: number | (() => number); // TODO: rename amount rate?
+  private _selectedDistributionNum: string;
   private _selectedMinTargetChainNum: number;
   private _selectedMaxTargetChainNum: number;
 
@@ -20,37 +20,60 @@ export class MountainCustom extends MountainBase {
   setSelectedValue(puyoAmount: string, distribution: string, minChainNum: string, maxChainNum: string) {
     this._selectedDivider =
       (puyoAmount === 'nothing') ? 0 :
-        (puyoAmount === 'pretty-small') ? 8 :
-          (puyoAmount === 'small') ? 5 :
-            (puyoAmount === 'normal') ? 3 :
-              (puyoAmount === 'large') ? 2 :
-                (puyoAmount === 'pretty-large') ? 1.25 :
-                  (puyoAmount === 'random') ? () => { return Math.floor(Math.random() * 5) + 1.5; }
-                    : 3;
+        (puyoAmount === 'pretty-small') ? 0.3 :
+          (puyoAmount === 'small') ? 0.6 :
+            (puyoAmount === 'normal') ? 1 :
+              (puyoAmount === 'large') ? 1.5 :
+                (puyoAmount === 'pretty-large') ? 2 :
+                  (puyoAmount === 'random') ? () => { return (Math.random() * 2); }
+                    : 1;
 
-    this._selectedDistributionNum =
-      (distribution === 'narrow') ? 1 :
-        (distribution === 'normal') ? 4 :
-          (distribution === 'wide') ? 6 : 4;
+    // this._selectedDistributionNum =
+    //   (distribution === 'narrow') ? 1 :
+    //     (distribution === 'normal') ? 4 :
+    //       (distribution === 'wide') ? 6 : 4;
+    this._selectedDistributionNum = distribution;
 
     this._selectedMinTargetChainNum = Number(minChainNum);
     this._selectedMaxTargetChainNum = Number(maxChainNum);
   }
 
   protected decideSeedPuyoNum(): number {
-    let divider;
-    if (this._selectedDivider === 0) return 0;
-    else if (typeof this._selectedDivider === 'number') divider = this._selectedDivider;
-    else if (typeof this._selectedDivider === 'function') divider = this._selectedDivider();
-    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    // let divider;
+    // if (this._selectedDivider === 0) return 0;
+    // else if (typeof this._selectedDivider === 'number') divider = this._selectedDivider;
+    // else if (typeof this._selectedDivider === 'function') divider = this._selectedDivider();
+    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+    // return seedPuyoNum;
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const baseRand = 4;
+    const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
+    const meanPuyoHeight = 2;
+    let selectedRate: number;
+    if (typeof this._selectedDivider === 'number') selectedRate = this._selectedDivider;
+    else if (typeof this._selectedDivider === 'function') selectedRate = this._selectedDivider();
+    const seedPuyoNum = Math.round((boardWidth * meanPuyoHeight + randModi) * selectedRate);
     return seedPuyoNum;
   }
 
   protected decideDistributionNum(): number {
-    const getRandomNum = (num) => Math.floor(Math.random() * num);
+    // const getRandomNum = (num) => Math.floor(Math.random() * num);
+    // const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    // if (this._selectedDistributionNum === boardWidth) return boardWidth;
+    // else return getRandomNum(boardWidth - 4) + this._selectedDistributionNum;
+
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
-    if (this._selectedDistributionNum === boardWidth) return boardWidth;
-    else return getRandomNum(boardWidth - 4) + this._selectedDistributionNum;
+    if (this._selectedDistributionNum === 'narrow') {
+      return getRandomNum(2) + 1;
+    } else if (this._selectedDistributionNum === 'normal') {
+      const column = 3;
+      const distributionNum = getRandomNum(column) + 1 + (boardWidth - column);
+      return distributionNum;
+    } else if (this._selectedDistributionNum === 'wide') {
+      return gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    }
   }
 
   initTargetChain(): void {

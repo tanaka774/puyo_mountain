@@ -77,7 +77,7 @@ export class Game {
       case GameState.GENE_SEED_PUYOS:
         this._current.initPuyos();
         this._board.board = this._board.createBoard();
-        this._mountain.decideVariablilty();
+        this._mountain.decideVariability();
         this._mountain.generateSeedPuyos();
         this._mountain.changeExcessPuyo();
         this._mountain.setFloatingSeedPuyos();

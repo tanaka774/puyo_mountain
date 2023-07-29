@@ -76,11 +76,11 @@ export class MountainEndurance extends MountainBase {
     return index + this._enduranceMinTargetChainNum;
   }
 
-  protected decideSeedPuyoNum(): number {
-    const divider = 2 + (2 - Math.random() * 2);
-    const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
-    return seedPuyoNum;
-  }
+  // protected decideSeedPuyoNum(): number {
+  //   const divider = 2 + (2 - Math.random() * 2);
+  //   const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
+  //   return seedPuyoNum;
+  // }
 
   nextTargetChain() {
     // this._totalChainNum += this._currentTargetChainNum;

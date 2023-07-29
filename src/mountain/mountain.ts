@@ -59,8 +59,8 @@ export class Mountain {
     this._mountainBase.generateSeedPuyos();
   }
 
-  decideVariablilty() {
-    this._mountainBase.decideVariablilty();
+  decideVariability() {
+    this._mountainBase.decideVariability();
   }
 
   changeExcessPuyo() {
