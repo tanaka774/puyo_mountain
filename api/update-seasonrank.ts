@@ -32,6 +32,7 @@ export default async function handler(
     const year = request.query.year as string;
     const minMonth = request.query.minMonth as string;
     const maxMonth = request.query.maxMonth as string;
+    const gamemode = request.query.gamemode as string;
     const result =
       await sql`
         UPDATE Scores
@@ -40,8 +41,9 @@ export default async function handler(
           SELECT id, RANK() OVER (ORDER BY playDuration ASC) AS seasonrank
           FROM Scores
           WHERE EXTRACT(YEAR FROM createdat) = ${year}
-            AND (EXTRACT(MONTH FROM createdat) >= ${minMonth} 
-              AND EXTRACT(MONTH FROM createdat) <= ${maxMonth} )
+            AND EXTRACT(MONTH FROM createdat) >= ${minMonth} 
+            AND EXTRACT(MONTH FROM createdat) <= ${maxMonth}
+            AND gamemode = ${gamemode}
         ) AS subquery
         WHERE Scores.id = subquery.id;
       `;

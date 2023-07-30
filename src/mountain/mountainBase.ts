@@ -4,6 +4,7 @@ import { Move } from "../move";
 import { baseSinglePuyo } from "../types";
 import { Board } from "../board";
 import { Difficulty } from "./mountainArcade";
+import { EnduranceMode } from "./mountainEndurance";
 
 
 export enum GameMode {
@@ -309,6 +310,9 @@ export class MountainBase {
   }
 
   getGameStatus(): string { return 'child implements this'; }
+
+  // setEnduranceMode(mode: EnduranceMode) {/*child implements this*/}
+  getEnduraceMode(): string { return 'child implements this'; }
 
   setCallback(changeBackground: (color: string) => void) {
     this._changeBackGround = changeBackground;

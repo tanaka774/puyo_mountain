@@ -51,9 +51,13 @@ const SEED_FALLING_SPEED = 15.0;
 const SPLIT_FALLING_SPEED = 12.0;
 const FLOAT_FALLING_SPEED = 12.0;
 const PUYO_POOL_LOOP = 8;
-const ENDURANCE_TOTAL = 6;
-const ENDURANCE_MIN_ONCE = 6;
-const ENDURANCE_MAX_ONCE = 12;
+// if you change this value, store previous value and add select so that user can watch previous score records
+const ENDURANCE_TOTAL1 = 300;
+const ENDURANCE_TOTAL2 = 8;
+const ENDURANCE_MIN_ONCE1 = 6;
+const ENDURANCE_MAX_ONCE1 = 12;
+const ENDURANCE_MIN_ONCE2 = 4;
+const ENDURANCE_MAX_ONCE2 = 8;
 const BOTTOM_SCORE_RANK = 30;
 
 export const gameConfig = Object.freeze({
@@ -88,9 +92,12 @@ export const gameConfig = Object.freeze({
   SPLIT_FALLING_SPEED,
   FLOAT_FALLING_SPEED,
   PUYO_POOL_LOOP,
-  ENDURANCE_TOTAL,
-  ENDURANCE_MIN_ONCE,
-  ENDURANCE_MAX_ONCE,
+  ENDURANCE_TOTAL1,
+  ENDURANCE_TOTAL2,
+  ENDURANCE_MIN_ONCE1,
+  ENDURANCE_MAX_ONCE1,
+  ENDURANCE_MIN_ONCE2,
+  ENDURANCE_MAX_ONCE2,
   BOTTOM_SCORE_RANK,
 })
 

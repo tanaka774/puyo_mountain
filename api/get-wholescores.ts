@@ -6,16 +6,13 @@ export default async function handler(
   response: VercelResponse,
 ) {
   try {
-    const playDuration = request.query.playDuration as string;
     const gamemode = request.query.gamemode as string;
+    const bottomRank = request.query.bottomRank as string;
     const scores = await sql`
-        SELECT MAX(wholerank) AS next_rank
-        FROM (
-          SELECT RANK() OVER (ORDER BY playDuration ASC) AS wholerank
-          FROM Scores
-          WHERE playDuration < ${playDuration}
-            AND gamemode = ${gamemode}
-        ) AS subquery;
+        SELECT * FROM Scores 
+        WHERE wholerank <= ${bottomRank}
+          AND gamemode = ${gamemode}
+        ORDER BY wholerank ASC;
       `;
     return response.status(200).json({ scores });
   } catch (error) {

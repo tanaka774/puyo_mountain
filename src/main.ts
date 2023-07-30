@@ -21,6 +21,7 @@ import { Timer } from "./timer"
 import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
 import { LSHandle } from "./localStorageHandle"
+import { EnduranceMode } from "./mountain/mountainEndurance"
 
 function main() {
   const lSHandle = new LSHandle();
@@ -101,6 +102,7 @@ function main() {
         // endurance mode1
         stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
+        mountain.setEnduranceMode(EnduranceMode.Mode1);
         mountain.initTargetChain();
         mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
@@ -108,6 +110,7 @@ function main() {
         // endurance mode2
         stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ENDURANCE);
+        mountain.setEnduranceMode(EnduranceMode.Mode2);
         mountain.initTargetChain();
         mountain.setCallback((color: string) => draw.drawWholeBackground(color));
       },
@@ -159,7 +162,9 @@ function main() {
 
 // TODO: remove these debug code
 // const apiHandle = new ApiHandle();
-// apiHandle.deleteTable();
+// apiHandle.deleteTable()
+// .then(() => apiHandle.createTable())
+// .catch((err) => console.error(err))
 // apiHandle.createTable();
 // apiHandle.deleteAllData(); // this doesn't work?
 // apiHandle.addManyDatas();

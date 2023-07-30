@@ -29,6 +29,8 @@ export default async function handler(
     //   EXECUTE FUNCTION update_rank();
     //   `;
   
+    const gamemode = request.query.gamemode as string;
+
     const result =
       await sql`
         UPDATE Scores
@@ -36,6 +38,7 @@ export default async function handler(
         FROM (
           SELECT id, RANK() OVER (ORDER BY playDuration ASC) AS wholerank
           FROM Scores
+          WHERE gamemode = ${gamemode}
         ) AS subquery
         WHERE Scores.id = subquery.id;
       `;

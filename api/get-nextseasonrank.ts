@@ -10,6 +10,7 @@ export default async function handler(
     const minMonth = request.query.minMonth as string;
     const maxMonth = request.query.maxMonth as string;
     const playDuration = request.query.playDuration as string;
+    const gamemode = request.query.gamemode as string;
     const scores = await sql`
         SELECT MAX(seasonrank) AS next_rank
         FROM (
@@ -19,6 +20,7 @@ export default async function handler(
           AND EXTRACT(MONTH FROM createdat) >= ${minMonth} 
           AND EXTRACT(MONTH FROM createdat) <= ${maxMonth} 
           AND playDuration < ${playDuration}
+          AND gamemode = ${gamemode}
         ) AS subquery;
       `;
     

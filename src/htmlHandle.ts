@@ -61,7 +61,7 @@ export class HtmlHandle {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
     const bottomRank = gameConfig.BOTTOM_SCORE_RANK;
-    const gamemode = 'gamemode1';
+    const gamemode = this._mountain.getEnduraceMode();
 
     const rankInDialog = document.createElement("dialog");
     document.body.appendChild(rankInDialog);
@@ -72,8 +72,8 @@ export class HtmlHandle {
       // unused?
     });
 
-    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, month, month + 2, playDuration);
-    const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration);
+    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, month, month + 2, playDuration, gamemode);
+    const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration, gamemode);
 
     if (seasonRankToEnter <= bottomRank) {
       const whatRankDiv = document.createElement("div");
@@ -100,7 +100,6 @@ export class HtmlHandle {
       sendButton.textContent = "送信する";
       sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
-        // TODO: prevent multiple clicks
         sendButton.disabled = true;
 
         const userInput = document.getElementById("userInput") as HTMLInputElement;
@@ -119,9 +118,9 @@ export class HtmlHandle {
             this.addCloseButton(rankInDialog);
 
             // update after inserting data, welcome to callback hell
-            this._apiHandle.updateWholeRank()
+            this._apiHandle.updateWholeRank(gamemode)
               .then(() => {
-                this._apiHandle.updateSeasonRank(year, month, month + 2)
+                this._apiHandle.updateSeasonRank(year, month, month + 2, gamemode)
                   .catch((err) => { console.error(err); })
               })
               .catch((err) => { console.error(err); })
@@ -184,8 +183,10 @@ export class HtmlHandle {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
-    const bottomRank = gameConfig.BOTTOM_SCORE_RANK; // TODO: consider proper place not here
-    const gamemode = 'gamemode1';
+    const bottomRank = gameConfig.BOTTOM_SCORE_RANK;
+    const gamemode1 = `${gameConfig.ENDURANCE_TOTAL1}-mode1`; // equal to getendurancemode1
+    const gamemode2 = `${gameConfig.ENDURANCE_TOTAL2}-mode2`; // equal to getendurancemode2
+    let gamemode = gamemode1;
 
     const wholeSelect = document.createElement("select");
     addOption('総合', 'whole', wholeSelect);
@@ -203,8 +204,9 @@ export class HtmlHandle {
     addOption('10-12', 'winter', monthSelect);
     const modeSelect = document.createElement("select");
     // addOption('選ぶ', 'default', modeSelect);
-    addOption('mode1', 'mode1', modeSelect);
-    addOption('mode2', 'mode2', modeSelect);
+    // TODO: change gamemode according to select
+    addOption('mode1', gamemode1, modeSelect);
+    addOption('mode2', gamemode2, modeSelect);
     const scoresOutput = document.createElement("output");
     scoresOutput.classList.add('score-container');
 
@@ -215,7 +217,7 @@ export class HtmlHandle {
       if (selectedValue === 'whole') {
         yearSelect.value = 'default';
         monthSelect.value = 'default';
-        data = await this._apiHandle.fetchData('0', '0', '0', bottomRank);
+        data = await this._apiHandle.fetchWholeData(gamemode, bottomRank);
       } else if (selectedValue === 'season') {
         yearSelect.value = currentYear.toString();
         const minMonth = currentMonth - ((currentMonth % 3 + 2) % 3);
@@ -225,7 +227,7 @@ export class HtmlHandle {
               (minMonth === 7) ? "autumn" :
                 (minMonth === 10) ? "winter" : "default";
 
-        data = await this._apiHandle.fetchData(currentYear, minMonth, minMonth + 2, bottomRank);
+        data = await this._apiHandle.fetchSeasonData(currentYear, minMonth, minMonth + 2, gamemode, bottomRank);
       }
       this.makeContentFromDB(scoresOutput, data);
     })
@@ -236,7 +238,7 @@ export class HtmlHandle {
       const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
       const minMonth = monthRange.split("-")[0];
       const maxMonth = monthRange.split("-")[1];
-      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank);
+      const data = await this._apiHandle.fetchSeasonData(yearSelect.value, minMonth, maxMonth, gamemode, bottomRank);
       this.makeContentFromDB(scoresOutput, data);
     })
 
@@ -246,12 +248,25 @@ export class HtmlHandle {
       const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
       const minMonth = monthRange.split("-")[0];
       const maxMonth = monthRange.split("-")[1];
-      const data = await this._apiHandle.fetchData(yearSelect.value, minMonth, maxMonth, bottomRank);
+      const data = await this._apiHandle.fetchSeasonData(yearSelect.value, minMonth, maxMonth, gamemode, bottomRank);
       this.makeContentFromDB(scoresOutput, data);
     })
 
-    modeSelect.addEventListener('change', () => {
+    modeSelect.addEventListener('change', async () => {
       // TODO:
+      gamemode = modeSelect.value;
+      if (wholeSelect.value === 'season' && (yearSelect.value === 'default' || monthSelect.value === 'default')) return;
+
+      if (wholeSelect.value === 'whole') {
+        const data = await this._apiHandle.fetchWholeData(gamemode, bottomRank);
+        this.makeContentFromDB(scoresOutput, data);
+      } else if (wholeSelect.value === 'season') {
+        const monthRange = monthSelect.options[monthSelect.selectedIndex].textContent;
+        const minMonth = monthRange.split("-")[0];
+        const maxMonth = monthRange.split("-")[1];
+        const data = await this._apiHandle.fetchSeasonData(yearSelect.value, minMonth, maxMonth, gamemode, bottomRank);
+        this.makeContentFromDB(scoresOutput, data);
+      }
     })
 
     highScoreDialog.appendChild(wholeSelect);
@@ -260,7 +275,7 @@ export class HtmlHandle {
     highScoreDialog.appendChild(modeSelect);
     highScoreDialog.appendChild(scoresOutput);
     this.addCloseButton(highScoreDialog);
-    const firstDataToShow = await this._apiHandle.fetchData('0', '0', '0', bottomRank);
+    const firstDataToShow = await this._apiHandle.fetchWholeData(gamemode, bottomRank);
     this.makeContentFromDB(scoresOutput, firstDataToShow);
   }
 
@@ -284,21 +299,22 @@ export class HtmlHandle {
           <th>総合</th>
           <th>シーズン</th>
           <th>タイム</th>
-          <th>達成日</th>
         </tr>
       </thead>
       <tbody>
-        ${data.scores.rows.map(entry => `
+        ${data?.scores.rows.map(entry => `
           <tr>
             <td>${entry.username}</td>
             <td>${entry.wholerank}</td>
             <td>${entry.seasonrank}</td>
             <td>${entry.playduration.hours || '0'}:${entry.playduration.minutes || '00'}:${entry.playduration.seconds || '00'}</td>
-            <td>${entry.createdat.split('T')[0]}</td>
           </tr>
         `).join('')}
       </tbody>
     `;
+    // reserve
+    // <th>達成日</th>
+    //   <td>${entry.createdat.split('T')[0]}</td>
     scoreTable.style.backgroundColor = 'black';
     dynamicContent.appendChild(scoreTable);
 
@@ -375,7 +391,7 @@ export class HtmlHandle {
 
     const distributionSelect = document.createElement('select');
     distributionSelect.setAttribute('id', 'distribution');
-    addOption('狭', 'narrow', distributionSelect);
+    addOption('細', 'narrow', distributionSelect);
     addOption('標準', 'normal', distributionSelect, true);
     addOption('広', 'wide', distributionSelect);
     addLabel('distribution', '種ぷよの幅 ', configDialog);

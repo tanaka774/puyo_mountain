@@ -4,6 +4,10 @@ import { Board } from "src/board";
 import { Move } from "src/move";
 import { Chain } from "src/chain";
 
+export enum EnduranceMode {
+  Mode1, Mode2 // TODO: make up with some name
+}
+
 export class MountainEndurance extends MountainBase {
   private _enduranceTotalTargetChainNum: number;
   private _enduranceChainNum: number;
@@ -11,6 +15,7 @@ export class MountainEndurance extends MountainBase {
   private _enduranceMinTargetChainNum: number;
   private _enduranceMaxTargetChainNum: number;
   private _backgroundColors: number[]; // [r,g,b]
+  private _currentEnduranceMode: EnduranceMode;
 
   constructor(
     _board: Board,
@@ -19,11 +24,11 @@ export class MountainEndurance extends MountainBase {
   ) {
     super(_board, _chain);
 
-    this._enduranceTotalTargetChainNum = gameConfig.ENDURANCE_TOTAL;
-    this._enduranceMinTargetChainNum = gameConfig.ENDURANCE_MIN_ONCE;
-    this._enduranceMaxTargetChainNum = gameConfig.ENDURANCE_MAX_ONCE;
+    // this._enduranceTotalTargetChainNum = gameConfig.ENDURANCE_TOTAL1;
+    // this._enduranceMinTargetChainNum = gameConfig.ENDURANCE_MIN_ONCE;
+    // this._enduranceMaxTargetChainNum = gameConfig.ENDURANCE_MAX_ONCE;
     // this.initEnduranceChainNums();
-    this._backgroundColors = [200,100,200];
+    this._backgroundColors = [200, 100, 200];
   }
 
   initEnduranceChainNums() {
@@ -115,27 +120,56 @@ export class MountainEndurance extends MountainBase {
       this._chain.initConnectedPuyos();
     }
   }
-  
+
   private decideColor() {
     // (200,100,200) -> (100,100,200) -> (100,200,200) -> (100,200,100) -> (200,200,100)
     const rate = this._totalChainNum / this._enduranceTotalTargetChainNum;
-    if (rate <= 1/4) {
-      const red = 200 - 100 * (rate / (1/4));
+    if (rate <= 1 / 4) {
+      const red = 200 - 100 * (rate / (1 / 4));
       this._backgroundColors = [red, 100, 200];
-    } else if (rate <= 2/4) {
-      const green = 100 + 100 * ((rate - 1/4) / (1/4));
+    } else if (rate <= 2 / 4) {
+      const green = 100 + 100 * ((rate - 1 / 4) / (1 / 4));
       this._backgroundColors = [100, green, 200];
-    } else if (rate <= 3/4) {
-      const blue = 200 - 100 * ((rate - 2/4) / (1/4));
+    } else if (rate <= 3 / 4) {
+      const blue = 200 - 100 * ((rate - 2 / 4) / (1 / 4));
       this._backgroundColors = [100, 200, blue];
     } else {
-      const red = 100 + 100 * ((rate - 3/4) / (1/4));
+      const red = 100 + 100 * ((rate - 3 / 4) / (1 / 4));
       this._backgroundColors = [red, 200, 100];
     }
   }
 
   getGameStatus(): string {
     return `${this._currentTargetChainNum} 連鎖すべし 　${this._totalChainNum} / ${this._enduranceTotalTargetChainNum}`
+  }
+
+  setEnduranceMode(mode: EnduranceMode) {
+    this._currentEnduranceMode = mode;
+    if (mode === EnduranceMode.Mode1) {
+      this._enduranceTotalTargetChainNum = gameConfig.ENDURANCE_TOTAL1;
+      this._enduranceMinTargetChainNum = gameConfig.ENDURANCE_MIN_ONCE1;
+      this._enduranceMaxTargetChainNum = gameConfig.ENDURANCE_MAX_ONCE1;
+    } else if (mode === EnduranceMode.Mode2) {
+      this._enduranceTotalTargetChainNum = gameConfig.ENDURANCE_TOTAL2;
+      this._enduranceMinTargetChainNum = gameConfig.ENDURANCE_MIN_ONCE2;
+      this._enduranceMaxTargetChainNum = gameConfig.ENDURANCE_MAX_ONCE2;
+    }
+  }
+
+  getEnduraceMode(): string {
+    if (this._currentEnduranceMode === EnduranceMode.Mode1) {
+      return this.getEnduraceMode1();
+    } else if (this._currentEnduranceMode === EnduranceMode.Mode2) {
+      return this.getEnduraceMode2();
+    }
+  }
+  
+  getEnduraceMode1(): string {
+      return `${this._enduranceTotalTargetChainNum}-mode1`;
+  }
+  
+  getEnduraceMode2(): string {
+      return `${this._enduranceTotalTargetChainNum}-mode2`;
   }
 
   get enduranceTotalTargetChainNum() { return this._enduranceTotalTargetChainNum; }

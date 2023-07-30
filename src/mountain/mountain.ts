@@ -5,7 +5,7 @@ import { baseSinglePuyo } from "../types";
 import { Board } from "../board";
 import { MountainBase } from "./mountainBase";
 import { Difficulty, MountainArcade } from "./mountainArcade";
-import { MountainEndurance } from "./mountainEndurance";
+import { EnduranceMode, MountainEndurance } from "./mountainEndurance";
 import { MountainCustom } from "./mountainCustom";
 
 
@@ -150,6 +150,16 @@ export class Mountain {
 
   getGameStatus(): string {
     return this._mountainBase.getGameStatus();
+  }
+
+  setEnduranceMode(mode: EnduranceMode) {
+    if (this._mountainBase instanceof MountainEndurance) this._mountainBase.setEnduranceMode(mode);
+    else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
+  }
+
+  getEnduraceMode(): string {
+    if (this._mountainBase instanceof MountainEndurance) return this._mountainBase.getEnduraceMode();
+    else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
   setCallback(changeBackground: (color: string) => void) {
