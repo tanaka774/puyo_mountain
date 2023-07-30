@@ -58,15 +58,23 @@ export class Rotate {
       const nextX = rotatedChildX;
       if (nextX >= gameConfig.BOARD_LEFT_EDGE &&
         // currentChildY + 1 < gameConfig.BOARD_HEIGHT &&
-        _board.board[Math.floor(currentChildY)][nextX] == gameConfig.NO_COLOR &&
-        // _board.board[Math.floor(currentChildY) + 1][nextX] == gameConfig.NO_COLOR &&
-        _board.board[Math.floor(rotatedChildY)][nextX] == gameConfig.NO_COLOR &&
-        _board.board[Math.floor(rotatedChildY) + 1][nextX] == gameConfig.NO_COLOR
+        _board.board[Math.floor(currentChildY)][nextX] === gameConfig.NO_COLOR &&
+        // _board.board[Math.floor(currentChildY) + 1][nextX] === gameConfig.NO_COLOR &&
+        _board.board[Math.floor(rotatedChildY)][nextX] === gameConfig.NO_COLOR &&
+        _board.board[Math.floor(rotatedChildY) + 1][nextX] === gameConfig.NO_COLOR
       ) {
         canRotate = true;
       } else if (this._move.canPuyoMoveRight(_board, rotatedPuyo)) {
         // TODO: movestart instead of letting puyo actually move here?
         rotatedPuyo.parentX = this._move.movePuyoHor_ori(rotatedPuyo.parentX, 1.0);
+        canRotate = true;
+      } else if (
+        this._current.currentPuyo.angle === 180 &&
+        _board.board[Math.floor(currentChildY) + 1][nextX] === gameConfig.NO_COLOR &&
+        _board.board[Math.floor(rotatedChildY) + 1][nextX] !== gameConfig.NO_COLOR
+      ) {
+        // run aground upper-left puyo, next priority to moveright
+        rotatedPuyo.parentY = Math.floor(currentChildY) + 1;
         canRotate = true;
       } else {
         // stuck and cannot move
@@ -80,14 +88,22 @@ export class Rotate {
       const nextX = rotatedChildX;
       if (nextX < gameConfig.BOARD_RIGHT_EDGE &&
         // currentChildY + 1 < gameConfig.BOARD_HEIGHT &&
-        _board.board[Math.floor(rotatedChildY)][nextX] == gameConfig.NO_COLOR &&
-        _board.board[Math.floor(rotatedChildY) + 1][nextX] == gameConfig.NO_COLOR &&
-        _board.board[Math.floor(currentChildY)][nextX] == gameConfig.NO_COLOR
-        // && _board.board[Math.floor(currentChildY) + 1][nextX] == gameConfig.NO_COLOR
+        _board.board[Math.floor(rotatedChildY)][nextX] === gameConfig.NO_COLOR &&
+        _board.board[Math.floor(rotatedChildY) + 1][nextX] === gameConfig.NO_COLOR &&
+        _board.board[Math.floor(currentChildY)][nextX] === gameConfig.NO_COLOR
+        // && _board.board[Math.floor(currentChildY) + 1][nextX] === gameConfig.NO_COLOR
       ) {
         canRotate = true;
       } else if (this._move.canPuyoMoveLeft(_board, rotatedPuyo)) {
         rotatedPuyo.parentX = this._move.movePuyoHor_ori(rotatedPuyo.parentX, -1.0);
+        canRotate = true;
+      } else if (
+        this._current.currentPuyo.angle === 180 &&
+        _board.board[Math.floor(currentChildY) + 1][nextX] === gameConfig.NO_COLOR &&
+        _board.board[Math.floor(rotatedChildY) + 1][nextX] !== gameConfig.NO_COLOR
+      ) {
+        // run aground upper-right puyo, next priority to moveleft
+        rotatedPuyo.parentY = Math.floor(currentChildY) + 1;
         canRotate = true;
       } else {
         // stuck and cannot move
