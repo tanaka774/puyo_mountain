@@ -18,5 +18,6 @@
   "dependencies": {
     "@vercel/node": "^2.15.5",
     "@vercel/postgres": "^0.4.0"
-  }
+  },
+  "type": "module"
 }

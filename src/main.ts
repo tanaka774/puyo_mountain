@@ -178,4 +178,21 @@ function main() {
 // apiHandle.getNextWholeRank('01 hours 59 minutes');
 // apiHandle.getNextSeasonRank('2023', '10', '12', '2 hours 1 minutes');
 
+try {
+console.log(import.meta.env.DEV);
+console.log(import.meta.env.PROD);
+} catch (err) { console.error(err); }
+try {
+  console.log(import.meta.env.VITE_API_KEY);
+} catch (err) { console.error(err); }
+try {
+  console.log(import.meta.env.API_KEY);
+} catch (err) { console.error(err); }
+try {
+  console.log(process.env.VITE_API_KEY);
+} catch (err) { console.error(err); }
+try {
+  console.log(process.env.API_KEY);
+} catch (err) { console.error(err); }
+
 main();

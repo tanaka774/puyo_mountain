@@ -13,7 +13,8 @@ export class ApiHandle {
 
   async fetchWholeData(gamemode: string, bottomRank) {
     try {
-      const response = await fetch(`/api/get-wholescores?gamemode=${gamemode}&bottomRank=${bottomRank}`)
+      let key = import.meta.env.VITE_API_KEY;
+      const response = await fetch(`/api/get-wholescores?gamemode=${gamemode}&bottomRank=${bottomRank}&key=${key}`)
       if (!response.ok) { throw new Error('Request failed'); }
       const data = await response.json();
       // console.log(data);
