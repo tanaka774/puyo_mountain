@@ -179,14 +179,17 @@ function main() {
 // apiHandle.getNextSeasonRank('2023', '10', '12', '2 hours 1 minutes');
 
 try {
-console.log(import.meta.env.DEV);
-console.log(import.meta.env.PROD);
+  console.log(import.meta.env.DEV);
+  console.log(import.meta.env.PROD);
 } catch (err) { console.error(err); }
 try {
   console.log(import.meta.env.VITE_API_KEY);
 } catch (err) { console.error(err); }
 try {
-  console.log(import.meta.env.API_KEY);
+  console.log(process.env.TEST_KEY);
+} catch (err) { console.error(err); }
+try {
+  console.log(process.env.VITE_TEST_KEY);
 } catch (err) { console.error(err); }
 try {
   console.log(process.env.VITE_API_KEY);
