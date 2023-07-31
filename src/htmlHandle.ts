@@ -327,6 +327,7 @@ export class HtmlHandle {
 
   showArcadeResult() {
     const [hours, minutes, seconds] = this._timer.getElapsedTimeDigits();
+    this._mountain.decideGameResult(hours, minutes, seconds);
     const playDuration = `${hours}h ${minutes}m ${seconds}s`
     const resultDialog = document.createElement("dialog");
     document.body.appendChild(resultDialog);

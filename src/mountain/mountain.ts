@@ -133,6 +133,11 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
+  decideGameResult(hours:number, minutes:number, seconds:number) {
+    if (this._mountainBase instanceof MountainArcade) this._mountainBase.decideGameResult(hours, minutes, seconds);
+    else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
+  }
+
   get resultGrade() {
     if (this._mountainBase instanceof MountainArcade) return this._mountainBase.resultGrade;
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);

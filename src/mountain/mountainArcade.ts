@@ -118,6 +118,16 @@ export class MountainArcade extends MountainBase {
     }
   }
 
+  decideGameResult(hours:number, minutes:number, seconds:number) {
+    const totalMinutes = 60 * hours + minutes;
+    const unne = this._unnecessaryVanishPuyoNum;
+    const score = totalMinutes + unne / 20;
+    if (score <= 14) this._resultGrade = 'S';
+    else if (score <= 20) this._resultGrade = 'A';
+    else if (score <= 30) this._resultGrade = 'B';
+    else  this._resultGrade = 'C';
+  }
+
   getGameStatus(): string {
     let res: string;
     if (this.isLastPhase() && this.checkDifficulty(Difficulty.HARD)) {
