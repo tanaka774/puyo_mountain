@@ -120,13 +120,15 @@ export class Rotate {
       ) {
         // TODO: some animation at push up?
         this._pushupDrawing.preChildX = rotatedPuyo.parentX; // same as child
-        this._pushupDrawing.preChildY = rotatedPuyo.parentY; // same as child
+        // this._pushupDrawing.preChildY = rotatedPuyo.parentY; // same as child
+        this._pushupDrawing.preChildY = Math.floor(rotatedChildY); // same as child
 
         let upY = (rotatedPuyo.parentY < 2) ? 0.1 : 0.5;
         rotatedPuyo.parentY = Math.floor(rotatedPuyo.parentY) - upY; // for mawashi??
 
         this._pushupDrawing.isPushedUp = true;
-        this._pushupDrawing.upY = this._pushupDrawing.preChildY - (rotatedPuyo.parentY + 1);
+        // this._pushupDrawing.upY = this._pushupDrawing.preChildY - (rotatedPuyo.parentY + 1);
+        this._pushupDrawing.upY = upY;
       }
       canRotate = true;
     }

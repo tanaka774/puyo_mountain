@@ -57,7 +57,7 @@ export class DrawWithCanvas {
     this.drawBoardBackground();
 
     // in pause state, don't show current board
-    if(stateHandle.checkCurrentState(GameState.PAUSING)) {return;}
+    if (stateHandle.checkCurrentState(GameState.PAUSING)) { return; }
 
     this.drawBoardPuyos();
 
@@ -260,9 +260,11 @@ export class DrawWithCanvas {
     // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
 
     this.VPuyoCtx.font = "16px Comic Sans MS";
-    this.VPuyoCtx.fillText('D: 使用', cs * 2.3, cs * (startY + 0.9));
-    this.VPuyoCtx.fillText('C: 色変更', cs * 2.3, cs * (startY + 1.7));
-    this.VPuyoCtx.fillText('P: ポーズ', cs * 2.3, cs * (startY + 2.7));
+    this.VPuyoCtx.fillText('D: Vぷよ使用', cs * 2.3, cs * (startY + 0.5));
+    this.VPuyoCtx.fillText('C: Vぷよ色変更', cs * 2.3, cs * (startY + 1.2));
+    this.VPuyoCtx.fillText('Z,X: 回転', cs * 2.3, cs * (startY + 1.9));
+    this.VPuyoCtx.fillText('←↑→↓: 移動', cs * 2.3, cs * (startY + 2.6));
+    this.VPuyoCtx.fillText('P: ポーズ', cs * 2.3, cs * (startY + 3.3));
   }
 
   private drawWaitingPuyo(ctx: CanvasRenderingContext2D, puyo: baseManiPuyo, x, y) {
@@ -469,15 +471,31 @@ export class DrawWithCanvas {
       const devideNum = 3;
       for (let n = 1; n < devideNum; n++) {
         const alpha = 0.2 + 0.2 * n / devideNum;
-        const drawX = this._rotate.pushupDrawing.preChildX;
-        const drawY = this._rotate.pushupDrawing.preChildY - this._rotate.pushupDrawing.upY * (n / devideNum);
-        this.drawPuyo(this.ctx, drawX, drawY, this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+        const posX = this._rotate.pushupDrawing.preChildX;
+        const posY = this._rotate.pushupDrawing.preChildY - this._rotate.pushupDrawing.upY * ((n * 2 - 1) / 5);
+        // this.drawPuyo(this.ctx, drawX, drawY, this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], alpha), false);
+
+        const radius = gameConfig.CELL_SIZE / 2;
+        const drawX = (posX - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE + radius;
+        const drawY = (posY - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE + radius;
+
+        this.ctx.lineWidth = 6;
+        this.ctx.strokeStyle = this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], 0.4);
+        // this.ctx.strokeStyle = 'black';
+
+        const startAngle = Math.PI * 3 / 12;
+        const endAngle = (9 /12) * Math.PI;
+
+        this.ctx.beginPath();
+        this.ctx.arc(drawX, drawY, radius, startAngle, endAngle);
+
+        this.ctx.stroke();
       }
 
       this._rotate.pushupDrawing.drawCount--;
       if (this._rotate.pushupDrawing.drawCount <= 0) {
         this._rotate.pushupDrawing.isPushedUp = false;
-        this._rotate.pushupDrawing.drawCount = gameConfig.ROTATING_TIME;
+        this._rotate.pushupDrawing.drawCount = gameConfig.PUSHEDUP_TIME;
       }
     }
   }
@@ -776,5 +794,5 @@ export class DrawWithCanvas {
     }
   }
 
-  get mainCanvas() {return this._mainCanvas; }
+  get mainCanvas() { return this._mainCanvas; }
 }

@@ -112,7 +112,7 @@ export class Game {
         if (!stateHandle.checkCurrentState(GameState.SPLITTING) &&
           this._move.canPuyoMoveDown(this._board)
         ) {
-          this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, 1.0);
+          this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, gameConfig.FREEFALL_SPEED_RATE);
 
         } else {
           // TODO: I don't wanna do this! should be done in canMovePuyoDown()
