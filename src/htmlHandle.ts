@@ -59,7 +59,8 @@ export class HtmlHandle {
     const playDuration = `${hours} hours ${minutes} minutes ${seconds} seconds`
     const currentDate = new Date();
     const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() + 1;
+    const currentMonth = currentDate.getMonth() + 1;
+    const minMonth = currentMonth - ((currentMonth % 3 + 2) % 3);
     const bottomRank = gameConfig.BOTTOM_SCORE_RANK;
     const gamemode = this._mountain.getEnduraceMode();
 
@@ -72,7 +73,7 @@ export class HtmlHandle {
       // unused?
     });
 
-    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, month, month + 2, playDuration, gamemode);
+    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, minMonth, minMonth + 2, playDuration, gamemode);
     const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration, gamemode);
 
     if (seasonRankToEnter <= bottomRank) {
@@ -120,7 +121,7 @@ export class HtmlHandle {
             // update after inserting data, welcome to callback hell
             this._apiHandle.updateWholeRank(gamemode)
               .then(() => {
-                this._apiHandle.updateSeasonRank(year, month, month + 2, gamemode)
+                this._apiHandle.updateSeasonRank(year, minMonth, minMonth + 2, gamemode)
                   .catch((err) => { console.error(err); })
               })
               .catch((err) => { console.error(err); })
@@ -205,7 +206,7 @@ export class HtmlHandle {
     const modeSelect = document.createElement("select");
     // addOption('選ぶ', 'default', modeSelect);
     // TODO: change gamemode according to select
-    addOption('mode1', gamemode1, modeSelect);
+    addOption('ケーツー', gamemode1, modeSelect);
     addOption('mode2', gamemode2, modeSelect);
     const scoresOutput = document.createElement("output");
     scoresOutput.classList.add('score-container');
@@ -329,6 +330,10 @@ export class HtmlHandle {
     const [hours, minutes, seconds] = this._timer.getElapsedTimeDigits();
     this._mountain.decideGameResult(hours, minutes, seconds);
     const playDuration = `${hours}h ${minutes}m ${seconds}s`
+    const difficulty: string = (this._mountain.checkDifficulty(Difficulty.EASY)) ? 'EASY'
+      : (this._mountain.checkDifficulty(Difficulty.NORMAL)) ? 'NORMAL'
+        : (this._mountain.checkDifficulty(Difficulty.HARD)) ? 'HARD'
+          : '';
     const resultDialog = document.createElement("dialog");
     document.body.appendChild(resultDialog);
     resultDialog.showModal();
@@ -336,13 +341,14 @@ export class HtmlHandle {
       // unused?
     });
 
-    const resultScore = `総合スコア ${this._mountain.resultGrade}<br><br><br><br>`;
+    const resultDifficulty = `難易度:${difficulty}<br><br>`;
+    const resultScore = `総合スコア ${this._mountain.resultGrade}<br><br>`;
     const resultPlayTime = `プレイ時間 ${playDuration}<br><br>`
     const resultUnne = `不要に消したぷよ数 ${this._mountain.unnecessaryVanishPuyoNum}<br><br>`
 
     const tempDiv = document.createElement('div');
     tempDiv.style.fontSize = "26px"
-    tempDiv.innerHTML = `${resultScore}${resultPlayTime}${resultUnne}`;
+    tempDiv.innerHTML = `${resultDifficulty}${resultScore}${resultPlayTime}${resultUnne}`;
     resultDialog.appendChild(tempDiv);
     this.addCloseButton(resultDialog);
   }
