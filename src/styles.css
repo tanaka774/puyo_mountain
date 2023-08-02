@@ -114,6 +114,7 @@ html {
 
 .menu-container button.selected {
   background-color: #37b493;
+  margin-bottom: 5px;
 }
 
 .menu-container button:hover {

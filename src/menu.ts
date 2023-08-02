@@ -1,3 +1,4 @@
+import { gameConfig } from "./config";
 import { FontHandle } from "./fontHandle";
 import { GameState, stateHandle } from "./state";
 
@@ -30,11 +31,11 @@ export class Menu {
   private retryAfterGameClear: () => void;
   private backToMenuAfterGameOver: () => void;
   private backToMenuAfterGameClear: () => void;
-  private enterKeyUpCallback: () => void;
+  private enterKeyUpCallback: () => void; // should use customevent?
 
 
   constructor(
-  private _fontHandle: FontHandle
+    private _fontHandle: FontHandle
   ) {
     this._titleElement = document.getElementById("title");
     // TODO: menu should be generated and shown here???
@@ -65,7 +66,7 @@ export class Menu {
       }
 
       if (e.key === 'Enter') {
-        console.log("I'm called mom!")
+        // console.log("I'm called mom!")
         e.preventDefault();
         this.enterKeyUpCallback();
       }
@@ -74,9 +75,15 @@ export class Menu {
     this.enterKeyUpCallback = () => this._buttons[this._selectedIndex].click();
   }
 
-  selectButton(index) {
+  selectButton(newIndex) {
+    const descDivBefore = document.getElementById(`desc${this._selectedIndex}`) as HTMLElement;
+    if (descDivBefore) { descDivBefore.style.display = 'none'; }
+    const descDivAfter = document.getElementById(`desc${newIndex}`) as HTMLElement;
+    if (descDivAfter) { descDivAfter.style.display = ''; }
+
     this._buttons[this._selectedIndex].classList.remove('selected');
-    this._selectedIndex = index;
+    this._selectedIndex = newIndex;
+
     this._buttons[this._selectedIndex].classList.add('selected');
 
     this.enterKeyUpCallback = () => this._buttons[this._selectedIndex].click();
@@ -105,6 +112,7 @@ export class Menu {
   }
 
   handleMouseClick(event) {
+    // unused?
     let button = event.target;
     let index = Array.from(this._buttons).indexOf(button);
     // Perform action based on selected button
@@ -113,24 +121,20 @@ export class Menu {
 
   deleteButtons() {
     this._menuContainer.innerHTML = "";
-    // this._menuContainer.classList.remove('overlay');
   }
 
   closeModal() {
-    this._menuContainer.close(); 
+    this._menuContainer.close();
     this._titleElement.style.display = 'none';
   }
 
   generateButtons(menuSelect: MenuSelect) {
-    // this._menuContainer = document.getElementById("menu") as HTMLDivElement;
     this._menuContainer = document.getElementById("menu") as HTMLDialogElement;
-    // this._menuContainer.innerHTML = "";
     this.deleteButtons();
-    // this._menuContainer.classList.add('overlay');
     if (!this._menuContainer.open) this._menuContainer.showModal();
     this._titleElement.style.display = '';
 
-    const geneButton = (showText: string, callback: () => void) => {
+    const geneButton = (showText: string, callback: () => void, description: string = undefined, index: number = -1) => {
       const tempButton = document.createElement('button');
       tempButton.innerText = showText;
       // TODO: why css doesn't apply to these button???
@@ -140,25 +144,72 @@ export class Menu {
       tempButton.addEventListener('click', this.handleMouseClick.bind(this));
 
       this._menuContainer.appendChild(tempButton);
+
+      if (description) {
+        const descDiv = document.createElement('div');
+        descDiv.style.display = 'none';
+        descDiv.style.textAlign = 'center';
+        descDiv.style.color = 'white';
+        descDiv.style.fontSize = '16px';
+        descDiv.innerHTML = `${description}`;
+        // descDiv.style.marginTop = '3px';
+        // descDiv.style.width = 'min-content'
+        // descDiv.style.height = '20px'
+        descDiv.id = `desc${index}`;
+        this._menuContainer.appendChild(descDiv);
+      }
     }
 
     switch (menuSelect) {
       case MenuSelect.START_MENU:
-        geneButton('アーケードモード', () => this.generateButtons(MenuSelect.ARCADE_SELECT_1));
-        geneButton('スコアモード', () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1));
-        geneButton('カスタムモード', () => { this.customMode(); });
-        geneButton('せってい', () => { this.gameSetting(); });
+        geneButton('アーケードモード',
+          () => this.generateButtons(MenuSelect.ARCADE_SELECT_1),
+          '連鎖を組んで頂上を目指そう', 0
+        );
+        geneButton('スコアモード',
+          () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1),
+          '最高峰の山を登るまでのタイムを競おう', 1
+        );
+        geneButton('カスタムモード',
+          () => { this.customMode(); },
+          'お好みの種ぷよ量・連鎖数でプレイできます', 2
+        );
+        geneButton('設定',
+          () => { this.gameSetting(); },
+          'ゲーム設定を行います', 3
+        );
         break;
       case MenuSelect.ARCADE_SELECT_1:
-        geneButton('EASY', () => { this.arcadeEasy(); this.closeModal(); });
-        geneButton('NORMAL', () => { this.arcadeNormal(); this.closeModal(); });
-        geneButton('HARD', () => { this.arcadeHard(); this.closeModal(); });
+        geneButton('　低山　',
+          () => { this.arcadeEasy(); this.closeModal(); },
+          '難易度:EASY', 0
+        );
+        geneButton('　中山　',
+          () => { this.arcadeNormal(); this.closeModal(); },
+          '難易度:NORMAL', 1
+        );
+        geneButton('　高山　',
+          () => { this.arcadeHard(); this.closeModal(); },
+          '難易度:HARD', 2
+        );
         geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.ENDURANCE_SELECT_1:
-        geneButton('モード1', () => { this.enduranceMode1(); this.closeModal(); });
-        geneButton('モード2', () => { this.enduranceMode2(); this.closeModal(); });
-        geneButton('きろくをみる', () => { this.watchHighScores(); });
+        geneButton('ケーツー',
+          () => { this.enduranceMode1(); this.closeModal(); },
+          `${gameConfig.ENDURANCE_MIN_ONCE1}~${gameConfig.ENDURANCE_MAX_ONCE1}連鎖で計${gameConfig.ENDURANCE_TOTAL1}連鎖まで`,
+          0
+        );
+        geneButton('モード2（テスト用）',
+          () => { this.enduranceMode2(); this.closeModal(); },
+          `${gameConfig.ENDURANCE_MIN_ONCE2}~${gameConfig.ENDURANCE_MAX_ONCE2}連鎖で計${gameConfig.ENDURANCE_TOTAL2}連鎖まで`,
+          1
+        );
+        geneButton('記録を見る',
+          () => { this.watchHighScores(); },
+          'ハイスコアを閲覧できます',
+          2
+        );
         geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.PAUSE:
@@ -170,7 +221,7 @@ export class Menu {
         geneButton('メニューに戻る', () => { this.backToMenuAfterGameOver(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_CLEAR:
-        geneButton('もういちどのぼる', () => { this.retryAfterGameClear(); this.closeModal(); });
+        geneButton('もう一度登る', () => { this.retryAfterGameClear(); this.closeModal(); });
         geneButton('メニューに戻る', () => { this.backToMenuAfterGameClear(); this.generateButtons(MenuSelect.START_MENU) });
         break;
 
