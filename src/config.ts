@@ -1,12 +1,12 @@
 import { LSHandle } from "./localStorageHandle";
 
-const CELL_SIZE = 40;
+const CELL_SIZE = 37;
 const DRAW_TOOL: string = 'canvas'; // 'svg'
 const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
 const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;
 const NEXT_DRAW_WIDTH = CELL_SIZE * 5;
 const NEXT_DRAW_HEIGHT = CELL_SIZE * 7;
-const VPUYO_DRAW_WIDTH = CELL_SIZE * 5;
+const VPUYO_DRAW_WIDTH = CELL_SIZE * 6;
 const VPUYO_DRAW_HEIGHT = CELL_SIZE * 4;
 
 if (DRAW_TOOL === 'canvas') {
@@ -54,9 +54,9 @@ const FLOAT_FALLING_SPEED = 12.0;
 const PUYO_POOL_LOOP = 8;
 // if you change this value, store previous value and add select so that user can watch previous score records
 const ENDURANCE_TOTAL1 = 300;
+const ENDURANCE_MIN_ONCE1 = 7;
+const ENDURANCE_MAX_ONCE1 = 13;
 const ENDURANCE_TOTAL2 = 8;
-const ENDURANCE_MIN_ONCE1 = 6;
-const ENDURANCE_MAX_ONCE1 = 12;
 const ENDURANCE_MIN_ONCE2 = 4;
 const ENDURANCE_MAX_ONCE2 = 8;
 const BOTTOM_SCORE_RANK = 30;

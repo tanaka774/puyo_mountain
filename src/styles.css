@@ -17,7 +17,7 @@ html {
   justify-content: center;
   position: relative;
   /* TODO: actually I want to align center vertically not like this*/
-  top: 50px;
+  top: 10px;
   /* align-items: center; */
   /* margin: 10px;  */
   z-index: 1;
@@ -29,10 +29,14 @@ html {
 }
 
 .side-container {
-  /* display: inline-grid; */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: inline-grid;
+  grid-template-rows: auto; 
+  gap: 15px;
+  height:min-content;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* gap: 5px; */
+  /* justify-content: center; */
 }
 
 #nextPuyoCanvas {
@@ -51,10 +55,11 @@ html {
 }
 
 .side-container .game-info {
-  margin-top: 5px;
+  /* margin-top: 5px; */
   /* margin-bottom: 3px; */
   font-size: 20px;
   width: 90px;
+  height:30px;
 }
 
 .canvas-background {

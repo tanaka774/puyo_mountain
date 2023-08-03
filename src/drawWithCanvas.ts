@@ -253,13 +253,13 @@ export class DrawWithCanvas {
       this.drawWaitingPuyo(this.VPuyoCtx, this._current.versatilePuyo, 0.5, 1);
     }
     this.VPuyoCtx.fillStyle = `rgba(151, 255, 151, 0.8)`;
-    this.VPuyoCtx.font = "bold 18px Comic Sans MS";
+    this.VPuyoCtx.font = "bold 16px Comic Sans MS";
     this.VPuyoCtx.fillText('Vぷよ', cs * 0.4, cs * startY);
     // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
     // this.nextPuyoCtx.lineWidth = 0.001;
     // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
 
-    this.VPuyoCtx.font = "16px Comic Sans MS";
+    this.VPuyoCtx.font = "14px Comic Sans MS";
     this.VPuyoCtx.fillText('D: Vぷよ使用', cs * 2.3, cs * (startY + 0.5));
     this.VPuyoCtx.fillText('C: Vぷよ色変更', cs * 2.3, cs * (startY + 1.2));
     this.VPuyoCtx.fillText('Z,X: 回転', cs * 2.3, cs * (startY + 1.9));
@@ -479,12 +479,12 @@ export class DrawWithCanvas {
         const drawX = (posX - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE + radius;
         const drawY = (posY - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE + radius;
 
-        this.ctx.lineWidth = 6;
+        this.ctx.lineWidth = 5;
         this.ctx.strokeStyle = this.addAlpha(PUYO_COLORS[this._current.currentPuyo.childColor], 0.4);
         // this.ctx.strokeStyle = 'black';
 
-        const startAngle = Math.PI * 3 / 12;
-        const endAngle = (9 /12) * Math.PI;
+        const startAngle = Math.PI * 7 / 24;
+        const endAngle = (17 /24) * Math.PI;
 
         this.ctx.beginPath();
         this.ctx.arc(drawX, drawY, radius, startAngle, endAngle);
