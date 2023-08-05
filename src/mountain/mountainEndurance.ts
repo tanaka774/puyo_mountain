@@ -111,7 +111,8 @@ export class MountainEndurance extends MountainBase {
     this._totalChainNum += this._currentTargetChainNum;
     this.decideColor();
     this._changeBackGround(`rgb(${this._backgroundColors[0]}, ${this._backgroundColors[1]}, ${this._backgroundColors[2]})`);
-    if (this._totalChainNum >= this._enduranceTotalTargetChainNum) {
+    if (this._totalChainNum >= this._enduranceTotalTargetChainNum &&
+      this._enduranceChainVariablity.every(n => n === 0)) {
       setStateGameClear();
     } else {
       setStateGeneSeed();
@@ -163,13 +164,13 @@ export class MountainEndurance extends MountainBase {
       return this.getEnduraceMode2();
     }
   }
-  
+
   getEnduraceMode1(): string {
-      return `${this._enduranceTotalTargetChainNum}-mode1`;
+    return `${this._enduranceTotalTargetChainNum}-mode1`;
   }
-  
+
   getEnduraceMode2(): string {
-      return `${this._enduranceTotalTargetChainNum}-mode2`;
+    return `${this._enduranceTotalTargetChainNum}-mode2`;
   }
 
   get enduranceTotalTargetChainNum() { return this._enduranceTotalTargetChainNum; }
