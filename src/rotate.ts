@@ -74,7 +74,7 @@ export class Rotate {
         _board.board[Math.floor(rotatedChildY) + 1][nextX] !== gameConfig.NO_COLOR
       ) {
         // run aground upper-left puyo, next priority to moveright
-        rotatedPuyo.parentY = Math.floor(currentChildY) + 1;
+        rotatedPuyo.parentY = Math.floor(currentChildY) + 0.8;
         canRotate = true;
       } else {
         // stuck and cannot move
@@ -103,7 +103,7 @@ export class Rotate {
         _board.board[Math.floor(rotatedChildY) + 1][nextX] !== gameConfig.NO_COLOR
       ) {
         // run aground upper-right puyo, next priority to moveleft
-        rotatedPuyo.parentY = Math.floor(currentChildY) + 1;
+        rotatedPuyo.parentY = Math.floor(currentChildY) + 0.8;
         canRotate = true;
       } else {
         // stuck and cannot move
