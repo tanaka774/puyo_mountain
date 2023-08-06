@@ -5,7 +5,7 @@ import { gameConfig } from "../config";
 
 // TODO: finish implementing!!!
 export class MountainCustom extends MountainBase {
-  private _selectedDivider: number | (() => number); // TODO: rename amount rate?
+  private _selectedAmountRate: number | (() => number); // TODO: rename amount rate?
   private _selectedDistributionNum: string;
   private _selectedMinTargetChainNum: number;
   private _selectedMaxTargetChainNum: number;
@@ -18,7 +18,7 @@ export class MountainCustom extends MountainBase {
   }
 
   setSelectedValue(puyoAmount: string, distribution: string, minChainNum: string, maxChainNum: string) {
-    this._selectedDivider =
+    this._selectedAmountRate =
       (puyoAmount === 'nothing') ? 0 :
         (puyoAmount === 'pretty-small') ? 0.3 :
           (puyoAmount === 'small') ? 0.6 :
@@ -39,30 +39,19 @@ export class MountainCustom extends MountainBase {
   }
 
   protected decideSeedPuyoNum(): number {
-    // let divider;
-    // if (this._selectedDivider === 0) return 0;
-    // else if (typeof this._selectedDivider === 'number') divider = this._selectedDivider;
-    // else if (typeof this._selectedDivider === 'function') divider = this._selectedDivider();
-    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
-    // return seedPuyoNum;
     const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const baseRand = 4;
     const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
     const meanPuyoHeight = 2;
     let selectedRate: number;
-    if (typeof this._selectedDivider === 'number') selectedRate = this._selectedDivider;
-    else if (typeof this._selectedDivider === 'function') selectedRate = this._selectedDivider();
+    if (typeof this._selectedAmountRate === 'number') selectedRate = this._selectedAmountRate;
+    else if (typeof this._selectedAmountRate === 'function') selectedRate = this._selectedAmountRate();
     const seedPuyoNum = Math.round((boardWidth * meanPuyoHeight + randModi) * selectedRate);
     return seedPuyoNum;
   }
 
   protected decideDistributionNum(): number {
-    // const getRandomNum = (num) => Math.floor(Math.random() * num);
-    // const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
-    // if (this._selectedDistributionNum === boardWidth) return boardWidth;
-    // else return getRandomNum(boardWidth - 4) + this._selectedDistributionNum;
-
     const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     if (this._selectedDistributionNum === 'narrow') {

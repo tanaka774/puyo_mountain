@@ -62,9 +62,6 @@ export class MountainBase {
   }
 
   protected decideSeedPuyoNum(): number {
-    // const divider = 3;
-    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
-    // return seedPuyoNum;
     const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const baseRand = 4;
@@ -75,9 +72,6 @@ export class MountainBase {
   }
 
   protected decideDistributionNum(): number {
-    // const getRandomNum = (num) => Math.floor(Math.random() * num);
-    // const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
-    // return getRandomNum(boardWidth - 4) + 4;
     const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const column = 3;
@@ -89,12 +83,7 @@ export class MountainBase {
     const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
-    // const baseRand = 4;
-    // const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
     const meanPuyoHeight = 2;
-    // const seedPuyoNum = boardWidth * meanPuyoHeight + randModi;
-    // const column = 3;
-    // const distributionNum = getRandomNum(column) + 1 + (boardWidth - column);
     const seedPuyoNum = this.decideSeedPuyoNum();
     const distributionNum = this.decideDistributionNum();
 
@@ -114,72 +103,20 @@ export class MountainBase {
         break;
       }
 
-      if (distributionNum === boardWidth)
-        setVariability(randomIndex, 
-          getRandomNum(meanPuyoHeight * 1) +
-          getRandomNum(meanPuyoHeight * 1) +
-          getRandomNum(meanPuyoHeight * 1) +
-          getRandomNum(meanPuyoHeight * 1) +
-          getRandomNum(meanPuyoHeight * 1));
-      else setVariability(randomIndex, getRandomNum(meanPuyoHeight * 2) + getRandomNum(meanPuyoHeight * 2));
+      if (distributionNum === boardWidth) {
+        let ran = 0;
+        for (let n = 0; n < Math.floor(seedPuyoNum / meanPuyoHeight); n++)
+          ran += getRandomNum(meanPuyoHeight * 1);
+        setVariability(randomIndex, ran);
+      } else {
+        let ran = 0;
+        for (let n = 0; n < Math.floor(seedPuyoNum / meanPuyoHeight / 2); n++)
+          ran += getRandomNum(meanPuyoHeight * 2);
+        setVariability(randomIndex, ran);
+      }
       // setVariability(randomIndex, getRandomNum(meanPuyoHeight * 2) + getRandomNum(meanPuyoHeight * 2));
     }
-  }
-
-  decideVariability_ori() {
-    // TODO: may change according to difficulty? this is test now!
-    // need more randomness
-    const getRandomNum = (num) => Math.floor(Math.random() * num)
-    const seedPuyoNum = this.decideSeedPuyoNum();
-    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
-    const boardHeight = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.BOARD_TOP_EDGE;
-    // TODO: need to limit side range
-    // const distributionNum = Math.floor(Math.random() * (boardWidth - 2)) + 2;
-    const distributionNum = this.decideDistributionNum();
-    // const deviation = seedPuyoNum / distributionNum * 3 / 5; 
-    const onceLimit = 2 / 3;
-    const heightLimit = boardHeight - 5;
-    const setVariability = (index, val) => { this._seedPuyoVariability[index] = Math.min(val, heightLimit); }
-
-    for (let n = 0; n < distributionNum; n++) {
-      let randomIndex = getRandomNum(boardWidth);
-      while (this._seedPuyoVariability[randomIndex] !== 0 && n > 0) {
-        randomIndex = getRandomNum(boardWidth);
-      }
-
-      const currentSeedPuyoSum = this._seedPuyoVariability.reduce((acc, cur) => { return acc + cur; }, 0);
-      if (n === distributionNum - 1) {
-        setVariability(randomIndex, Math.round(seedPuyoNum - currentSeedPuyoSum));
-        break;
-      }
-
-      let puyoNum = getRandomNum(seedPuyoNum * onceLimit);
-
-      setVariability(randomIndex, puyoNum);
-
-      // if (currentSeedPuyoSum + puyoNum > seedPuyoNum - (distributionNum - n)) {
-      //   // is this right???
-      //   setVariability(randomIndex, Math.round(seedPuyoNum - (distributionNum - n) - currentSeedPuyoSum));
-      // } else {
-      //   setVariability(randomIndex, puyoNum);
-      // }
-    }
-
-    // // prevent seedpuyo from filling birth puyo pos
-    // const birthX = gameConfig.PUYO_BIRTH_POSX - 1;
-    // const limitY = gameConfig.BOARD_BOTTOM_EDGE - gameConfig.PUYO_BIRTH_POSY - 5;
-    // if (this._seedPuyoVariability[birthX] > limitY) {
-    //   const diffY = this._seedPuyoVariability[birthX] - limitY;
-
-    //   const minIndex = this._seedPuyoVariability.reduce((minIndex, curNum, curIndex, ori) => {
-    //     if (curNum < ori[minIndex]) { return curIndex; }
-    //     else { return minIndex; }
-    //   }, 0);
-
-    //   this._seedPuyoVariability[minIndex] += diffY;
-    //   this._seedPuyoVariability[birthX] = limitY;
-    // }
-  }
+  } 
 
   changeExcessPuyo() {
     // don't use lockpuyo() here

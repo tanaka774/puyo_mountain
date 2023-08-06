@@ -112,7 +112,8 @@ export class MountainEndurance extends MountainBase {
     this.decideColor();
     this._changeBackGround(`rgb(${this._backgroundColors[0]}, ${this._backgroundColors[1]}, ${this._backgroundColors[2]})`);
     if (this._totalChainNum >= this._enduranceTotalTargetChainNum &&
-      this._enduranceChainVariablity.every(n => n === 0)) {
+      this._enduranceChainVariablity.every(n => n === 0) // need to verify
+      ) {
       setStateGameClear();
     } else {
       setStateGeneSeed();
