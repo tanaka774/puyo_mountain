@@ -1,3 +1,7 @@
+import { gameConfig } from "./config.js";
+import { cz } from "./util.js"
+
+
 export class ApiHandle {
   async fetchSeasonData(year, minMonth, maxMonth, gamemode: string, bottomRank) {
     try {
@@ -13,8 +17,7 @@ export class ApiHandle {
 
   async fetchWholeData(gamemode: string, bottomRank) {
     try {
-      let key = import.meta.env.VITE_API_KEY;
-      const response = await fetch(`/api/get-wholescores?gamemode=${gamemode}&bottomRank=${bottomRank}&key=${key}`)
+      const response = await fetch(`/api/get-wholescores?gamemode=${gamemode}&bottomRank=${bottomRank}`)
       if (!response.ok) { throw new Error('Request failed'); }
       const data = await response.json();
       // console.log(data);
@@ -22,27 +25,6 @@ export class ApiHandle {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  async createTable() {
-    try {
-      const response = await fetch('/api/create-scores-table');
-      if (!response.ok) { throw new Error('Request failed'); }
-    } catch (error) { console.error(error) };
-  }
-
-  async deleteTable() {
-    try {
-      const response = await fetch('/api/delete-scores-table');
-      if (!response.ok) { throw new Error('Request failed'); }
-    } catch (error) { console.error(error) };
-  }
-
-  async deleteAllData() {
-    try {
-      const response = await fetch('/api/delete-scores-data');
-      if (!response.ok) { throw new Error('Request failed'); }
-    } catch (error) { console.error(error) };
   }
 
   async updateWholeRank(gamemode: string) {
@@ -60,9 +42,17 @@ export class ApiHandle {
   }
 
 
-  async addData(userName, playDuration, gamemode) {
+  async addData(userName:string, playDuration:string, gamemode:string, captchaResponse:string) {
     try {
-      const response = await fetch(`/api/add-scores?userName=${userName}&playDuration=${playDuration}&gamemode=${gamemode}`)
+      const createdAt = this.getCurrentTimestamp();
+
+      const response = await fetch(`/api/add-scores?userName=${userName}&playDuration=${playDuration}&gamemode=${gamemode}&createdAt=${createdAt}&pickle=${cz()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ captchaResponse }),
+      })
       if (!response.ok) {
         throw new Error('Request failed');
       }
@@ -70,10 +60,11 @@ export class ApiHandle {
       // console.log(data);
     } catch (error) {
       console.error(error);
+      throw new Error('error when inserting score');
     }
   }
 
-  async getNextWholeRank(playDuration, gamemode: string) {
+  async getNextWholeRank(playDuration:string, gamemode: string) {
     try {
       const response = await fetch(`/api/get-nextwholerank?playDuration=${playDuration}&gamemode=${gamemode}`)
       if (!response.ok) {
@@ -85,10 +76,11 @@ export class ApiHandle {
       return rankToEnter;
     } catch (error) {
       console.error(error);
+      throw new Error('error when getting rank');
     }
   }
 
-  async getNextSeasonRank(year, minMonth, maxMonth, playDuration, gamemode) {
+  async getNextSeasonRank(year:number, minMonth:number, maxMonth:number, playDuration:string, gamemode:string) {
     try {
       const response = await fetch(`/api/get-nextseasonrank?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&playDuration=${playDuration}&gamemode=${gamemode}`)
       if (!response.ok) {
@@ -100,13 +92,14 @@ export class ApiHandle {
       return rankToEnter;
     } catch (error) {
       console.error(error);
+      throw new Error('error when getting rank');
     }
   }
 
   // this is for test/debug
   async addDataWithTimestamp(userName, playDuration, timestamp, gamemode) {
     try {
-      const response = await fetch(`/api/add-scores-withtimestamp?userName=${userName}&playDuration=${playDuration}&timestamp=${timestamp}&gamemode=${gamemode}`)
+      const response = await fetch(`/api/add-scores-withtimestamp?userName=${userName}&playDuration=${playDuration}&timestamp=${timestamp}&gamemode=${gamemode}&pickle=${cz()}`)
       if (!response.ok) {
         throw new Error('Request failed');
       }
@@ -133,7 +126,9 @@ export class ApiHandle {
       const playDuration = `${hours} hours ${minutes} minutes ${seconds} seconds`;
       // '2023-07-15T21:45:23.826Z'
       const timestamp = `${year}-${month}-${day}T21:45:23.826Z`;
-      const gamemode = 'gamemode1';
+      const gamemode1 = `${gameConfig.ENDURANCE_TOTAL1}-mode1`; // equal to getendurancemode1
+      const gamemode2 = `${gameConfig.ENDURANCE_TOTAL2}-mode2`; // equal to getendurancemode2
+      const gamemode = Math.floor(Math.random() * 2) === 0 ? gamemode1 : gamemode2;
 
       await this.addDataWithTimestamp(userName, playDuration, timestamp, gamemode);
     }
@@ -161,20 +156,30 @@ export class ApiHandle {
     return number.toString();
   }
 
+  async addDataWithRetry(userName:string, playDuration:string, gamemode:string, captchaResponse:string):Promise<void> {
+    return this.dataOpeWithRetry(async () => this.addData(userName, playDuration, gamemode, captchaResponse)) as Promise<void>;
+  }
+  async getNextWholeRankWithRetry(playDuration:string, gamemode: string): Promise<number> {
+    return this.dataOpeWithRetry(async () => this.getNextWholeRank(playDuration, gamemode)) as Promise<number>;
+  }
+  async getNextSeasonRankWithRetry(year:number, minMonth:number, maxMonth:number, playDuration:string, gamemode:string):Promise<number> {
+    return this.dataOpeWithRetry(async () => this.getNextSeasonRank(year, minMonth, maxMonth, playDuration, gamemode)) as Promise<number>;
+  }
+
   // Retry configuration
   private _maxRetries = 5; // Maximum number of retries
   private _baseDelay = 1000; // Initial delay in milliseconds
   private _backoffFactor = 2; // Backoff factor for exponential increase
 
-  async addDataWithRetry(userName, playDuration, gamemode) { //:Promise<number> {
+    async dataOpeWithRetry(dataOpeCallback:() => Promise<void> | Promise<number>): Promise<number | void> {
     let retries = 0;
     let delay = this._baseDelay;
 
     while (retries < this._maxRetries) {
       try {
-        await this.addData(userName, playDuration, gamemode);
+        const res = await dataOpeCallback();
 
-        return; //break; ???
+        return res; //break; ???
       } catch (error) {
         console.error('Database operation failed:', error);
 
@@ -195,4 +200,44 @@ export class ApiHandle {
     console.error('Maximum number of retries reached. Database operation failed.');
   }
 
+  private getCurrentTimestamp() {
+    const now = Date.now()
+    const date = new Date(now);
+
+    const formattedDate = date.toLocaleString('en-CA', {
+      // timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).replace(',', '');
+
+    return formattedDate;
+  }
+
+
+  // unused, execute from command
+  // async createTable() {
+  //   try {
+  //     const response = await fetch('/api/create-scores-table');
+  //     if (!response.ok) { throw new Error('Request failed'); }
+  //   } catch (error) { console.error(error) };
+  // }
+
+  // async deleteTable() {
+  //   try {
+  //     const response = await fetch('/api/delete-scores-table');
+  //     if (!response.ok) { throw new Error('Request failed'); }
+  //   } catch (error) { console.error(error) };
+  // }
+
+  // async deleteAllData() {
+  //   try {
+  //     const response = await fetch('/api/delete-scores-data');
+  //     if (!response.ok) { throw new Error('Request failed'); }
+  //   } catch (error) { console.error(error) };
+  // }
 }

@@ -73,8 +73,18 @@ export class HtmlHandle {
       // unused?
     });
 
-    const seasonRankToEnter = await this._apiHandle.getNextSeasonRank(year, minMonth, minMonth + 2, playDuration, gamemode);
-    const wholeRankToEnter = await this._apiHandle.getNextWholeRank(playDuration, gamemode);
+    let seasonRankToEnter:number;
+    let wholeRankToEnter:number;
+    try {
+      seasonRankToEnter = await this._apiHandle.getNextSeasonRankWithRetry(year, minMonth, minMonth + 2, playDuration, gamemode);
+      wholeRankToEnter = await this._apiHandle.getNextWholeRankWithRetry(playDuration, gamemode);
+    } catch (err) {
+      console.error(err);
+      rankInDialog.innerHTML = '';
+      rankInDialog.innerHTML = `問題が発生しました、管理者に問い合わせてください <br>今回のタイム${hours}h${minutes}m${seconds}s`;
+      this.addCloseButton(rankInDialog);
+      return;
+    }
 
     if (seasonRankToEnter <= bottomRank) {
       const whatRankDiv = document.createElement("div");
@@ -97,6 +107,8 @@ export class HtmlHandle {
       tempDiv.appendChild(userInput);
       rankInDialog.appendChild(tempDiv);
 
+      this.addRecaptcha(rankInDialog);
+
       const sendButton = document.createElement("button");
       sendButton.textContent = "送信する";
       sendButton.addEventListener("click", (e) => { // async
@@ -106,13 +118,21 @@ export class HtmlHandle {
         const userInput = document.getElementById("userInput") as HTMLInputElement;
         const userName = userInput.value;
 
+        // TODO: sometimes input becomes null even though some words are entered,
         if (!userName || (userName === '')) {
           alert('名前を入力してください!');
           sendButton.disabled = false;
           return;
         }
 
-        this._apiHandle.addDataWithRetry(userName, playDuration, gamemode)
+        const captchaResponse = grecaptcha.getResponse();
+        if (!captchaResponse) {
+          alert('スコアを送信する場合はcaptcha認証を行ってください');
+          sendButton.disabled = false;
+          return;
+        }
+
+        this._apiHandle.addDataWithRetry(userName, playDuration, gamemode, captchaResponse)
           .then(() => {
             rankInDialog.innerHTML = '';
             rankInDialog.innerText = 'データを送信しました'
@@ -127,6 +147,7 @@ export class HtmlHandle {
               .catch((err) => { console.error(err); })
           })
           .catch((error) => {
+            // TODO: when captcha is false
             console.error(error);
             rankInDialog.innerHTML = '';
             rankInDialog.innerHTML = `問題が発生しました、管理者に問い合わせてください <br>今回のタイム${hours}h${minutes}m${seconds}s`;
@@ -300,6 +321,7 @@ export class HtmlHandle {
           <th>総合</th>
           <th>シーズン</th>
           <th>タイム</th>
+          <th>達成日</th>
         </tr>
       </thead>
       <tbody>
@@ -309,6 +331,7 @@ export class HtmlHandle {
             <td>${entry.wholerank}</td>
             <td>${entry.seasonrank}</td>
             <td>${entry.playduration.hours || '0'}:${entry.playduration.minutes || '00'}:${entry.playduration.seconds || '00'}</td>
+            <td>${entry.createdat.split('T')[0]}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -590,6 +613,9 @@ export class HtmlHandle {
     makeRadioButton('custom', 'カスタム(クリックで色を変更できます)', settingDialog);
     addColorPickers(settingDialog);
 
+    // temp
+    // this.addRecaptcha(settingDialog);
+
     this.addCloseButton(settingDialog);
 
     settingDialog.addEventListener("close", (e) => {
@@ -629,5 +655,17 @@ export class HtmlHandle {
       dialogElement.close();
     });
     dialogElement.appendChild(closeButton);
+  }
+
+  private addRecaptcha(parent: HTMLElement) {
+    const recaptchaContainer = document.createElement('div');
+    recaptchaContainer.setAttribute('id', 'recaptchaContainer');
+    parent.appendChild(recaptchaContainer);
+
+    const loadElement = document.createElement('script');
+    loadElement.setAttribute("src", `https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit`);
+    loadElement.setAttribute("async", "");
+    loadElement.setAttribute("defer", "");
+    parent.appendChild(loadElement);
   }
 }

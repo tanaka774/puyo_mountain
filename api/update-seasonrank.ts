@@ -29,6 +29,7 @@ export default async function handler(
     //   EXECUTE FUNCTION update_rank();
     //   `;
   
+    // TODO: add captcha validation?
     const year = request.query.year as string;
     const minMonth = request.query.minMonth as string;
     const maxMonth = request.query.maxMonth as string;

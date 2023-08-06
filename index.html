@@ -5,6 +5,14 @@
   <meta charset="UTF-8" />
   <title>puyo mountain</title>
   <link rel="stylesheet" type="text/css" href="./src/styles.css">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script type="text/javascript">
+    var onloadCallback = function () {
+      grecaptcha.render('recaptchaContainer', {
+        'sitekey': '6LeXnoAnAAAAAAedOAkqoNIppKd3VZf9N1K7svnb'
+      });
+    };
+  </script>
 </head>
 
 <body>
@@ -25,17 +33,8 @@
 
   </div>
 
-  <!-- <div class="menu-container" id="menu"></div> -->
   <div class="title" id="title">ぷよマウンテン</div>
   <dialog class="menu-container" id="menu"></dialog>
-
-  <!-- <button type="button" id="pauseButton">ポーズ</button> -->
-  <!-- <button type="button" id="undoButton">戻す</button> -->
-  <!-- <button type="button" id="redoButton">進める</button> -->
-
-  <!-- <svg id="puyo"></svg> -->
-
-  <!-- <div id="api-test"></div> -->
 
   <canvas class="canvas-background" id="canvasBackground"></canvas>
 

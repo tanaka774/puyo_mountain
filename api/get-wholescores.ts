@@ -6,10 +6,6 @@ export default async function handler(
   response: VercelResponse,
 ) {
   try {
-    const key = request.query.key as string;
-    if (key !== process.env.VITE_API_KEY)  {
-      throw new Error(`api key is wrong`);
-    }
     const gamemode = request.query.gamemode as string;
     const bottomRank = request.query.bottomRank as string;
     const scores = await sql`
@@ -21,7 +17,7 @@ export default async function handler(
       // console.log(scores);
     return response.status(200).json({ scores });
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     return response.status(500).json({ error });
   }
 }

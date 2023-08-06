@@ -15,6 +15,5 @@ export default defineConfig({
   },
   types: ["vite/client"],
   define: {
-    __APP_ENV__: process.env.VITE_TEST_KEY,
   },
 });

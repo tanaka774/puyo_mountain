@@ -7,6 +7,11 @@ export default async function handler(
 ) {
   try {
     // this is for debug!!!!
+    const pickle = request.query.pickle as string;
+    // if (key !== process.env.VITE_API_KEY)  {
+    if (pickle !== 'cdbsa9')  {
+      throw new Error(`api key is wrong :${pickle}`);
+    }
     const userName = request.query.userName as string;
     const playDuration = request.query.playDuration as string;
     const timestamp = request.query.timestamp as string;
