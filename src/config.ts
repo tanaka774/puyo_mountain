@@ -36,6 +36,7 @@ const NO_COLOR = 0;
 const WALL_NUMBER = 99;
 const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1;
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
+const PUYO_BIRTH_POSY_REAL = BOARD_TOP_EDGE - 1.5; // Y where actual current puyo starts  
 const PUYO_COLOR_NUM = 4;
 const moveYDiff = 0.015;
 const KEY_MOVE_DOWN_RATE = 15;
@@ -77,6 +78,7 @@ export const gameConfig = Object.freeze({
   WALL_NUMBER,
   PUYO_BIRTH_POSX,
   PUYO_BIRTH_POSY,
+  PUYO_BIRTH_POSY_REAL,
   // PUYO_COLORS,
   PUYO_COLOR_NUM,
   moveYDiff,
