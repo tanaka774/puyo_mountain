@@ -160,42 +160,4 @@ function main() {
   }
 }
 
-// TODO: remove these debug code
-// const apiHandle = new ApiHandle();
-// apiHandle.deleteTable()
-// .then(() => apiHandle.createTable())
-// .catch((err) => console.error(err))
-// apiHandle.createTable();
-// apiHandle.deleteAllData(); // this doesn't work?
-// apiHandle.addManyDatas();
-// apiHandle.addData('takeda', '2 hours 13 minutes');
-// apiHandle.addData('まさし', '0 hours 45 minutes');
-// apiHandle.addData('jonny', '13 hours 9 minutes');
-// apiHandle.updateWholeRank();
-// apiHandle.updateSeasonRank('2023', '10', '12');
-// apiHandle.fetchData('2023', '10', '12', '10');
-// apiHandle.fetchData('0', '0', '0', '10');
-// apiHandle.getNextWholeRank('01 hours 59 minutes');
-// apiHandle.getNextSeasonRank('2023', '10', '12', '2 hours 1 minutes');
-
-try {
-  console.log(import.meta.env.DEV);
-  console.log(import.meta.env.PROD);
-} catch (err) { console.error(err); }
-try {
-  console.log(import.meta.env.VITE_API_KEY);
-} catch (err) { console.error(err); }
-try {
-  console.log(process.env.TEST_KEY);
-} catch (err) { console.error(err); }
-try {
-  console.log(process.env.VITE_TEST_KEY);
-} catch (err) { console.error(err); }
-try {
-  console.log(process.env.VITE_API_KEY);
-} catch (err) { console.error(err); }
-try {
-  console.log(process.env.API_KEY);
-} catch (err) { console.error(err); }
-
 main();

@@ -228,7 +228,7 @@ export class HtmlHandle {
     // addOption('選ぶ', 'default', modeSelect);
     // TODO: change gamemode according to select
     addOption('ケーツー', gamemode1, modeSelect);
-    addOption('mode2', gamemode2, modeSelect);
+    // addOption('mode2', gamemode2, modeSelect);
     const scoresOutput = document.createElement("output");
     scoresOutput.classList.add('score-container');
 

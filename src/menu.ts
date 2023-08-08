@@ -200,15 +200,15 @@ export class Menu {
           `${gameConfig.ENDURANCE_MIN_ONCE1}~${gameConfig.ENDURANCE_MAX_ONCE1}連鎖で計${gameConfig.ENDURANCE_TOTAL1}連鎖まで`,
           0
         );
-        geneButton('モード2（テスト用）',
-          () => { this.enduranceMode2(); this.closeModal(); },
-          `${gameConfig.ENDURANCE_MIN_ONCE2}~${gameConfig.ENDURANCE_MAX_ONCE2}連鎖で計${gameConfig.ENDURANCE_TOTAL2}連鎖まで`,
-          1
-        );
+        // geneButton('モード2（テスト用）',
+        //   () => { this.enduranceMode2(); this.closeModal(); },
+        //   `${gameConfig.ENDURANCE_MIN_ONCE2}~${gameConfig.ENDURANCE_MAX_ONCE2}連鎖で計${gameConfig.ENDURANCE_TOTAL2}連鎖まで`,
+        //   1
+        // );
         geneButton('記録を見る',
           () => { this.watchHighScores(); },
           'ハイスコアを閲覧できます',
-          2
+          1
         );
         geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
         break;

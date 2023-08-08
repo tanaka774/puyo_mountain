@@ -26,15 +26,6 @@ export class MountainArcade extends MountainBase {
   }
 
   protected decideSeedPuyoNum(): number {
-    // let modi =
-    //   (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
-    //     (this.checkDifficulty(Difficulty.NORMAL)) ? 0 :
-    //       (this.checkDifficulty(Difficulty.HARD)) ? -0.75 : 0;
-    // modi = (this.isLastPhase()) ? modi - 0.3 : modi;
-    // const divider = 2 + modi + (2 - this._phase / this._targetChainNums.length);
-    // const seedPuyoNum = this._currentTargetChainNum * 4 / divider;
-    // return seedPuyoNum;
-
     let difficultyRate =
       (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
         (this.checkDifficulty(Difficulty.NORMAL)) ? 1 :
@@ -73,11 +64,6 @@ export class MountainArcade extends MountainBase {
   }
 
   initTargetChain() {
-    // this._targetChainNums =
-    //   (this._currentDifficulty === Difficulty.EASY) ?  [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10]] :
-    //     (this._currentDifficulty === Difficulty.NORMAL) ?  [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11]] :
-    //       (this._currentDifficulty === Difficulty.HARD) ? [[6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]] :
-    //         [[]];
     this._targetChainNums =
       (this._currentDifficulty === Difficulty.EASY) ? [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [12]] :
         (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [13]] :

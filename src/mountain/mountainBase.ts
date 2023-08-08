@@ -105,12 +105,12 @@ export class MountainBase {
 
       if (distributionNum === boardWidth) {
         let ran = 0;
-        for (let n = 0; n < Math.floor(seedPuyoNum / meanPuyoHeight); n++)
+        for (let n = 0; n < Math.floor(seedPuyoNum / meanPuyoHeight) - 1; n++)
           ran += getRandomNum(meanPuyoHeight * 1);
         setVariability(randomIndex, ran);
       } else {
         let ran = 0;
-        for (let n = 0; n < Math.floor(seedPuyoNum / meanPuyoHeight / 2); n++)
+        for (let n = 0; n < meanPuyoHeight; n++)
           ran += getRandomNum(meanPuyoHeight * 2);
         setVariability(randomIndex, ran);
       }
