@@ -73,6 +73,7 @@ export class Menu {
     })
 
     this.enterKeyUpCallback = () => this._buttons[this._selectedIndex].click();
+
   }
 
   selectButton(newIndex) {
@@ -233,6 +234,9 @@ export class Menu {
     this._buttons = this._menuContainer.querySelectorAll('button');
     this._selectedIndex = 0;
     this._buttons[this._selectedIndex].classList.add('selected');
+    
+    const descDivFirst = document.getElementById(`desc0`) as HTMLElement;
+    if (descDivFirst) descDivFirst.style.display = '';
   }
 
   setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, customMode, gameSetting, watchHighScores,

@@ -192,6 +192,7 @@ export class HtmlHandle {
 
     highScoreDialog.addEventListener("close", async (e) => {
       // unused?
+      highScoreDialog.innerHTML = '';
     });
 
     const addOption = (text, value, select: HTMLSelectElement) => {
@@ -328,8 +329,8 @@ export class HtmlHandle {
         ${data?.scores.rows.map(entry => `
           <tr>
             <td>${entry.username}</td>
-            <td>${entry.wholerank}</td>
-            <td>${entry.seasonrank}</td>
+            <td>　${entry.wholerank}</td>
+            <td>　${entry.seasonrank}</td>
             <td>${entry.playduration.hours || '0'}:${entry.playduration.minutes || '00'}:${entry.playduration.seconds || '00'}</td>
             <td>${entry.createdat.split('T')[0]}</td>
           </tr>
@@ -382,7 +383,7 @@ export class HtmlHandle {
     configDialog.showModal();
     configDialog.addEventListener("close", async (e) => {
       // unused?
-      // configDialog.innerHTML = '';
+      configDialog.innerHTML = '';
     });
 
     const addOption = (text, value, select: HTMLSelectElement, isDefault = false) => {
@@ -600,10 +601,11 @@ export class HtmlHandle {
       ["rgba(255, 0, 0, 1)", "rgba(0, 0, 255, 1)", "rgba(0, 200, 0, 1)", "rgba(255, 255, 0, 1)"],
       ["rgba(255, 13, 114, 1)", "rgba(13, 194, 255, 1)", "rgba(13, 255, 114, 1)", "rgba(245, 56, 255, 1)"],
       ["rgba(205, 62, 62, 1)", "rgba(238, 0, 228, 1)", "rgba(0, 228, 0, 1)", "rgba(225, 225, 0, 1)"],
-      ["rgba(93, 91, 210, 1)", "rgba(240, 240, 240, 1)", "rgba(236, 174, 39, 1)", "rgba(26, 71, 40, 1)"]
+      ["rgba(93, 91, 210, 1)", "rgba(240, 240, 240, 1)", "rgba(236, 174, 39, 1)", "rgba(26, 71, 40, 1)"],
+      ["rgba(55, 185, 87, 1)", "rgba(145, 111, 64, 1)", "rgba(245, 245, 245, 1)", "rgba(223, 32, 115, 1)"],
     ];
 
-    const texts = ['セット：おなじみ', 'セット：ベジタブル', 'セット：イタリアン', 'セット：かまくら'];
+    const texts = ['セット：おなじみ', 'セット：ベジタブル', 'セット：イタリアン', 'セット：かまくら', 'セット：むめい'];
 
     colorss.forEach((colors, index) => {
       makeRadioButton(`${index}`, texts[index], settingDialog, colors);
