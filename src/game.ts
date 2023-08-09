@@ -14,7 +14,7 @@ import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
 import { GameMode, Mountain } from "./mountain/mountain"
 import { HtmlHandle } from "./htmlHandle"
-import { DrawWithSVG } from "./drawWithSVG"
+// import { DrawWithSVG } from "./drawWithSVG"
 import { ApiHandle } from "./apiHandle"
 import { Timer } from "./timer"
 

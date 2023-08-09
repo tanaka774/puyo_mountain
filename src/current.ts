@@ -99,6 +99,7 @@ export class Current {
       this._currentPuyo = this._versatilePuyo;
       this._versatilePuyo = null;
       this._isBeingVPuyoUsed = false;
+      this._afterVPuyoSwitching();
     } else {
       if (this._puyoPool.length === 0) { this.initPuyoPool(); }
 
