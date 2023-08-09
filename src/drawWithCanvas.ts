@@ -268,8 +268,8 @@ export class DrawWithCanvas {
   }
 
   private drawWaitingPuyo(ctx: CanvasRenderingContext2D, puyo: baseManiPuyo, x, y) {
-    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, PUYO_COLORS[puyo.parentColor]);
-    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, PUYO_COLORS[puyo.childColor]);
+    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, PUYO_COLORS[puyo.childColor]);
+    this.drawPuyo(ctx, -0.05 + x + gameConfig.BOARD_LEFT_EDGE, 1 + y + gameConfig.BOARD_TOP_EDGE - gameConfig.BOARD_GHOST_ZONE, PUYO_COLORS[puyo.parentColor]);
   }
 
   // drawUIInfo() {
