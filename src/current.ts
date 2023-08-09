@@ -53,7 +53,7 @@ export class Current {
         // is this copy ok???
         this._currentPuyo.parentX = gameConfig.PUYO_BIRTH_POSX;
         this._currentPuyo.parentY = gameConfig.PUYO_BIRTH_POSY_REAL;
-        this._currentPuyo.angle = 0;
+        this._currentPuyo.angle = 180;
         const temp = this._currentPuyo;
         this._currentPuyo = this._versatilePuyo;
         this._versatilePuyo = temp;
@@ -87,7 +87,7 @@ export class Current {
       childColor: this._puyoPool[0][1],
       parentX: gameConfig.PUYO_BIRTH_POSX,
       parentY: gameConfig.PUYO_BIRTH_POSY_REAL,
-      angle: 0,
+      angle: 180,
     }
     this._puyoPool = this._puyoPool.slice(1);
     return res;
@@ -177,7 +177,7 @@ export class Current {
       childColor: 1,
       parentX: gameConfig.PUYO_BIRTH_POSX,
       parentY: gameConfig.PUYO_BIRTH_POSY_REAL,
-      angle: 0,
+      angle: 180,
     }
   }
 
