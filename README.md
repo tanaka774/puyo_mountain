@@ -1,6 +1,5 @@
 ## puyo mountain
 What's here is the source code of [puyo mountain](https://puyo-mountain.vercel.app/)  
-Japanese game explanation is [here](https://puyo-camp.jp/posts/172682) (this is explained with some pics so more understandable.)  
 
 ## What is this game?
 This is the copy game of puyopuyo and I'm adding my own game mode.  
