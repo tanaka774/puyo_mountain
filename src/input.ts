@@ -24,6 +24,7 @@ export class Input {
   ) {
     // TODO: be careful enough for these eventlistener
     document.addEventListener('keydown', e => {
+      e.preventDefault();
       // is this condition necessary? yes for rotation
       // if (this.canTakeInput()) {
       if (e.key === 'ArrowLeft') {

@@ -21,6 +21,9 @@ html {
   /* align-items: center; */
   /* margin: 10px;  */
   z-index: 1;
+  transform-origin: top left;
+  transform: scale(1.2);
+  transition: transform 0.3s;
 }
 
 .main-container {
@@ -155,3 +158,10 @@ html {
   margin: 5px;
   clip-path: circle(35% at 50% 50%);
 }
+
+.controls{
+  position: relative;
+  z-index: 10; 
+  /*margin-bottom: 20px;*/
+}
+

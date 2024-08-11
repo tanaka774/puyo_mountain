@@ -13,6 +13,10 @@ export class HtmlHandle {
   private _chainNumShow: HTMLElement;
   private _chainPuyoNumShow: HTMLElement;
   private _timerElement: HTMLElement;
+  private _canvasContainer: HTMLElement;
+  private _zoomInButton: HTMLButtonElement;
+  private _zoomOutButton: HTMLButtonElement;
+  private _currentScale: number;
 
   constructor(
     private _lSHandle: LSHandle,
@@ -26,11 +30,26 @@ export class HtmlHandle {
     this._chainPuyoNumShow = document.getElementById("chainPuyoNum");
     this._chainPuyoNumShow.style.display = 'none'; // unused??
     this._timerElement = document.getElementById('timer');
+    this._canvasContainer = document.getElementById('canvasContainer');
+    this._zoomInButton = document.getElementById('zoom-in') as HTMLButtonElement;
+    this._zoomOutButton = document.getElementById('zoom-out') as HTMLButtonElement;
+    this._currentScale = gameConfig.DEFAULT_SCALE;
 
     // this._pauseButton.addEventListener('click', this.handlePause);
     // document.addEventListener('keydown', e => {
     //   if (e.key === 'p') this.handlePause();
     // })
+
+    this._zoomInButton.addEventListener('click', () => {
+      this._currentScale += 0.1;
+      this.scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+    });
+
+    this._zoomOutButton.addEventListener('click', () => {
+      this._currentScale = Math.max(0.1, this._currentScale - 0.1);
+      this.scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+    });
+
   }
 
   htmlUpdate() {
@@ -73,8 +92,8 @@ export class HtmlHandle {
       // unused?
     });
 
-    let seasonRankToEnter:number;
-    let wholeRankToEnter:number;
+    let seasonRankToEnter: number;
+    let wholeRankToEnter: number;
     try {
       seasonRankToEnter = await this._apiHandle.getNextSeasonRankWithRetry(year, minMonth, minMonth + 2, playDuration, gamemode);
       wholeRankToEnter = await this._apiHandle.getNextWholeRankWithRetry(playDuration, gamemode);
@@ -669,5 +688,23 @@ export class HtmlHandle {
     loadElement.setAttribute("async", "");
     loadElement.setAttribute("defer", "");
     parent.appendChild(loadElement);
+  }
+
+
+  private scaleAndSetFixedPosition(element: HTMLElement, scale: number) {
+    const rect = element.getBoundingClientRect();
+    const originalTop = rect.top;
+    const originalLeft = rect.left;
+
+    element.style.transform = `scale(${scale})`;
+
+    const newRect = element.getBoundingClientRect();
+    const newTop = newRect.top;
+    const newLeft = newRect.left;
+
+    const translateY = originalTop - newTop;
+    const translateX = originalLeft - newLeft;
+    // this does nothing... maybe origin:top, left; in css is just enough
+    // element.style.transform = `scale(${scale}) (${translateX}px, ${translateY}px)`;
   }
 }

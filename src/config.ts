@@ -61,6 +61,7 @@ const ENDURANCE_TOTAL2 = 8;
 const ENDURANCE_MIN_ONCE2 = 4;
 const ENDURANCE_MAX_ONCE2 = 8;
 const BOTTOM_SCORE_RANK = 30;
+const DEFAULT_SCALE = 1.2; //same value as default scale in css
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -103,6 +104,7 @@ export const gameConfig = Object.freeze({
   ENDURANCE_MIN_ONCE2,
   ENDURANCE_MAX_ONCE2,
   BOTTOM_SCORE_RANK,
+  DEFAULT_SCALE
 })
 
 
@@ -116,9 +118,9 @@ if (defaultColors) {
   // non-user-setting
   PUYO_COLORS = [
     null,
-    "rgba(255, 0, 0, 1)", 
-    "rgba(0, 0, 255, 1)", 
-    "rgba(0, 200, 0, 1)", 
+    "rgba(255, 0, 0, 1)",
+    "rgba(0, 0, 255, 1)",
+    "rgba(0, 200, 0, 1)",
     "rgba(255, 255, 0, 1)"
   ]
 }
