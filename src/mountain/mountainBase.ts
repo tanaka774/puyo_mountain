@@ -65,7 +65,8 @@ export class MountainBase {
     const getRandomNum = (num) => Math.floor(Math.random() * num)
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const baseRand = 4;
-    const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
+    // const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
+    const randModi =  (-1) * getRandomNum(baseRand);
     const meanPuyoHeight = 2;
     const seedPuyoNum = boardWidth * meanPuyoHeight + randModi;
     return seedPuyoNum;
