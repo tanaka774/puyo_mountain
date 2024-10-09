@@ -55,8 +55,8 @@ const FLOAT_FALLING_SPEED = 14.0;
 const PUYO_POOL_LOOP = 8;
 // if you change this value, store previous value and add select so that user can watch previous score records
 const ENDURANCE_TOTAL1 = 300;
-const ENDURANCE_MIN_ONCE1 = 6;
-const ENDURANCE_MAX_ONCE1 = 10;
+const ENDURANCE_MIN_ONCE1 = 6; // 7;
+const ENDURANCE_MAX_ONCE1 = 10; // 13;
 const ENDURANCE_TOTAL2 = 8;
 const ENDURANCE_MIN_ONCE2 = 4;
 const ENDURANCE_MAX_ONCE2 = 8;
