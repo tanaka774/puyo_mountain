@@ -38,9 +38,9 @@ const PUYO_BIRTH_POSX = Math.floor((BOARD_LEFT_EDGE + BOARD_RIGHT_EDGE) / 2) - 1
 const PUYO_BIRTH_POSY = BOARD_TOP_EDGE - 1;
 const PUYO_BIRTH_POSY_REAL = BOARD_TOP_EDGE - 1.2; // Y where actual current puyo starts  
 const PUYO_COLOR_NUM = 4;
-const moveYDiff = 0.015;
+const moveYDiff = 0.10;
 const KEY_MOVE_DOWN_RATE = 15;
-const VANISH_WAIT_TIME = 18;
+const VANISH_WAIT_TIME = 25;
 const LOCK_WAIT_TIME = 180;
 const HOR_MOVING_TIME = 3;
 const ROTATING_TIME = 3;
@@ -62,6 +62,7 @@ const ENDURANCE_MIN_ONCE2 = 4;
 const ENDURANCE_MAX_ONCE2 = 8;
 const BOTTOM_SCORE_RANK = 30;
 const DEFAULT_SCALE = 1.2; //same value as default scale in css
+const TARGET_FPS = 50;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -82,9 +83,9 @@ export const gameConfig = Object.freeze({
   PUYO_BIRTH_POSY_REAL,
   // PUYO_COLORS,
   PUYO_COLOR_NUM,
-  moveYDiff,
+  // moveYDiff,
   KEY_MOVE_DOWN_RATE,
-  VANISH_WAIT_TIME,
+  // VANISH_WAIT_TIME,
   LOCK_WAIT_TIME,
   HOR_MOVING_TIME,
   ROTATING_TIME,
@@ -104,7 +105,8 @@ export const gameConfig = Object.freeze({
   ENDURANCE_MIN_ONCE2,
   ENDURANCE_MAX_ONCE2,
   BOTTOM_SCORE_RANK,
-  DEFAULT_SCALE
+  DEFAULT_SCALE,
+  TARGET_FPS
 })
 
 
@@ -124,3 +126,30 @@ if (defaultColors) {
     "rgba(255, 255, 0, 1)"
   ]
 }
+
+export const vars = {
+  deltatime: 1,
+  deltaTimeHistory: [] as number[],
+  maxHistorySize: 10,
+  averageDeltaTime(): number {
+    const sum = this.deltaTimeHistory.reduce((acc, val) => acc + val, 0);
+    return sum / this.deltaTimeHistory.length;
+  },
+  updateDeltaTime(deltaTime: number) {
+    this.deltaTimeHistory.push(deltaTime);
+
+    if (this.deltaTimeHistory.length > this.maxHistorySize) {
+      this.deltaTimeHistory.shift();
+    }
+  },
+  getScaledDeltaTime(): number {
+    return this.averageDeltaTime() / 100;
+  },
+  getScaledMoveYDiff(): number {
+    return moveYDiff * this.getScaledDeltaTime();
+  },
+  getScaledVanishWaitTime(): number {
+    // return Math.floor(VANISH_WAIT_TIME / this.getScaledDeltaTime());
+    return VANISH_WAIT_TIME
+  }
+};

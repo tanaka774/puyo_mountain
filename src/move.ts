@@ -1,4 +1,4 @@
-import { gameConfig } from "./config"
+import { gameConfig, vars } from "./config"
 import { GameState } from "./state"
 import { Game } from "./game"
 import { baseManiPuyo, baseSinglePuyo } from "./types"
@@ -32,7 +32,13 @@ export class Move {
     const [childX, childY] = this._current.getChildPos(this._current.currentPuyo);
     const angle = this._current.currentPuyo.angle;
 
-    if (parentY + gameConfig.moveYDiff * rate < Math.round(parentY)) { return true; }
+    const bottomYs = _board.getBottomPosYs()
+    if (bottomYs[parentX - 1] < parentY || bottomYs[childX - 1] < childY) {
+      return false
+    }
+
+    // if (parentY + gameConfig.moveYDiff * rate * vars.getScaledDeltaTime() < Math.round(parentY)) { return true; }
+    if (parentY + vars.getScaledMoveYDiff() * rate < Math.round(parentY)) { return true; }
 
     if (angle === 0 || angle === 180) {
       const downY = angle === 0 ? childY : parentY;
@@ -103,8 +109,13 @@ export class Move {
     return parentX + direction;
   }
 
-  movePuyoDown(posY, rate) {
-    return posY + gameConfig.moveYDiff * rate;
+  movePuyoDown(posX: number, posY: number, rate: number, board: Board): number {
+    // return posY + gameConfig.moveYDiff * rate * vars.getScaledDeltaTime();
+    // const res = posY + gameConfig.moveYDiff * rate * vars.getScaledDeltaTime();
+    const res = posY + vars.getScaledMoveYDiff() * rate;
+    const bottomY = board.getBottomPosYs()[posX - 1]
+    if (bottomY < res) return bottomY
+    return res
   }
 
   // Check if the current piece can move left
@@ -183,7 +194,7 @@ export class Move {
     speedRate: number,
     afterLocking: () => void,
   ) {
-    const nextY = this.movePuyoDown(singlePuyo.posY, speedRate);
+    const nextY = this.movePuyoDown(singlePuyo.posX, singlePuyo.posY, speedRate, _board);
     if (nextY >= gameConfig.BOARD_BOTTOM_EDGE - 1 ||
       _board.board[Math.floor(nextY) + 1][singlePuyo.posX] !== gameConfig.NO_COLOR
     ) {

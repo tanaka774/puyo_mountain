@@ -1,6 +1,6 @@
 import { throttle, throttleEX, keyPressedTwice } from "./util.js"
 import { GameState, stateHandle } from "./state"
-import { gameConfig } from "./config"
+import { gameConfig, vars } from "./config"
 import { Move } from "./move"
 import { Game } from "./game"
 import { Current } from "./current"
@@ -150,13 +150,22 @@ export class Input {
     // if (this.isDownKeyPressed) {
     let keyMoveDownRate: number = gameConfig.KEY_MOVE_DOWN_RATE; // TODO: thro into config
     // I'm afraid of more than 0.5, which could get this world upside down
-    if (keyMoveDownRate * gameConfig.moveYDiff >= 0.5) keyMoveDownRate = 0.5 / gameConfig.moveYDiff;
+    // if (keyMoveDownRate * vars.getScaledMoveYDiff() >= 0.5)
+    //   keyMoveDownRate = 0.5 / vars.getScaledMoveYDiff();
+
+    const movePuyoDown = (divider: number) => this._move.movePuyoDown(
+      this._current.currentPuyo.parentX,
+      this._current.currentPuyo.parentY,
+      keyMoveDownRate / divider,
+      this._board
+    );
+
     if (this._move.canPuyoMoveDown(this._board, keyMoveDownRate)) {
-      this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, keyMoveDownRate);
+      this._current.currentPuyo.parentY = movePuyoDown(1);
     } else if (this._current.currentPuyo && this._move.canPuyoMoveDown(this._board, keyMoveDownRate / 2)) {
-      this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, keyMoveDownRate / 2);
+      this._current.currentPuyo.parentY = movePuyoDown(2);
     } else if (this._current.currentPuyo && this._move.canPuyoMoveDown(this._board, keyMoveDownRate / 4)) {
-      this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, keyMoveDownRate / 4);
+      this._current.currentPuyo.parentY = movePuyoDown(4);
     } else {
       // get puyo being able to lock immediately
       // TODO: find good timing or consider better logic

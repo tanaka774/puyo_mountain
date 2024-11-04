@@ -189,4 +189,6 @@ export class Current {
   setCallback(afterVPuyoSwitching: () => void) {
     this._afterVPuyoSwitching = afterVPuyoSwitching;
   }
+
+  get board() { return this._board }
 }

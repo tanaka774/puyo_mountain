@@ -1,5 +1,5 @@
 import { baseManiPuyo } from "./types"
-import { gameConfig } from "./config"
+import { gameConfig, vars } from "./config"
 import { recordPuyoSteps } from "./record"
 import { GameState, stateHandle } from "./state"
 import { Chain } from "./chain"
@@ -19,6 +19,13 @@ import { ApiHandle } from "./apiHandle"
 import { Timer } from "./timer"
 
 export class Game {
+  private frameDuration: number = 1000 / gameConfig.TARGET_FPS // 825 is GOD number
+  private lastFrameTime: number = 0;
+  private lastFrameTimeForFPS: number = 0;
+  private fps: number = 0;
+  private fpsDisplay: HTMLElement | null;
+  private frameCount: number = 0;
+
   constructor(
     private _menu: Menu,
     private _apiHandle: ApiHandle,
@@ -36,6 +43,7 @@ export class Game {
     private _mountain: Mountain,
     private _htmlHandle: HtmlHandle,
   ) {
+    this.fpsDisplay = document.getElementById('fpsDisplay');
   }
 
   init(setNextState) {
@@ -62,10 +70,49 @@ export class Game {
     setNextState();
   }
 
-  // TODO: is this "this" ok?
-  gameLoop(this) {
-    this.beforeStateCheck();
+  gameLoop(timestamp: DOMHighResTimeStamp) {
+    // const deltaTime = timestamp - this.lastFrameTime
+    const deltatime = timestamp - this.lastFrameTime
+    vars.updateDeltaTime(deltatime)
+    console.log("times", deltatime, vars.averageDeltaTime(), timestamp, this.lastFrameTime, this.lastFrameTimeForFPS)
 
+    if (vars.averageDeltaTime() >= this.frameDuration) {
+      this.frameCount++;
+      if (timestamp >= this.lastFrameTimeForFPS + 1000) {
+        this.lastFrameTimeForFPS = timestamp
+        this.fps = this.frameCount;
+        this.frameCount = 0;
+
+        if (this.fpsDisplay) {
+          this.fpsDisplay.innerText = `FPS: ${this.fps.toFixed(2)}`;
+        }
+      }
+
+      this.lastFrameTime = timestamp
+
+      this.beforeStateCheck();
+
+      this.stateCheck();
+
+      this._draw.draw();
+
+      this._htmlHandle.htmlUpdate();
+    }
+
+    //
+    // this.beforeStateCheck();
+    //
+    // this.stateCheck();
+    //
+    // this._draw.draw();
+    //
+    // this._htmlHandle.htmlUpdate();
+
+    // requestAnimationFrame(() => this.gameLoop(this));
+    requestAnimationFrame(this.gameLoop.bind(this));
+  }
+
+  stateCheck() {
     switch (stateHandle.currentState) {
       case GameState.OPENING:
         // some opning animation?
@@ -112,7 +159,11 @@ export class Game {
         if (!stateHandle.checkCurrentState(GameState.SPLITTING) &&
           this._move.canPuyoMoveDown(this._board)
         ) {
-          this._current.currentPuyo.parentY = this._move.movePuyoDown(this._current.currentPuyo.parentY, gameConfig.FREEFALL_SPEED_RATE);
+          this._current.currentPuyo.parentY = this._move.movePuyoDown(
+            this._current.currentPuyo.parentX,
+            this._current.currentPuyo.parentY,
+            gameConfig.FREEFALL_SPEED_RATE,
+            this._current.board);
 
         } else {
           // TODO: I don't wanna do this! should be done in canMovePuyoDown()
@@ -192,10 +243,10 @@ export class Game {
           this._chain.erasePuyos(this._board.board);
         }
 
-        if (this._chain.chainVanishWaitCount < gameConfig.VANISH_WAIT_TIME) {
+        if (this._chain.chainVanishWaitCount < vars.getScaledVanishWaitTime()) {
           this._chain.incrementChainVanishWaitCount();
           // this state again
-        } else if (this._chain.chainVanishWaitCount === gameConfig.VANISH_WAIT_TIME) {
+        } else if (this._chain.chainVanishWaitCount === vars.getScaledVanishWaitTime()) {
           this._chain.incrementChainVanishWaitCount();
           this._chain.findFloatingPuyos(this._board.board);
           stateHandle.setState(GameState.FALLING_ABOVE_CHAIN);
@@ -239,12 +290,6 @@ export class Game {
         // after this, go back to origianl state
         break;
     }
-
-    this._draw.draw();
-
-    this._htmlHandle.htmlUpdate();
-
-    requestAnimationFrame(() => this.gameLoop(this));
   }
 
   beforeStateCheck() {

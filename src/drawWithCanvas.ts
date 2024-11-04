@@ -1,5 +1,5 @@
 import { baseManiPuyo } from "./types"
-import { PUYO_COLORS, gameConfig } from "./config"
+import { PUYO_COLORS, gameConfig, vars } from "./config"
 import { GameState, stateHandle } from "./state"
 import { Split } from "./split"
 import { Move } from "./move"
@@ -484,7 +484,7 @@ export class DrawWithCanvas {
         // this.ctx.strokeStyle = 'black';
 
         const startAngle = Math.PI * 7 / 24;
-        const endAngle = (17 /24) * Math.PI;
+        const endAngle = (17 / 24) * Math.PI;
 
         this.ctx.beginPath();
         this.ctx.arc(drawX, drawY, radius, startAngle, endAngle);
@@ -739,7 +739,7 @@ export class DrawWithCanvas {
     const drawX = posX * cs;
 
     // TODO: use custom font of ultimate pop-style one
-    const alpha = 1 - this._chain.chainVanishWaitCount / gameConfig.VANISH_WAIT_TIME;
+    const alpha = 1 - this._chain.chainVanishWaitCount / vars.getScaledVanishWaitTime();
     const chainRate = Math.min(chainCount / this._mountain.currentTargetChainNum, 1);
     // TODO: if you cant use custom font, try another with google font api (with link)
     this._fontHandle.fontFace.load()

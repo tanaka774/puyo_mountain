@@ -48,8 +48,12 @@ export class Board {
   }
 
   lockPuyo(board, posX, posY, color, recordFlag) {
+    // TODO make sure x, y comes as integer
     // TODO: remember x, y value here and use for chain process or something
     board[posY][posX] = color;
+    // const bottomYs = this.getBottomPosYs()
+    // if (bottomYs[posX - 1] < posY) board[posY - 1][posX] = color;
+    // else board[posY][posX] = color;
 
     recordPuyoSteps.record(posX, posY, color, recordFlag);
 
@@ -76,6 +80,22 @@ export class Board {
       return true;
     }
     return false;
+  }
+
+  /**
+  * return Y positions of bottom without Puyos from left to right
+  */
+  getBottomPosYs(): number[] {
+    const res: number[] = Array(gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE).fill(0)
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE - 1; y--) {
+        if (this.board[y][x] === gameConfig.NO_COLOR) {
+          res[x - 1] = y
+          break;
+        }
+      }
+    }
+    return res
   }
 }
 

@@ -84,7 +84,8 @@ export class Chain {
     if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) this.addConnectedPuyos(x, y, cell, 1, 0);
     prevConnectedPuyoNums = connectedPuyoNums;
 
-    connectedPuyoNums += this.checkConnected(board, x, y + 1, checkedCells, prevCell, savePuyos, willAddConnect);
+    if (y + 1 <= gameConfig.BOARD_BOTTOM_EDGE)
+      connectedPuyoNums += this.checkConnected(board, x, y + 1, checkedCells, prevCell, savePuyos, willAddConnect);
     if (willAddConnect && connectedPuyoNums - prevConnectedPuyoNums > 0) this.addConnectedPuyos(x, y, cell, 0, 1);
     prevConnectedPuyoNums = connectedPuyoNums;
 

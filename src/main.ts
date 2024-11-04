@@ -50,7 +50,8 @@ function main() {
 
   game.beforeLoop();
   stateHandle.setState(GameState.OPENING);
-  game.gameLoop();
+  // game.gameLoop();
+  requestAnimationFrame(game.gameLoop.bind(game))
 
   function setCallback() {
     move.setCallback(
