@@ -51,7 +51,7 @@ function main() {
 
   game.beforeLoop();
   stateHandle.setState(GameState.OPENING);
-  initializePhaserForFramerateControl(60)
+  initializePhaserForFramerateControl(gameConfig.TARGET_FPS)
   game.gameLoop();
 
   function setCallback() {

@@ -62,6 +62,7 @@ const ENDURANCE_MIN_ONCE2 = 4;
 const ENDURANCE_MAX_ONCE2 = 8;
 const BOTTOM_SCORE_RANK = 30;
 const DEFAULT_SCALE = 1.2; //same value as default scale in css
+const TARGET_FPS = 60;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -104,7 +105,8 @@ export const gameConfig = Object.freeze({
   ENDURANCE_MIN_ONCE2,
   ENDURANCE_MAX_ONCE2,
   BOTTOM_SCORE_RANK,
-  DEFAULT_SCALE
+  DEFAULT_SCALE,
+  TARGET_FPS
 })
 
 
