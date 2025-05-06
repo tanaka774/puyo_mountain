@@ -63,7 +63,6 @@ export class Game {
     setNextState();
   }
 
-  // TODO: is this "this" ok?
   gameLoop() {
     this.beforeStateCheck();
 
@@ -245,7 +244,7 @@ export class Game {
 
     this._htmlHandle.htmlUpdate();
 
-    requestPhaserAnimationFrame(this.gameLoop, this)
+    requestPhaserAnimationFrame(() => this.gameLoop(), this)
   }
 
   beforeStateCheck() {
