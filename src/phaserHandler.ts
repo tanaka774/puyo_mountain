@@ -17,7 +17,6 @@ export function initializePhaserForFramerateControl(targetFPS: number): void {
       target: targetFPS,
       forceSetTimeOut: true // More precise timing
     },
-    // autoStart: true,       // Start the game loop immediately
     scene: {
       create: function (this: Phaser.Scene) {
         clock = this.time; // Get access to the Phaser Clock
@@ -46,6 +45,7 @@ export function requestPhaserAnimationFrame(callback: FrameRequestCallback, call
   }
 }
 
+// TODO: call for cleanup? but when?
 export function destroyPhaserFramerateControl(): void {
   if (game) {
     game.destroy(true);
