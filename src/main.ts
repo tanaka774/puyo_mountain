@@ -22,6 +22,7 @@ import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
 import { LSHandle } from "./localStorageHandle"
 import { EnduranceMode } from "./mountain/mountainEndurance"
+import { initializePhaserForFramerateControl, requestPhaserAnimationFrame } from "./phaserHandler"
 
 function main() {
   const lSHandle = new LSHandle();
@@ -50,6 +51,7 @@ function main() {
 
   game.beforeLoop();
   stateHandle.setState(GameState.OPENING);
+  initializePhaserForFramerateControl(gameConfig.TARGET_FPS)
   game.gameLoop();
 
   function setCallback() {

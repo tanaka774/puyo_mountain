@@ -17,6 +17,7 @@ import { HtmlHandle } from "./htmlHandle"
 // import { DrawWithSVG } from "./drawWithSVG"
 import { ApiHandle } from "./apiHandle"
 import { Timer } from "./timer"
+import { requestPhaserAnimationFrame } from "./phaserHandler"
 
 export class Game {
   constructor(
@@ -62,8 +63,7 @@ export class Game {
     setNextState();
   }
 
-  // TODO: is this "this" ok?
-  gameLoop(this) {
+  gameLoop() {
     this.beforeStateCheck();
 
     switch (stateHandle.currentState) {
@@ -244,7 +244,7 @@ export class Game {
 
     this._htmlHandle.htmlUpdate();
 
-    requestAnimationFrame(() => this.gameLoop(this));
+    requestPhaserAnimationFrame(() => this.gameLoop(), this)
   }
 
   beforeStateCheck() {
