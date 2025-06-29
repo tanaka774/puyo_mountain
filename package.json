@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "vite": "^4.5.3"
+    "vite": "^4.5.14"
   },
   "dependencies": {
     "@types/grecaptcha": "^3.0.4",
