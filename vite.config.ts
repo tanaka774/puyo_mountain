@@ -5,8 +5,8 @@ export default defineConfig({
     extensions: ['.js', '.ts'],
   },
   build: {
-    outDir: 'dist', // Specify the output directory for the build
-    emptyOutDir: true, // Empty the output directory before each build
+    outDir: 'public',
+    emptyOutDir: true,
   },
   assetsInclude: ['/src/fonts/*.woff2'],
   alias: {
