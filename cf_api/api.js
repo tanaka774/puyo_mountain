@@ -155,6 +155,154 @@ async function handleGetNextWholeRank(url, env) {
   }
 }
 
+async function handleGetSeasonScores(request, env) {
+  const url = new URL(request.url);
+  const params = url.searchParams;
+
+  const year = params.get("year");
+  const minMonth = params.get("minMonth");
+  const maxMonth = params.get("maxMonth");
+  const gamemode = params.get("gamemode");
+  const bottomRank = params.get("bottomRank");
+
+  if (!year || !minMonth || !maxMonth || !gamemode || !bottomRank) {
+    return new Response("Missing required parameters (year, minMonth, maxMonth, gamemode, bottomRank)", { status: 400 });
+  }
+
+  try {
+    const { results } = await env.DB.prepare(`
+        SELECT *
+        FROM Scores
+        WHERE strftime('%Y', createdat) = ?
+          AND CAST(strftime('%m', createdat) AS INTEGER) >= ?
+          AND CAST(strftime('%m', createdat) AS INTEGER) <= ?
+          AND gamemode = ?
+          AND seasonrank <= ?
+        ORDER BY seasonrank ASC;
+      `).bind(
+      year,
+      parseInt(minMonth, 10),
+      parseInt(maxMonth, 10),
+      gamemode,
+      parseInt(bottomRank, 10)
+    ).all();
+
+    return new Response(JSON.stringify({ scores: results }), {
+      headers: { "Content-Type": "application/json" },
+      status: 200
+    });
+  } catch (error) {
+    console.error("Error fetching season scores:", error);
+    return new Response("DB error: " + error.message, { status: 500 });
+  }
+}
+
+async function handleGetWholeScores(request, env) {
+  const url = new URL(request.url);
+  const params = url.searchParams;
+
+  const gamemode = params.get("gamemode");
+  const bottomRank = params.get("bottomRank");
+
+  if (!gamemode || !bottomRank) {
+    return new Response("Missing required parameters (gamemode, bottomRank)", { status: 400 });
+  }
+
+  try {
+    const { results } = await env.DB.prepare(`
+        SELECT * FROM Scores
+        WHERE wholerank <= ?
+          AND gamemode = ?
+        ORDER BY wholerank ASC;
+      `).bind(
+      parseInt(bottomRank, 10),
+      gamemode
+    ).all();
+
+    return new Response(JSON.stringify({ scores: results }), {
+      headers: { "Content-Type": "application/json" },
+      status: 200
+    });
+  } catch (error) {
+    console.error("Error fetching whole scores:", error);
+    return new Response("DB error: " + error.message, { status: 500 });
+  }
+}
+
+async function handleUpdateWholeRank(request, env) {
+  const url = new URL(request.url);
+  const params = url.searchParams;
+
+  const gamemode = params.get("gamemode");
+
+  if (!gamemode) {
+    return new Response("Missing required parameter (gamemode)", { status: 400 });
+  }
+
+  try {
+    await env.DB.exec(`
+      UPDATE Scores
+      SET wholerank = (
+        SELECT subquery.wholerank
+        FROM (
+          SELECT id, RANK() OVER (ORDER BY playDuration ASC) AS wholerank
+          FROM Scores
+          WHERE gamemode = '${gamemode}'
+        ) AS subquery
+        WHERE Scores.id = subquery.id
+      )
+      WHERE gamemode = '${gamemode}';
+    `);
+
+    return new Response(JSON.stringify({ message: "Whole ranks updated successfully" }), { status: 200 });
+  } catch (error) {
+    console.error("Error updating whole ranks:", error);
+    return new Response("DB error: " + error.message, { status: 500 });
+  }
+}
+
+
+async function handleUpdateSeasonRank(request, env) {
+  const url = new URL(request.url);
+  const params = url.searchParams;
+
+  const year = params.get("year");
+  const minMonth = params.get("minMonth");
+  const maxMonth = params.get("maxMonth");
+  const gamemode = params.get("gamemode");
+
+  if (!year || !minMonth || !maxMonth || !gamemode) {
+    return new Response("Missing required parameters (year, minMonth, maxMonth, gamemode)", { status: 400 });
+  }
+
+  try {
+    await env.DB.exec(`
+      UPDATE Scores
+      SET seasonrank = (
+        SELECT subquery.seasonrank
+        FROM (
+          SELECT id, RANK() OVER (ORDER BY playDuration ASC) AS seasonrank
+          FROM Scores
+          WHERE strftime('%Y', createdat) = '${year}'
+            AND CAST(strftime('%m', createdat) AS INTEGER) >= ${parseInt(minMonth, 10)}
+            AND CAST(strftime('%m', createdat) AS INTEGER) <= ${parseInt(maxMonth, 10)}
+            AND gamemode = '${gamemode}'
+        ) AS subquery
+        WHERE Scores.id = subquery.id
+      )
+      WHERE strftime('%Y', createdat) = '${year}'
+        AND CAST(strftime('%m', createdat) AS INTEGER) >= ${parseInt(minMonth, 10)}
+        AND CAST(strftime('%m', createdat) AS INTEGER) <= ${parseInt(maxMonth, 10)}
+        AND gamemode = '${gamemode}';
+    `);
+
+    return new Response(JSON.stringify({ message: "Season ranks updated successfully" }), { status: 200 });
+  } catch (error) {
+    console.error("Error updating season ranks:", error);
+    return new Response("DB error: " + error.message, { status: 500 });
+  }
+}
+
 async function loadHtml(request, env) {
   const assetRequest = new Request(new URL('/index.html', request.url), request);
   console.log(request)
@@ -193,35 +341,23 @@ export default {
     }
 
     if (url.pathname === '/api/get-seasonscores') {
-      // todo
+      return handleGetSeasonScores(request, env);
     }
 
     if (url.pathname === '/api/get-wholescores') {
-      // todo
+      return handleGetWholeScores(request, env);
     }
 
     if (url.pathname === '/api/update-wholerank') {
-      // todo
+      return handleUpdateWholeRank(request, env);
     }
 
     if (url.pathname === '/api/update-seasonrank') {
-      // todo
+      return handleUpdateSeasonRank(request, env);
     }
 
     // Serve static assets for all other routes
-    // return env.ASSETS.fetch(request);
-
-    // root
-    // return new Response(
-    //   `
-    //   <h1>D1 Worker Test</h1>
-    //   <p>Try POST to /insert-score?gamemode=classic&username=player1&playduration=330&wholerank=10&seasonrank=3</p>
-    //   <p>Try GET to /get-all</p>
-    //   <p>Delete scores table to /delete-table</p>
-    //   <p>/next-season-rank?year=2025&minMonth=4&maxMonth=6&playDuration=330&gamemode=classic</p>
-    //   `,
-    //   { headers: { 'Content-Type': 'text/html' } }
-    // );
+    return env.ASSETS.fetch(request);
   },
 };
 
