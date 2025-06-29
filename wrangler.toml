@@ -1,0 +1,11 @@
+name = "d1-worker-test"
+main = "./cf_api/api.js"
+compatibility_date = "2024-05-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "test_db"
+database_id = "14bfbac1-7050-4aec-9520-bf7e4491fb24"
+
+[assets]
+directory = "./public"
