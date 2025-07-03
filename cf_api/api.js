@@ -80,7 +80,6 @@ async function handleGetAll(env) {
   }
 }
 
-// async function getNextSeasonRank(env, { year, minMonth, maxMonth, playDuration, gamemode }) {
 async function handleGetNextSeasonRank(url, env) {
   const params = url.searchParams;
   const year = parseInt(params.get("year") || "2025");
