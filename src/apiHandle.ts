@@ -71,12 +71,10 @@ export class ApiHandle {
         throw new Error('Request failed');
       }
       const data = await response.json();
-      const rankToEnter = Number(data.scores.rows[0].next_rank) + 1;
       // console.log(rankToEnter);
       return rankToEnter;
     } catch (error) {
       console.error(error);
-      throw new Error('error when getting rank');
     }
   }
 
@@ -87,12 +85,10 @@ export class ApiHandle {
         throw new Error('Request failed');
       }
       const data = await response.json();
-      const rankToEnter = Number(data.scores.rows[0].next_rank) + 1;
       // console.log(rankToEnter);
       return rankToEnter;
     } catch (error) {
       console.error(error);
-      throw new Error('error when getting rank');
     }
   }
 
