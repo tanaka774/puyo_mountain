@@ -2,6 +2,7 @@ import { ApiHandle } from "./apiHandle";
 import { Chain } from "./chain";
 import { PUYO_COLORS, gameConfig } from "./config";
 import { LSHandle } from "./localStorageHandle";
+import { Menu, MenuSelect } from "./menu";
 import { GameMode, Mountain } from "./mountain/mountain";
 import { Difficulty } from "./mountain/mountainArcade";
 import { GameState, stateHandle } from "./state";
@@ -24,6 +25,7 @@ export class HtmlHandle {
     private _timer: Timer,
     private _chain: Chain,
     private _mountain: Mountain,
+    private _menu: Menu
   ) {
     this._targetChainNumShow = document.getElementById("targetChainCount");
     this._chainNumShow = document.getElementById("chainCount");
@@ -86,10 +88,20 @@ export class HtmlHandle {
     const rankInDialog = document.createElement("dialog");
     document.body.appendChild(rankInDialog);
 
-    rankInDialog.showModal();
-    // "Cancel" button closes the dialog without submitting because of [formmethod="dialog"], triggering a close event.
+    Object.assign(rankInDialog.style, {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: '100000',
+    });
+
+    // don't use showModal() here. it overlays recaptcha challenge completely
+    rankInDialog.show();
+
     rankInDialog.addEventListener("close", async (e) => {
-      // unused?
+      // generate buttons here so that both of dialog and menu buttons don't appear at the same time.
+      this._menu.generateButtons(MenuSelect.GAME_CLEAR);
     });
 
     let seasonRankToEnter: number;
@@ -381,7 +393,8 @@ export class HtmlHandle {
     document.body.appendChild(resultDialog);
     resultDialog.showModal();
     resultDialog.addEventListener("close", async (e) => {
-      // unused?
+      // generate buttons here
+      this._menu.generateButtons(MenuSelect.GAME_CLEAR);
     });
 
     const resultDifficulty = `難易度:${difficulty}<br><br>`;

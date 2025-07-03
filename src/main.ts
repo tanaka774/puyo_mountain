@@ -43,7 +43,7 @@ function main() {
     split, chain, mountain, 'mainCanvas', 'nextPuyoCanvas');
   // const draw = new DrawWithSVG(bounce, board, current, move, rotate,
   //   split, chain, mountain);
-  const htmlHandle = new HtmlHandle(lSHandle, apiHandle, timer, chain, mountain);
+  const htmlHandle = new HtmlHandle(lSHandle, apiHandle, timer, chain, mountain, menu);
   const game = new Game(menu, apiHandle, timer, bounce, board, current, move, rotate,
     split, chain, input, draw, mountain, htmlHandle);
 
