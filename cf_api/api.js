@@ -239,19 +239,19 @@ async function handleUpdateWholeRank(request, env) {
   }
 
   try {
-    await env.DB.exec(`
+    await env.DB.prepare(`
       UPDATE Scores
       SET wholerank = (
         SELECT subquery.wholerank
         FROM (
           SELECT id, RANK() OVER (ORDER BY playDuration ASC) AS wholerank
           FROM Scores
-          WHERE gamemode = '${gamemode}'
+          WHERE gamemode = ?
         ) AS subquery
         WHERE Scores.id = subquery.id
       )
-      WHERE gamemode = '${gamemode}';
-    `);
+      WHERE gamemode = ?;
+    `).bind(gamemode, gamemode).run();
 
     return new Response(JSON.stringify({ message: "Whole ranks updated successfully" }), { status: 200 });
   } catch (error) {
@@ -275,25 +275,28 @@ async function handleUpdateSeasonRank(request, env) {
   }
 
   try {
-    await env.DB.exec(`
+    await env.DB.prepare(`
       UPDATE Scores
       SET seasonrank = (
         SELECT subquery.seasonrank
         FROM (
           SELECT id, RANK() OVER (ORDER BY playDuration ASC) AS seasonrank
           FROM Scores
-          WHERE strftime('%Y', createdat) = '${year}'
-            AND CAST(strftime('%m', createdat) AS INTEGER) >= ${parseInt(minMonth, 10)}
-            AND CAST(strftime('%m', createdat) AS INTEGER) <= ${parseInt(maxMonth, 10)}
-            AND gamemode = '${gamemode}'
-        ) AS subquery
-        WHERE Scores.id = subquery.id
-      )
-      WHERE strftime('%Y', createdat) = '${year}'
-        AND CAST(strftime('%m', createdat) AS INTEGER) >= ${parseInt(minMonth, 10)}
-        AND CAST(strftime('%m', createdat) AS INTEGER) <= ${parseInt(maxMonth, 10)}
-        AND gamemode = '${gamemode}';
-    `);
+            WHERE strftime('%Y', createdat) = ?
+              AND CAST(strftime('%m', createdat) AS INTEGER) >= ?
+              AND CAST(strftime('%m', createdat) AS INTEGER) <= ?
+              AND gamemode = ?
+          ) AS subquery
+          WHERE Scores.id = subquery.id
+        )
+        WHERE strftime('%Y', createdat) = ?
+          AND CAST(strftime('%m', createdat) AS INTEGER) >= ?
+          AND CAST(strftime('%m', createdat) AS INTEGER) <= ?
+          AND gamemode = ?;
+    `).bind(
+      year, minMonth, maxMonth, gamemode, // For the subquery WHERE clause
+      year, minMonth, maxMonth, gamemode  // For the outer UPDATE WHERE clause
+    ).run();
 
     return new Response(JSON.stringify({ message: "Season ranks updated successfully" }), { status: 200 });
   } catch (error) {
