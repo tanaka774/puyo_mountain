@@ -1,5 +1,4 @@
 import { gameConfig } from "./config.js";
-import { cz } from "./util.js"
 
 
 export class ApiHandle {
@@ -46,12 +45,18 @@ export class ApiHandle {
     try {
       const createdAt = this.getCurrentTimestamp();
 
-      const response = await fetch(`/api/add-scores?userName=${userName}&playDuration=${playDuration}&gamemode=${gamemode}&createdAt=${createdAt}&pickle=${cz()}`, {
+      const response = await fetch(`/api/add-scores`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ captchaResponse }),
+        body: JSON.stringify({
+          userName: userName,
+          playDuration: playDuration,
+          gameMode: gamemode,
+          createdAt: createdAt,
+          captchaResponse: captchaResponse,
+        }),
       })
       if (!response.ok) {
         throw new Error('Request failed');
@@ -100,7 +105,7 @@ export class ApiHandle {
   // this is for test/debug
   async addDataWithTimestamp(userName, playDuration, timestamp, gamemode) {
     try {
-      const response = await fetch(`/api/add-scores-withtimestamp?userName=${userName}&playDuration=${playDuration}&timestamp=${timestamp}&gamemode=${gamemode}&pickle=${cz()}`)
+      const response = await fetch(`/api/add-scores-withtimestamp?userName=${userName}&playDuration=${playDuration}&timestamp=${timestamp}&gamemode=${gamemode}`)
       if (!response.ok) {
         throw new Error('Request failed');
       }
