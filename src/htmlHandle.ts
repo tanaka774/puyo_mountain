@@ -7,6 +7,7 @@ import { GameMode, Mountain } from "./mountain/mountain";
 import { Difficulty } from "./mountain/mountainArcade";
 import { GameState, stateHandle } from "./state";
 import { Timer } from "./timer";
+import { getTurnstileToken } from "./captchaHandle.js"
 
 
 export class HtmlHandle {
@@ -142,6 +143,7 @@ export class HtmlHandle {
 
       const sendButton = document.createElement("button");
       sendButton.textContent = "送信する";
+      sendButton.setAttribute("id", "sendButton")
       sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
         sendButton.disabled = true;
@@ -156,7 +158,7 @@ export class HtmlHandle {
           return;
         }
 
-        const captchaResponse = grecaptcha.getResponse();
+        const captchaResponse = getTurnstileToken();
         if (!captchaResponse) {
           alert('スコアを送信する場合はcaptcha認証を行ってください');
           sendButton.disabled = false;
@@ -692,15 +694,28 @@ export class HtmlHandle {
   }
 
   private addRecaptcha(parent: HTMLElement) {
-    const recaptchaContainer = document.createElement('div');
-    recaptchaContainer.setAttribute('id', 'recaptchaContainer');
-    parent.appendChild(recaptchaContainer);
+    const turnstileContainer = document.createElement('div');
+    turnstileContainer.innerHTML = '';
+    turnstileContainer.setAttribute("id", "turnstileContainer");
 
-    const loadElement = document.createElement('script');
-    loadElement.setAttribute("src", `https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit`);
-    loadElement.setAttribute("async", "");
-    loadElement.setAttribute("defer", "");
-    parent.appendChild(loadElement);
+    function removeExistingTurnstileScript(): void {
+      const existingScript = document.querySelector(
+        'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
+      );
+
+      if (existingScript) {
+        existingScript.remove();
+      }
+    }
+
+    removeExistingTurnstileScript();
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    parent.appendChild(turnstileContainer);
   }
 
 
