@@ -359,7 +359,7 @@ export class HtmlHandle {
         </tr>
       </thead>
       <tbody>
-        ${data?.scores.rows.map(entry => `
+        ${data?.scores?.rows?.map(entry => `
           <tr>
             <td>${entry.username}</td>
             <td>　${entry.wholerank}</td>
