@@ -3,7 +3,7 @@ export async function handleGetNextSeasonRank(url, env) {
   const year = parseInt(params.get("year") || "2025");
   const minMonth = parseInt(params.get("minMonth") || "1");
   const maxMonth = parseInt(params.get("maxMonth") || "12");
-  const playDuration = params.get("playDuration"); // e.g. "00:05:30"
+  const playDuration = parseInt(params.get("playDuration"));
   const gamemode = params.get("gamemode") || "classic";
 
   if (!playDuration) {

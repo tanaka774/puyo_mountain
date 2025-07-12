@@ -1,6 +1,6 @@
 export async function handleGetNextWholeRank(url, env) {
   const params = url.searchParams;
-  const playDuration = params.get("playDuration");
+  const playDuration = parseInt(params.get("playDuration"));
   const gamemode = params.get("gamemode") || "classic";
 
   if (!playDuration) {

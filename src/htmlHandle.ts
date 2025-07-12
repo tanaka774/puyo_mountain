@@ -78,7 +78,7 @@ export class HtmlHandle {
   async showRankInModal() { // (wholeRank, seasonRank, isInHighScore:boolean, playDuration, gamemode) {
 
     const [hours, minutes, seconds] = this._timer.getElapsedTimeDigits();
-    const playDuration = `${hours} hours ${minutes} minutes ${seconds} seconds`
+    const totalPlayDurationSeconds = this._timer.getElapsedTimeInSeconds();
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
@@ -108,8 +108,8 @@ export class HtmlHandle {
     let seasonRankToEnter: number;
     let wholeRankToEnter: number;
     try {
-      seasonRankToEnter = await this._apiHandle.getNextSeasonRankWithRetry(year, minMonth, minMonth + 2, playDuration, gamemode);
-      wholeRankToEnter = await this._apiHandle.getNextWholeRankWithRetry(playDuration, gamemode);
+      seasonRankToEnter = await this._apiHandle.getNextSeasonRankWithRetry(year, minMonth, minMonth + 2, totalPlayDurationSeconds, gamemode);
+      wholeRankToEnter = await this._apiHandle.getNextWholeRankWithRetry(totalPlayDurationSeconds, gamemode);
     } catch (err) {
       console.error(err);
       rankInDialog.innerHTML = '';
@@ -165,7 +165,7 @@ export class HtmlHandle {
           return;
         }
 
-        this._apiHandle.addDataWithRetry(userName, playDuration, gamemode, captchaResponse)
+        this._apiHandle.addDataWithRetry(userName, totalPlayDurationSeconds, gamemode, captchaResponse)
           .then(() => {
             rankInDialog.innerHTML = '';
             rankInDialog.innerText = 'データを送信しました'
@@ -335,6 +335,18 @@ export class HtmlHandle {
     this.makeContentFromDB(scoresOutput, firstDataToShow);
   }
 
+  private formatTime(timeInSeconds: number): string {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+
+    const formattedHours = hours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const formattedSeconds = seconds.toString().padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+
   private makeContentFromDB(dynamicContent: HTMLElement, data) {
     dynamicContent.innerHTML = '';
 
@@ -364,7 +376,7 @@ export class HtmlHandle {
             <td>${entry.username}</td>
             <td>　${entry.wholerank}</td>
             <td>　${entry.seasonrank}</td>
-            <td>${entry.playduration.hours || '0'}:${entry.playduration.minutes || '00'}:${entry.playduration.seconds || '00'}</td>
+            <td>${this.formatTime(entry.playduration)}</td>
             <td>${entry.createdat.split('T')[0]}</td>
           </tr>
         `).join('')}
