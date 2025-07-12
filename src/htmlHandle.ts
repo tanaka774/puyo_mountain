@@ -371,13 +371,13 @@ export class HtmlHandle {
         </tr>
       </thead>
       <tbody>
-        ${data?.scores?.rows?.map(entry => `
+        ${data?.scores?.map(entry => `
           <tr>
             <td>${entry.username}</td>
             <td>　${entry.wholerank}</td>
             <td>　${entry.seasonrank}</td>
             <td>${this.formatTime(entry.playduration)}</td>
-            <td>${entry.createdat.split('T')[0]}</td>
+            <td>${entry.createdat.split(' ')[0]}</td>
           </tr>
         `).join('')}
       </tbody>
