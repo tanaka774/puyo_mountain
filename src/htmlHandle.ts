@@ -347,6 +347,11 @@ export class HtmlHandle {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
   }
 
+  private formatCreatedAt(createdAt: string): string {
+    const date = new Date(createdAt + 'Z');
+    return date.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' });
+  }
+
   private makeContentFromDB(dynamicContent: HTMLElement, data) {
     dynamicContent.innerHTML = '';
 
@@ -377,7 +382,7 @@ export class HtmlHandle {
             <td>　${entry.wholerank}</td>
             <td>　${entry.seasonrank}</td>
             <td>${this.formatTime(entry.playduration)}</td>
-            <td>${entry.createdat.split(' ')[0]}</td>
+            <td>${this.formatCreatedAt(entry.createdat)}</td>
           </tr>
         `).join('')}
       </tbody>
