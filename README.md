@@ -20,7 +20,7 @@ The following are the features of this game.
 ### Deployment
 ~~This project is deployed with vercel environment. But maybe this environment would change because of maintainablity and sustainablity. Actually this vercel environment doesn't have any problems and free-tier usage is enough about static contents. But I want to host myself as possible as I can in the future.~~
 ### Database
-~~This project uses database for high score system. Currently I manage that with vercel postgres with serverless function. That is still in beta but just works. But it seems to me free-tier usage of this postgres is limited significantly. And adding to that for the same reason as above, I'm considering migrating into other environment.  ~~
+~~This project uses database for high score system. Currently I manage that with vercel postgres with serverless function. That is still in beta but just works. But it seems to me free-tier usage of this postgres is limited significantly. And adding to that for the same reason as above, I'm considering migrating into other environment.~~
 
 ## Miscellneous things
 - font: this game uses the font of [bestten](https://booth.pm/ja/items/2747965)
