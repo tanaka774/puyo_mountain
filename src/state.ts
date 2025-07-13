@@ -50,6 +50,12 @@ export const stateHandle = {
   checkPrevState: function (state: GameState) {
     return this.prevState === state;
   },
+  duringGamePlay: function () {
+    const res: boolean = this.duringGamePlayWithoutJustDrawing() ||
+      this.checkCurrentState(GameState.JUST_DRAWING);
+    ;
+    return res;
+  },
   duringGamePlayWithoutJustDrawing: function () {
     // need to keep refreshing
     const res: boolean = this.checkCurrentState(GameState.GENE_SEED_PUYOS) ||
