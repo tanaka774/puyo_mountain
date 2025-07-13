@@ -1,5 +1,5 @@
 ## puyo mountain
-What's here is the source code of [puyo mountain](https://puyo-mountain.vercel.app/)  
+What's here is the source code of [puyo mountain](https://puyomountain.com/)  
 
 ## What is this game?
 This is the copy game of puyopuyo and I'm adding my own game mode.  
@@ -14,13 +14,13 @@ The following are the features of this game.
 
 ## Tech-stack
 ### Language
-This project is written mostly in typescript. You can build locally with `npx vite`.
+~~This project is written mostly in typescript. You can build locally with `npx vite`.~~
 ### game-engine and framework
-This project doesn't use any game-engine or frontend framework. Canvas is used for game graphic and DOM for UI.
+~~This project doesn't use any game-engine or frontend framework. Canvas is used for game graphic and DOM for UI.~~
 ### Deployment
-This project is deployed with vercel environment. But maybe this environment would change because of maintainablity and sustainablity. Actually this vercel environment doesn't have any problems and free-tier usage is enough about static contents. But I want to host myself as possible as I can in the future.
+~~This project is deployed with vercel environment. But maybe this environment would change because of maintainablity and sustainablity. Actually this vercel environment doesn't have any problems and free-tier usage is enough about static contents. But I want to host myself as possible as I can in the future.~~
 ### Database
-This project uses database for high score system. Currently I manage that with vercel postgres with serverless function. That is still in beta but just works. But it seems to me free-tier usage of this postgres is limited significantly. And adding to that for the same reason as above, I'm considering migrating into other environment.  
+~~This project uses database for high score system. Currently I manage that with vercel postgres with serverless function. That is still in beta but just works. But it seems to me free-tier usage of this postgres is limited significantly. And adding to that for the same reason as above, I'm considering migrating into other environment.  ~~
 
 ## Miscellneous things
 - font: this game uses the font of [bestten](https://booth.pm/ja/items/2747965)
