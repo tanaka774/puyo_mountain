@@ -40,7 +40,7 @@ const PUYO_BIRTH_POSY_REAL = BOARD_TOP_EDGE - 1.2; // Y where actual current puy
 const PUYO_COLOR_NUM = 4;
 const moveYDiff = 0.015;
 const KEY_MOVE_DOWN_RATE = 15;
-const VANISH_WAIT_TIME = 23;
+const VANISH_WAIT_TIME = 18;
 const LOCK_WAIT_TIME = 180;
 const HOR_MOVING_TIME = 3;
 const ROTATING_TIME = 3;
@@ -49,18 +49,20 @@ const NEXT_MOVING_TIME = 20;
 const BOUNCING_TIME = 15;
 const BOUNCING_PUYO_NUM = 3;
 const FREEFALL_SPEED_RATE = 0.5;
-const SEED_FALLING_SPEED = 15.0;
-const SPLIT_FALLING_SPEED = 12.0;
-const FLOAT_FALLING_SPEED = 12.0;
+const SEED_FALLING_SPEED = 16.0;
+const SPLIT_FALLING_SPEED = 14.0;
+const FLOAT_FALLING_SPEED = 14.0;
 const PUYO_POOL_LOOP = 8;
 // if you change this value, store previous value and add select so that user can watch previous score records
 const ENDURANCE_TOTAL1 = 300;
-const ENDURANCE_MIN_ONCE1 = 7;
-const ENDURANCE_MAX_ONCE1 = 13;
+const ENDURANCE_MIN_ONCE1 = 6; // 7;
+const ENDURANCE_MAX_ONCE1 = 10; // 13;
 const ENDURANCE_TOTAL2 = 8;
 const ENDURANCE_MIN_ONCE2 = 4;
 const ENDURANCE_MAX_ONCE2 = 8;
 const BOTTOM_SCORE_RANK = 30;
+const DEFAULT_SCALE = 1.2; //same value as default scale in css
+const TARGET_FPS = 60;
 
 export const gameConfig = Object.freeze({
   CELL_SIZE,
@@ -103,6 +105,8 @@ export const gameConfig = Object.freeze({
   ENDURANCE_MIN_ONCE2,
   ENDURANCE_MAX_ONCE2,
   BOTTOM_SCORE_RANK,
+  DEFAULT_SCALE,
+  TARGET_FPS
 })
 
 
@@ -116,9 +120,9 @@ if (defaultColors) {
   // non-user-setting
   PUYO_COLORS = [
     null,
-    "rgba(255, 0, 0, 1)", 
-    "rgba(0, 0, 255, 1)", 
-    "rgba(0, 200, 0, 1)", 
+    "rgba(255, 0, 0, 1)",
+    "rgba(0, 0, 255, 1)",
+    "rgba(0, 200, 0, 1)",
     "rgba(255, 255, 0, 1)"
   ]
 }

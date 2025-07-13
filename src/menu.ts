@@ -215,6 +215,7 @@ export class Menu {
         break;
       case MenuSelect.PAUSE:
         geneButton('ゲームに戻る', () => { this.backToGameInPause(); this.closeModal(); });
+        geneButton('リトライする', () => { this.retryAfterGameOver(); this.closeModal(); }); // this is not afterGameOver though
         geneButton('メニューに戻る', () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_OVER:

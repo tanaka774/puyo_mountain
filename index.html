@@ -5,17 +5,13 @@
   <meta charset="UTF-8" />
   <title>puyo mountain</title>
   <link rel="stylesheet" type="text/css" href="./src/styles.css">
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-  <script type="text/javascript">
-    var onloadCallback = function () {
-      grecaptcha.render('recaptchaContainer', {
-        'sitekey': '6LeXnoAnAAAAAAedOAkqoNIppKd3VZf9N1K7svnb'
-      });
-    };
-  </script>
 </head>
 
 <body>
+  <div class="controls">
+    <button id="zoom-in">+</button>
+    <button id="zoom-out">-</button>
+  </div>
 
   <div class="canvas-container" id="canvasContainer">
     <div class="main-container" id="mainContainer">

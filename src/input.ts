@@ -24,6 +24,8 @@ export class Input {
   ) {
     // TODO: be careful enough for these eventlistener
     document.addEventListener('keydown', e => {
+      if (!stateHandle.duringGamePlayWithoutJustDrawing()) return;
+      e.preventDefault();
       // is this condition necessary? yes for rotation
       // if (this.canTakeInput()) {
       if (e.key === 'ArrowLeft') {
@@ -46,6 +48,8 @@ export class Input {
 
     // for quickturn
     document.addEventListener('keydown', keyPressedTwice('x', () => {
+      if (!stateHandle.duringGamePlayWithoutJustDrawing()) return;
+
       if (this._rotate.quickTurn.isPossible && this._current.currentPuyo) {
         this._rotate.quickTurn.willExecute = true;
         // quickTurn.turnCW();
@@ -55,6 +59,8 @@ export class Input {
     }, () => { this._rotate.quickTurn.willExecute = false; }, 1000));
 
     document.addEventListener('keydown', keyPressedTwice('z', () => {
+      if (!stateHandle.duringGamePlayWithoutJustDrawing()) return;
+
       if (this._rotate.quickTurn.isPossible && this._current.currentPuyo) {
         this._rotate.quickTurn.willExecute = true;
         // quickTurn.turnACW();
@@ -64,6 +70,8 @@ export class Input {
     }, () => { this._rotate.quickTurn.willExecute = false; }, 1000));
 
     document.addEventListener('keyup', e => {
+      // if (!stateHandle.duringGamePlayWithoutJustDrawing()) return;
+      //
       // if (canTakeInput()) {
       if (e.key === 'ArrowLeft') {
         this.isLeftKeyPressed = false;
