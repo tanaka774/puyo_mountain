@@ -9,7 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx vite build && wrangler dev",
-    "deploy": "npx vite build && wrangler deploy"
+    "deploy_dev": "npx vite build && wrangler deploy",
+    "deploy_prod": "npx vite build && wrangler deploy --env production"
   },
   "keywords": [],
   "author": "",
