@@ -1,5 +1,4 @@
 import { gameConfig } from "./config.js";
-import { cz } from "./util.js"
 
 
 export class ApiHandle {
@@ -42,16 +41,22 @@ export class ApiHandle {
   }
 
 
-  async addData(userName:string, playDuration:string, gamemode:string, captchaResponse:string) {
+  async addData(userName: string, playDuration: number, gamemode: string, captchaResponse: string) {
     try {
       const createdAt = this.getCurrentTimestamp();
 
-      const response = await fetch(`/api/add-scores?userName=${userName}&playDuration=${playDuration}&gamemode=${gamemode}&createdAt=${createdAt}&pickle=${cz()}`, {
+      const response = await fetch(`/api/add-scores`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ captchaResponse }),
+        body: JSON.stringify({
+          userName: userName,
+          playDuration: playDuration,
+          gameMode: gamemode,
+          createdAt: createdAt,
+          captchaResponse: captchaResponse,
+        }),
       })
       if (!response.ok) {
         throw new Error('Request failed');
@@ -64,42 +69,43 @@ export class ApiHandle {
     }
   }
 
-  async getNextWholeRank(playDuration:string, gamemode: string) {
+  async getNextWholeRank(playDuration: number, gamemode: string) {
     try {
       const response = await fetch(`/api/get-nextwholerank?playDuration=${playDuration}&gamemode=${gamemode}`)
       if (!response.ok) {
         throw new Error('Request failed');
       }
       const data = await response.json();
-      const rankToEnter = Number(data.scores.rows[0].next_rank) + 1;
+      const rankToEnter = (data.nextWholeRank ?? 0) + 1;
       // console.log(rankToEnter);
       return rankToEnter;
     } catch (error) {
       console.error(error);
-      throw new Error('error when getting rank');
+      throw new Error('error when getting whole rank');
     }
   }
 
-  async getNextSeasonRank(year:number, minMonth:number, maxMonth:number, playDuration:string, gamemode:string) {
+  async getNextSeasonRank(year: number, minMonth: number, maxMonth: number, playDuration: number, gamemode: string) {
     try {
       const response = await fetch(`/api/get-nextseasonrank?year=${year}&minMonth=${minMonth}&maxMonth=${maxMonth}&playDuration=${playDuration}&gamemode=${gamemode}`)
       if (!response.ok) {
         throw new Error('Request failed');
       }
       const data = await response.json();
-      const rankToEnter = Number(data.scores.rows[0].next_rank) + 1;
+
+      const rankToEnter = (data.nextRank ?? 0) + 1;
       // console.log(rankToEnter);
       return rankToEnter;
     } catch (error) {
       console.error(error);
-      throw new Error('error when getting rank');
+      throw new Error('error when getting season rank');
     }
   }
 
   // this is for test/debug
   async addDataWithTimestamp(userName, playDuration, timestamp, gamemode) {
     try {
-      const response = await fetch(`/api/add-scores-withtimestamp?userName=${userName}&playDuration=${playDuration}&timestamp=${timestamp}&gamemode=${gamemode}&pickle=${cz()}`)
+      const response = await fetch(`/api/add-scores-withtimestamp?userName=${userName}&playDuration=${playDuration}&timestamp=${timestamp}&gamemode=${gamemode}`)
       if (!response.ok) {
         throw new Error('Request failed');
       }
@@ -156,13 +162,13 @@ export class ApiHandle {
     return number.toString();
   }
 
-  async addDataWithRetry(userName:string, playDuration:string, gamemode:string, captchaResponse:string):Promise<void> {
+  async addDataWithRetry(userName: string, playDuration: number, gamemode: string, captchaResponse: string): Promise<void> {
     return this.dataOpeWithRetry(async () => this.addData(userName, playDuration, gamemode, captchaResponse)) as Promise<void>;
   }
-  async getNextWholeRankWithRetry(playDuration:string, gamemode: string): Promise<number> {
+  async getNextWholeRankWithRetry(playDuration: number, gamemode: string): Promise<number> {
     return this.dataOpeWithRetry(async () => this.getNextWholeRank(playDuration, gamemode)) as Promise<number>;
   }
-  async getNextSeasonRankWithRetry(year:number, minMonth:number, maxMonth:number, playDuration:string, gamemode:string):Promise<number> {
+  async getNextSeasonRankWithRetry(year: number, minMonth: number, maxMonth: number, playDuration: number, gamemode: string): Promise<number> {
     return this.dataOpeWithRetry(async () => this.getNextSeasonRank(year, minMonth, maxMonth, playDuration, gamemode)) as Promise<number>;
   }
 
@@ -171,7 +177,7 @@ export class ApiHandle {
   private _baseDelay = 1000; // Initial delay in milliseconds
   private _backoffFactor = 2; // Backoff factor for exponential increase
 
-    async dataOpeWithRetry(dataOpeCallback:() => Promise<void> | Promise<number>): Promise<number | void> {
+  async dataOpeWithRetry(dataOpeCallback: () => Promise<void> | Promise<number>): Promise<number | void> {
     let retries = 0;
     let delay = this._baseDelay;
 

@@ -229,8 +229,6 @@ export class Game {
       case GameState.GAMECLEAR:
         // conglats
         if (stateHandle.isEnter()) {
-          this._menu.generateButtons(MenuSelect.GAME_CLEAR);
-
           this.afterGameClear();
         }
         break;

@@ -1,0 +1,26 @@
+name = "pm-d1-worker"
+main = "./cf_api/api.js"
+compatibility_date = "2024-05-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pm_db_dev"
+database_id = "14bfbac1-7050-4aec-9520-bf7e4491fb24"
+
+[assets]
+directory = "./public"
+
+# --- Production Environment Configuration ---
+# This section defines the 'production' environment.
+# When you deploy with `npx wrangler deploy --env production`,
+# these settings will override the default ones.
+[env.production]
+main = "./cf_api/api.js"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "pm_db_prod"
+database_id = "824c31e4-afb0-4b58-a0c6-dcac35011905"
+
+[env.production.assets]
+directory = "./public"

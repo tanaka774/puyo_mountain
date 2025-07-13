@@ -7,13 +7,16 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx vite build && wrangler dev",
+    "deploy_dev": "npx vite build && wrangler deploy",
+    "deploy_prod": "npx vite build && wrangler deploy --env production"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "vite": "^4.5.3"
+    "vite": "^4.5.14"
   },
   "dependencies": {
     "@types/grecaptcha": "^3.0.4",

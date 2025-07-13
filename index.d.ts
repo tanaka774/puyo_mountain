@@ -3,4 +3,3 @@ declare module '*.woff2' {
   export = value;
 }
 
-declare const grecaptcha: any;

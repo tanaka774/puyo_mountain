@@ -77,5 +77,11 @@ export class Timer {
     return [hours, minutes, seconds];
   }
 
+  getElapsedTimeInSeconds(): number {
+    const timeDiffInMs = this._currentTime - this._startTime;
+    const timeDiffInSeconds = timeDiffInMs / 1000;
+    return Math.round(timeDiffInSeconds);
+  }
+
   get formattedTime() { return this._formattedTime; }
 }

@@ -2,10 +2,12 @@ import { ApiHandle } from "./apiHandle";
 import { Chain } from "./chain";
 import { PUYO_COLORS, gameConfig } from "./config";
 import { LSHandle } from "./localStorageHandle";
+import { Menu, MenuSelect } from "./menu";
 import { GameMode, Mountain } from "./mountain/mountain";
 import { Difficulty } from "./mountain/mountainArcade";
 import { GameState, stateHandle } from "./state";
 import { Timer } from "./timer";
+import { getTurnstileToken } from "./captchaHandle.js"
 
 
 export class HtmlHandle {
@@ -24,6 +26,7 @@ export class HtmlHandle {
     private _timer: Timer,
     private _chain: Chain,
     private _mountain: Mountain,
+    private _menu: Menu
   ) {
     this._targetChainNumShow = document.getElementById("targetChainCount");
     this._chainNumShow = document.getElementById("chainCount");
@@ -75,7 +78,7 @@ export class HtmlHandle {
   async showRankInModal() { // (wholeRank, seasonRank, isInHighScore:boolean, playDuration, gamemode) {
 
     const [hours, minutes, seconds] = this._timer.getElapsedTimeDigits();
-    const playDuration = `${hours} hours ${minutes} minutes ${seconds} seconds`
+    const totalPlayDurationSeconds = this._timer.getElapsedTimeInSeconds();
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
@@ -86,17 +89,27 @@ export class HtmlHandle {
     const rankInDialog = document.createElement("dialog");
     document.body.appendChild(rankInDialog);
 
-    rankInDialog.showModal();
-    // "Cancel" button closes the dialog without submitting because of [formmethod="dialog"], triggering a close event.
+    Object.assign(rankInDialog.style, {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: '100000',
+    });
+
+    // don't use showModal() here. it overlays recaptcha challenge completely
+    rankInDialog.show();
+
     rankInDialog.addEventListener("close", async (e) => {
-      // unused?
+      // generate buttons here so that both of dialog and menu buttons don't appear at the same time.
+      this._menu.generateButtons(MenuSelect.GAME_CLEAR);
     });
 
     let seasonRankToEnter: number;
     let wholeRankToEnter: number;
     try {
-      seasonRankToEnter = await this._apiHandle.getNextSeasonRankWithRetry(year, minMonth, minMonth + 2, playDuration, gamemode);
-      wholeRankToEnter = await this._apiHandle.getNextWholeRankWithRetry(playDuration, gamemode);
+      seasonRankToEnter = await this._apiHandle.getNextSeasonRankWithRetry(year, minMonth, minMonth + 2, totalPlayDurationSeconds, gamemode);
+      wholeRankToEnter = await this._apiHandle.getNextWholeRankWithRetry(totalPlayDurationSeconds, gamemode);
     } catch (err) {
       console.error(err);
       rankInDialog.innerHTML = '';
@@ -130,6 +143,7 @@ export class HtmlHandle {
 
       const sendButton = document.createElement("button");
       sendButton.textContent = "送信する";
+      sendButton.setAttribute("id", "sendButton")
       sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
         sendButton.disabled = true;
@@ -144,14 +158,14 @@ export class HtmlHandle {
           return;
         }
 
-        const captchaResponse = grecaptcha.getResponse();
+        const captchaResponse = getTurnstileToken();
         if (!captchaResponse) {
           alert('スコアを送信する場合はcaptcha認証を行ってください');
           sendButton.disabled = false;
           return;
         }
 
-        this._apiHandle.addDataWithRetry(userName, playDuration, gamemode, captchaResponse)
+        this._apiHandle.addDataWithRetry(userName, totalPlayDurationSeconds, gamemode, captchaResponse)
           .then(() => {
             rankInDialog.innerHTML = '';
             rankInDialog.innerText = 'データを送信しました'
@@ -321,6 +335,23 @@ export class HtmlHandle {
     this.makeContentFromDB(scoresOutput, firstDataToShow);
   }
 
+  private formatTime(timeInSeconds: number): string {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+
+    const formattedHours = hours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const formattedSeconds = seconds.toString().padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+
+  private formatCreatedAt(createdAt: string): string {
+    const date = new Date(createdAt + 'Z');
+    return date.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Tokyo' });
+  }
+
   private makeContentFromDB(dynamicContent: HTMLElement, data) {
     dynamicContent.innerHTML = '';
 
@@ -345,13 +376,13 @@ export class HtmlHandle {
         </tr>
       </thead>
       <tbody>
-        ${data?.scores.rows.map(entry => `
+        ${data?.scores?.map(entry => `
           <tr>
             <td>${entry.username}</td>
             <td>　${entry.wholerank}</td>
             <td>　${entry.seasonrank}</td>
-            <td>${entry.playduration.hours || '0'}:${entry.playduration.minutes || '00'}:${entry.playduration.seconds || '00'}</td>
-            <td>${entry.createdat.split('T')[0]}</td>
+            <td>${this.formatTime(entry.playduration)}</td>
+            <td>${this.formatCreatedAt(entry.createdat)}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -381,7 +412,8 @@ export class HtmlHandle {
     document.body.appendChild(resultDialog);
     resultDialog.showModal();
     resultDialog.addEventListener("close", async (e) => {
-      // unused?
+      // generate buttons here
+      this._menu.generateButtons(MenuSelect.GAME_CLEAR);
     });
 
     const resultDifficulty = `難易度:${difficulty}<br><br>`;
@@ -679,15 +711,28 @@ export class HtmlHandle {
   }
 
   private addRecaptcha(parent: HTMLElement) {
-    const recaptchaContainer = document.createElement('div');
-    recaptchaContainer.setAttribute('id', 'recaptchaContainer');
-    parent.appendChild(recaptchaContainer);
+    const turnstileContainer = document.createElement('div');
+    turnstileContainer.innerHTML = '';
+    turnstileContainer.setAttribute("id", "turnstileContainer");
 
-    const loadElement = document.createElement('script');
-    loadElement.setAttribute("src", `https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit`);
-    loadElement.setAttribute("async", "");
-    loadElement.setAttribute("defer", "");
-    parent.appendChild(loadElement);
+    function removeExistingTurnstileScript(): void {
+      const existingScript = document.querySelector(
+        'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
+      );
+
+      if (existingScript) {
+        existingScript.remove();
+      }
+    }
+
+    removeExistingTurnstileScript();
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    parent.appendChild(turnstileContainer);
   }
 
 
