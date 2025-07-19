@@ -36,7 +36,8 @@ export class HtmlHandle {
     this._canvasContainer = document.getElementById('canvasContainer');
     this._zoomInButton = document.getElementById('zoom-in') as HTMLButtonElement;
     this._zoomOutButton = document.getElementById('zoom-out') as HTMLButtonElement;
-    this._currentScale = gameConfig.DEFAULT_SCALE;
+    this._currentScale = this._lSHandle.getZoomRate() || gameConfig.DEFAULT_SCALE;
+    this.scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
 
     // this._pauseButton.addEventListener('click', this.handlePause);
     // document.addEventListener('keydown', e => {
@@ -46,11 +47,13 @@ export class HtmlHandle {
     this._zoomInButton.addEventListener('click', () => {
       this._currentScale += 0.1;
       this.scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+      this._lSHandle.setZoomRate(this._currentScale);
     });
 
     this._zoomOutButton.addEventListener('click', () => {
       this._currentScale = Math.max(0.1, this._currentScale - 0.1);
       this.scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+      this._lSHandle.setZoomRate(this._currentScale);
     });
 
   }
