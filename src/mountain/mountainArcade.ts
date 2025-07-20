@@ -2,6 +2,7 @@ import { Board } from "src/board";
 import { MountainBase } from "./mountainBase";
 import { Chain } from "src/chain";
 import { gameConfig } from "../config";
+import lang from "../../locales";
 
 
 export enum Difficulty {
@@ -105,24 +106,24 @@ export class MountainArcade extends MountainBase {
     }
   }
 
-  decideGameResult(hours:number, minutes:number, seconds:number) {
+  decideGameResult(hours: number, minutes: number, seconds: number) {
     const totalMinutes = 60 * hours + minutes;
     const unne = this._unnecessaryVanishPuyoNum;
     const score = totalMinutes + unne / 20;
     if (score <= 14) this._resultGrade = 'S';
     else if (score <= 20) this._resultGrade = 'A';
     else if (score <= 30) this._resultGrade = 'B';
-    else  this._resultGrade = 'C';
+    else this._resultGrade = 'C';
   }
 
   getGameStatus(): string {
     let res: string;
     if (this.isLastPhase() && this.checkDifficulty(Difficulty.HARD)) {
-      res = `${this._currentTargetChainNum} 連鎖全消しすべし`
+      res = lang.chainAllClear(this._currentTargetChainNum);
     } else if (this.isLastPhase()) {
-      res = `${this._currentTargetChainNum} 連鎖すべし 最終フェーズ`
+      res = lang.chainLastPhase(this._currentTargetChainNum);
     } else {
-      res = `${this._currentTargetChainNum} 連鎖すべし フェーズ ${this._phase}`
+      res = lang.chainPhase(this._currentTargetChainNum, this._phase);
     }
     return res;
   }

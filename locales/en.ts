@@ -73,6 +73,9 @@ export const en = {
   pause: "P: Pause",
   vPuyo: "V Puyo",
   chain: "Chain",
-  allClear: "All Clear",
+  chainAllClearStr: "and All Clear!",
+  chainAllClear: (count: number) => `${count} Chain and All Clear!`,
+  chainLastPhase: (count: number) => `${count} Chain  Last Phase!`,
+  chainPhase: (count: number, phase: number) => `${count} Chain  Phase ${phase}!`,
   chainMust: (count: number) => `Make a ${count}-Chain!`,
 };

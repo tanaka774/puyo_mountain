@@ -72,7 +72,10 @@ export const ja = {
   move: "←↑→↓: 移動",
   pause: "P: ポーズ",
   vPuyo: "Vぷよ",
-  chain: "連鎖",
-  allClear: "ぜんけし",
-  chainMust: (count: number) => `${count}れんさすべし`,
+  chain: "れんさ",
+  chainAllClearStr: "ぜんけしすべし",
+  chainAllClear: (count: number) => `${count}連鎖全消しすべし`,
+  chainLastPhase: (count: number) => `${count}連鎖すべし 最終フェーズ`,
+  chainPhase: (count: number, phase: number) => `${count}連鎖すべし フェーズ ${phase}`,
+  chainMust: (count: number) => `${count}連鎖すべし`,
 };
