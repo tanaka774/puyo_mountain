@@ -485,7 +485,7 @@ export class DrawWithCanvas {
         // this.ctx.strokeStyle = 'black';
 
         const startAngle = Math.PI * 7 / 24;
-        const endAngle = (17 /24) * Math.PI;
+        const endAngle = (17 / 24) * Math.PI;
 
         this.ctx.beginPath();
         this.ctx.arc(drawX, drawY, radius, startAngle, endAngle);
@@ -777,7 +777,7 @@ export class DrawWithCanvas {
 
     if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
       const text1 = `${chainCount} ${lang.chain}`;
-      const text2 = lang.allClear;
+      const text2 = lang.chainAllClearStr;
       this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
       this.ctx.fillText(`${text1}`, drawX + 1 * gameConfig.CELL_SIZE, drawY);
       this.ctx.fillText(`${text2}`, drawX, drawY + 1 * gameConfig.CELL_SIZE);
