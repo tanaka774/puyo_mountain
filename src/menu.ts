@@ -1,6 +1,7 @@
 import { gameConfig } from "./config";
 import { FontHandle } from "./fontHandle";
 import { GameState, stateHandle } from "./state";
+import lang from "../locales";
 
 export enum MenuSelect {
   START_MENU,
@@ -163,42 +164,42 @@ export class Menu {
 
     switch (menuSelect) {
       case MenuSelect.START_MENU:
-        geneButton('アーケードモード',
+        geneButton(lang.arcadeMode,
           () => this.generateButtons(MenuSelect.ARCADE_SELECT_1),
-          '連鎖を組んで頂上を目指そう', 0
+          lang.arcadeModeDesc, 0
         );
-        geneButton('スコアモード',
+        geneButton(lang.scoreMode,
           () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1),
-          '最高峰の山を登るまでのタイムを競おう', 1
+          lang.scoreModeDesc, 1
         );
-        geneButton('カスタムモード',
+        geneButton(lang.customMode,
           () => { this.customMode(); },
-          'お好みの種ぷよ量・連鎖数でプレイできます', 2
+          lang.customModeDesc, 2
         );
-        geneButton('設定',
+        geneButton(lang.setting,
           () => { this.gameSetting(); },
-          'ゲーム設定を行います', 3
+          lang.settingDesc, 3
         );
         break;
       case MenuSelect.ARCADE_SELECT_1:
-        geneButton('　低山　',
+        geneButton(lang.easyMountain,
           () => { this.arcadeEasy(); this.closeModal(); },
-          '難易度:EASY', 0
+          lang.difficultyEasy, 0
         );
-        geneButton('　中山　',
+        geneButton(lang.normalMountain,
           () => { this.arcadeNormal(); this.closeModal(); },
-          '難易度:NORMAL', 1
+          lang.difficultyNormal, 1
         );
-        geneButton('　高山　',
+        geneButton(lang.hardMountain,
           () => { this.arcadeHard(); this.closeModal(); },
-          '難易度:HARD', 2
+          lang.difficultyHard, 2
         );
-        geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
+        geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.ENDURANCE_SELECT_1:
-        geneButton('ケーツー',
+        geneButton(lang.k2,
           () => { this.enduranceMode1(); this.closeModal(); },
-          `${gameConfig.ENDURANCE_MIN_ONCE1}~${gameConfig.ENDURANCE_MAX_ONCE1}連鎖で計${gameConfig.ENDURANCE_TOTAL1}連鎖まで`,
+          lang.k2Desc(gameConfig.ENDURANCE_MIN_ONCE1, gameConfig.ENDURANCE_MAX_ONCE1, gameConfig.ENDURANCE_TOTAL1),
           0
         );
         // geneButton('モード2（テスト用）',
@@ -206,25 +207,25 @@ export class Menu {
         //   `${gameConfig.ENDURANCE_MIN_ONCE2}~${gameConfig.ENDURANCE_MAX_ONCE2}連鎖で計${gameConfig.ENDURANCE_TOTAL2}連鎖まで`,
         //   1
         // );
-        geneButton('記録を見る',
+        geneButton(lang.watchRecords,
           () => { this.watchHighScores(); },
-          'ハイスコアを閲覧できます',
+          lang.watchRecordsDesc,
           1
         );
-        geneButton('戻る', () => { this.generateButtons(MenuSelect.START_MENU) });
+        geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.PAUSE:
-        geneButton('ゲームに戻る', () => { this.backToGameInPause(); this.closeModal(); });
-        geneButton('リトライする', () => { this.retryAfterGameOver(); this.closeModal(); }); // this is not afterGameOver though
-        geneButton('メニューに戻る', () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
+        geneButton(lang.backToGame, () => { this.backToGameInPause(); this.closeModal(); });
+        geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); }); // this is not afterGameOver though
+        geneButton(lang.backToMenu, () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_OVER:
-        geneButton('リトライする', () => { this.retryAfterGameOver(); this.closeModal(); });
-        geneButton('メニューに戻る', () => { this.backToMenuAfterGameOver(); this.generateButtons(MenuSelect.START_MENU) });
+        geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); });
+        geneButton(lang.backToMenu, () => { this.backToMenuAfterGameOver(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_CLEAR:
-        geneButton('もう一度登る', () => { this.retryAfterGameClear(); this.closeModal(); });
-        geneButton('メニューに戻る', () => { this.backToMenuAfterGameClear(); this.generateButtons(MenuSelect.START_MENU) });
+        geneButton(lang.climbAgain, () => { this.retryAfterGameClear(); this.closeModal(); });
+        geneButton(lang.backToMenu, () => { this.backToMenuAfterGameClear(); this.generateButtons(MenuSelect.START_MENU) });
         break;
 
       default:
@@ -235,7 +236,7 @@ export class Menu {
     this._buttons = this._menuContainer.querySelectorAll('button');
     this._selectedIndex = 0;
     this._buttons[this._selectedIndex].classList.add('selected');
-    
+
     const descDivFirst = document.getElementById(`desc0`) as HTMLElement;
     if (descDivFirst) descDivFirst.style.display = '';
   }
