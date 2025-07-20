@@ -2,6 +2,7 @@ import { Board } from "@/board";
 import { MountainBase } from "./mountainBase";
 import { Chain } from "@/chain";
 import { gameConfig } from "../config";
+import lang from "../../locales";
 
 // TODO: finish implementing!!!
 export class MountainCustom extends MountainBase {
@@ -88,6 +89,6 @@ export class MountainCustom extends MountainBase {
   }
 
   getGameStatus(): string {
-    return `${this._currentTargetChainNum} 連鎖すべし　計 ${this._totalChainNum} 連鎖`;
+    return lang.chainCustom(this._currentTargetChainNum, this._totalChainNum);
   }
 }

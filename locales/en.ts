@@ -78,4 +78,6 @@ export const en = {
   chainLastPhase: (count: number) => `${count} Chain  Last Phase!`,
   chainPhase: (count: number, phase: number) => `${count} Chain  Phase ${phase}!`,
   chainMust: (count: number) => `Make a ${count}-Chain!`,
+  chainCustom: (current: number, total: number) => `${current} Chain! Total ${total}`,
+  chainEndurance: (current: number, achieved: number, total: number) => `${current} Chain! ${achieved} / ${total} Total`,
 };

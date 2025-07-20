@@ -3,6 +3,7 @@ import { MountainBase } from "./mountainBase";
 import { Board } from "src/board";
 import { Move } from "src/move";
 import { Chain } from "src/chain";
+import lang from "../../locales";
 
 export enum EnduranceMode {
   Mode1, Mode2 // TODO: make up with some name
@@ -113,7 +114,7 @@ export class MountainEndurance extends MountainBase {
     this._changeBackGround(`rgb(${this._backgroundColors[0]}, ${this._backgroundColors[1]}, ${this._backgroundColors[2]})`);
     if (this._totalChainNum >= this._enduranceTotalTargetChainNum &&
       this._enduranceChainVariablity.every(n => n === 0) // need to verify
-      ) {
+    ) {
       setStateGameClear();
     } else {
       setStateGeneSeed();
@@ -142,7 +143,7 @@ export class MountainEndurance extends MountainBase {
   }
 
   getGameStatus(): string {
-    return `${this._currentTargetChainNum} 連鎖すべし 　${this._totalChainNum} / ${this._enduranceTotalTargetChainNum}`
+    return lang.chainEndurance(this._currentTargetChainNum, this._totalChainNum, this._enduranceTotalTargetChainNum);
   }
 
   setEnduranceMode(mode: EnduranceMode) {
