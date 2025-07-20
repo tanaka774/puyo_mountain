@@ -11,6 +11,7 @@ import { Rotate } from "./rotate"
 import { Mountain } from "./mountain/mountain"
 import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
+import lang from "../locales";
 
 
 export class DrawWithCanvas {
@@ -254,17 +255,17 @@ export class DrawWithCanvas {
     }
     this.VPuyoCtx.fillStyle = `rgba(151, 255, 151, 0.8)`;
     this.VPuyoCtx.font = "bold 16px Comic Sans MS";
-    this.VPuyoCtx.fillText('Vぷよ', cs * 0.4, cs * startY);
+    this.VPuyoCtx.fillText(lang.vPuyo, cs * 0.4, cs * startY);
     // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
     // this.nextPuyoCtx.lineWidth = 0.001;
     // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
 
     this.VPuyoCtx.font = "14px Comic Sans MS";
-    this.VPuyoCtx.fillText('D: Vぷよ使用', cs * 2.3, cs * (startY + 0.5));
-    this.VPuyoCtx.fillText('C: Vぷよ色変更', cs * 2.3, cs * (startY + 1.2));
-    this.VPuyoCtx.fillText('Z,X: 回転', cs * 2.3, cs * (startY + 1.9));
-    this.VPuyoCtx.fillText('←↑→↓: 移動', cs * 2.3, cs * (startY + 2.6));
-    this.VPuyoCtx.fillText('P: ポーズ', cs * 2.3, cs * (startY + 3.3));
+    this.VPuyoCtx.fillText(lang.useVPuyo, cs * 2.3, cs * (startY + 0.5));
+    this.VPuyoCtx.fillText(lang.changeVPuyoColor, cs * 2.3, cs * (startY + 1.2));
+    this.VPuyoCtx.fillText(lang.rotate, cs * 2.3, cs * (startY + 1.9));
+    this.VPuyoCtx.fillText(lang.move, cs * 2.3, cs * (startY + 2.6));
+    this.VPuyoCtx.fillText(lang.pause, cs * 2.3, cs * (startY + 3.3));
   }
 
   private drawWaitingPuyo(ctx: CanvasRenderingContext2D, puyo: baseManiPuyo, x, y) {
@@ -775,8 +776,8 @@ export class DrawWithCanvas {
       })
 
     if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
-      const text1 = `${chainCount} れんさ`;
-      const text2 = 'ぜんけしすべし';
+      const text1 = `${chainCount} ${lang.chain}`;
+      const text2 = lang.allClear;
       this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
       this.ctx.fillText(`${text1}`, drawX + 1 * gameConfig.CELL_SIZE, drawY);
       this.ctx.fillText(`${text2}`, drawX, drawY + 1 * gameConfig.CELL_SIZE);
@@ -784,7 +785,7 @@ export class DrawWithCanvas {
       // this.ctx.lineWidth = 1;
       // this.ctx.strokeText(`${text}`, drawX, drawY);
     } else {
-      const text = `${chainCount} れんさすべし`;
+      const text = lang.chainMust(chainCount);
       // const text = `12 れんさすべし`; //for debug
       this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
       this.ctx.fillText(`${text}`, drawX, drawY);

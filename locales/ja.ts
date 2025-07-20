@@ -64,4 +64,15 @@ export const ja = {
 
   // addCloseButton
   close: "閉じる",
+
+  // drawWithCanvas
+  useVPuyo: "D: Vぷよ使用",
+  changeVPuyoColor: "C: Vぷよ色変更",
+  rotate: "Z,X: 回転",
+  move: "←↑→↓: 移動",
+  pause: "P: ポーズ",
+  vPuyo: "Vぷよ",
+  chain: "連鎖",
+  allClear: "ぜんけし",
+  chainMust: (count: number) => `${count}れんさすべし`,
 };

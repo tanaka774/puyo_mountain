@@ -64,4 +64,15 @@ export const en = {
 
   // addCloseButton
   close: "Close",
+
+  // drawWithCanvas
+  useVPuyo: "D: Use V Puyo",
+  changeVPuyoColor: "C: Change V Puyo Color",
+  rotate: "Z,X: Rotate",
+  move: "←↑→↓: Move",
+  pause: "P: Pause",
+  vPuyo: "V Puyo",
+  chain: "Chain",
+  allClear: "All Clear",
+  chainMust: (count: number) => `Make a ${count}-Chain!`,
 };
