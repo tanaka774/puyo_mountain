@@ -1,0 +1,67 @@
+export const ja = {
+  // showRankInModal
+  problemOccurred: "問題が発生しました、管理者に問い合わせてください",
+  yourTime: "今回のタイム",
+  rankIn: (wholeRank: number, seasonRank: number) => `総合${wholeRank}位　シーズン${seasonRank}位にランクインしました`,
+  enterUsername: "ユーザーネームを入力してください(10文字以内)",
+  send: "送信する",
+  sending: "送信中...",
+  enterYourName: "名前を入力してください!",
+  confirmCaptcha: "スコアを送信する場合はcaptcha認証を行ってください",
+  dataSent: "データを送信しました",
+  doNotSend: "送信しない",
+  confirmNoSend: "今回の記録は残りませんがよろしいですか?",
+  notRanked: "今回はランク外でした",
+
+  // showHighScoresModal
+  overall: "総合",
+  season: "シーズン",
+  choose: "選ぶ",
+  spring: "1-3",
+  summer: "4-6",
+  autumn: "7-9",
+  winter: "10-12",
+  k2: "ケーツー",
+
+  // makeContentFromDB
+  name: "名前",
+  whole: "総合",
+  time: "タイム",
+  dateAchieved: "達成日",
+
+  // showArcadeResult
+  difficulty: "難易度",
+  totalScore: "総合スコア",
+  playTime: "プレイ時間",
+  unnecessaryPuyos: "不要に消したぷよ数",
+
+  // showCustomConfig
+  puyoAmount: "種ぷよの量",
+  distribution: "種ぷよの幅",
+  minChain: "最小必要連鎖数",
+  maxChain: "最大必要連鎖数",
+  start: "始める",
+  back: "戻る",
+  // puyoAmount options
+  nothing: "無",
+  prettySmall: "かなり少",
+  small: "少",
+  normal: "標準",
+  large: "多",
+  prettyLarge: "かなり多",
+  random: "ランダム",
+  // distribution options
+  narrow: "細",
+  wide: "広",
+
+  // showGameSetting
+  setFamiliar: "セット：おなじみ",
+  setVegetable: "セット：ベジタブル",
+  setItalian: "セット：イタリアン",
+  setKamakura: "セット：かまくら",
+  setUnnamed: "セット：むめい",
+  customColor: "カスタム(クリックで色を変更できます)",
+
+  // addCloseButton
+  close: "閉じる",
+};

@@ -8,6 +8,7 @@ import { Difficulty } from "./mountain/mountainArcade";
 import { GameState, stateHandle } from "./state";
 import { Timer } from "./timer";
 import { getTurnstileToken } from "./captchaHandle.js"
+import lang from "../locales";
 
 
 export class HtmlHandle {
@@ -116,7 +117,7 @@ export class HtmlHandle {
     } catch (err) {
       console.error(err);
       rankInDialog.innerHTML = '';
-      rankInDialog.innerHTML = `問題が発生しました、管理者に問い合わせてください <br>今回のタイム${hours}h${minutes}m${seconds}s`;
+      rankInDialog.innerHTML = `${lang.problemOccurred} <br>${lang.yourTime}${hours}h${minutes}m${seconds}s`;
       this.addCloseButton(rankInDialog);
       return;
     }
@@ -124,13 +125,13 @@ export class HtmlHandle {
     if (seasonRankToEnter <= bottomRank) {
       const whatRankDiv = document.createElement("div");
       whatRankDiv.innerHTML =
-        `今回のタイム${hours}h${minutes}m${seconds}s <br>
-      総合${wholeRankToEnter}位　シーズン${seasonRankToEnter}位にランクインしました <br>`;
+        `${lang.yourTime} ${hours}h${minutes}m${seconds}s <br>
+      ${lang.rankIn(wholeRankToEnter, seasonRankToEnter)} <br>`;
       rankInDialog.appendChild(whatRankDiv);
 
       const inputLabel = document.createElement("label");
       inputLabel.setAttribute("for", "userInput");
-      inputLabel.innerHTML = "ユーザーネームを入力してください(10文字以内)<br>";
+      inputLabel.innerHTML = `${lang.enterUsername}<br>`;
       rankInDialog.appendChild(inputLabel);
 
       const tempDiv = document.createElement("div");
@@ -145,7 +146,7 @@ export class HtmlHandle {
       this.addRecaptcha(rankInDialog);
 
       const sendButton = document.createElement("button");
-      sendButton.textContent = "送信する";
+      sendButton.textContent = lang.send;
       sendButton.setAttribute("id", "sendButton")
       sendButton.addEventListener("click", (e) => { // async
         e.preventDefault(); // We don't want to submit this fake form
@@ -156,14 +157,14 @@ export class HtmlHandle {
 
         // TODO: sometimes input becomes null even though some words are entered,
         if (!userName || (userName === '')) {
-          alert('名前を入力してください!');
+          alert(lang.enterYourName);
           sendButton.disabled = false;
           return;
         }
 
         const captchaResponse = getTurnstileToken();
         if (!captchaResponse) {
-          alert('スコアを送信する場合はcaptcha認証を行ってください');
+          alert(lang.confirmCaptcha);
           sendButton.disabled = false;
           return;
         }
@@ -171,7 +172,7 @@ export class HtmlHandle {
         this._apiHandle.addDataWithRetry(userName, totalPlayDurationSeconds, gamemode, captchaResponse)
           .then(() => {
             rankInDialog.innerHTML = '';
-            rankInDialog.innerText = 'データを送信しました'
+            rankInDialog.innerText = lang.dataSent;
             this.addCloseButton(rankInDialog);
 
             // update after inserting data, welcome to callback hell
@@ -186,7 +187,7 @@ export class HtmlHandle {
             // TODO: when captcha is false
             console.error(error);
             rankInDialog.innerHTML = '';
-            rankInDialog.innerHTML = `問題が発生しました、管理者に問い合わせてください <br>今回のタイム${hours}h${minutes}m${seconds}s`;
+            rankInDialog.innerHTML = `${lang.problemOccurred} <br>${lang.yourTime}${hours}h${minutes}m${seconds}s`;
             this.addCloseButton(rankInDialog);
           })
           .finally(() => {
@@ -197,10 +198,10 @@ export class HtmlHandle {
       rankInDialog.appendChild(sendButton);
 
       const notSendButton = document.createElement("button");
-      notSendButton.textContent = "送信しない";
+      notSendButton.textContent = lang.doNotSend;
       notSendButton.addEventListener("click", (e) => {
         e.preventDefault();
-        const result = confirm("今回の記録は残りませんがよろしいですか?");
+        const result = confirm(lang.confirmNoSend);
         if (result) {
           // User clicked "OK"
           rankInDialog.close();
@@ -212,8 +213,8 @@ export class HtmlHandle {
 
     } else {
       rankInDialog.innerHTML =
-        `今回のタイム${hours}h${minutes}m${seconds}s <br>
-      今回はランク外でした<br>`
+        `${lang.yourTime}${hours}h${minutes}m${seconds}s <br>
+      ${lang.notRanked}<br>`
       this.addCloseButton(rankInDialog);
     }
 
@@ -248,23 +249,23 @@ export class HtmlHandle {
     let gamemode = gamemode1;
 
     const wholeSelect = document.createElement("select");
-    addOption('総合', 'whole', wholeSelect);
-    addOption('シーズン', 'season', wholeSelect);
+    addOption(lang.overall, 'whole', wholeSelect);
+    addOption(lang.season, 'season', wholeSelect);
     const yearSelect = document.createElement("select");
-    addOption('選ぶ', 'default', yearSelect);
+    addOption(lang.choose, 'default', yearSelect);
     for (let y = startYear; y <= currentYear; y++) {
       addOption(`${y}`, `${y}`, yearSelect);
     }
     const monthSelect = document.createElement("select");
-    addOption('選ぶ', 'default', monthSelect);
-    addOption('1-3', 'spring', monthSelect);
-    addOption('4-6', 'summer', monthSelect);
-    addOption('7-9', 'autumn', monthSelect);
-    addOption('10-12', 'winter', monthSelect);
+    addOption(lang.choose, 'default', monthSelect);
+    addOption(lang.spring, 'spring', monthSelect);
+    addOption(lang.summer, 'summer', monthSelect);
+    addOption(lang.autumn, 'autumn', monthSelect);
+    addOption(lang.winter, 'winter', monthSelect);
     const modeSelect = document.createElement("select");
     // addOption('選ぶ', 'default', modeSelect);
     // TODO: change gamemode according to select
-    addOption('ケーツー', gamemode1, modeSelect);
+    addOption(lang.k2, gamemode1, modeSelect);
     // addOption('mode2', gamemode2, modeSelect);
     const scoresOutput = document.createElement("output");
     scoresOutput.classList.add('score-container');
@@ -371,11 +372,11 @@ export class HtmlHandle {
     scoreTable.innerHTML = `
       <thead>
         <tr>
-          <th>名前</th>
-          <th>総合</th>
-          <th>シーズン</th>
-          <th>タイム</th>
-          <th>達成日</th>
+          <th>${lang.name}</th>
+          <th>${lang.whole}</th>
+          <th>${lang.season}</th>
+          <th>${lang.time}</th>
+          <th>${lang.dateAchieved}</th>
         </tr>
       </thead>
       <tbody>
@@ -419,10 +420,10 @@ export class HtmlHandle {
       this._menu.generateButtons(MenuSelect.GAME_CLEAR);
     });
 
-    const resultDifficulty = `難易度:${difficulty}<br><br>`;
-    const resultScore = `総合スコア ${this._mountain.resultGrade}<br><br>`;
-    const resultPlayTime = `プレイ時間 ${playDuration}<br><br>`
-    const resultUnne = `不要に消したぷよ数 ${this._mountain.unnecessaryVanishPuyoNum}<br><br>`
+    const resultDifficulty = `${lang.difficulty}:${difficulty}<br><br>`;
+    const resultScore = `${lang.totalScore} ${this._mountain.resultGrade}<br><br>`;
+    const resultPlayTime = `${lang.playTime} ${playDuration}<br><br>`
+    const resultUnne = `${lang.unnecessaryPuyos} ${this._mountain.unnecessaryVanishPuyoNum}<br><br>`
 
     const tempDiv = document.createElement('div');
     tempDiv.style.fontSize = "26px"
@@ -463,23 +464,23 @@ export class HtmlHandle {
 
     const puyoAmountSelect = document.createElement('select');
     puyoAmountSelect.setAttribute('id', 'puyoAmount');
-    addOption('無', 'nothing', puyoAmountSelect);
-    addOption('かなり少', 'pretty-small', puyoAmountSelect);
-    addOption('少', 'small', puyoAmountSelect);
-    addOption('標準', 'normal', puyoAmountSelect, true);
-    addOption('多', 'large', puyoAmountSelect);
-    addOption('かなり多', 'pretty-large', puyoAmountSelect);
-    addOption('ランダム', 'random', puyoAmountSelect);
-    addLabel('puyoAmount', '種ぷよの量 ', configDialog);
+    addOption(lang.nothing, 'nothing', puyoAmountSelect);
+    addOption(lang.prettySmall, 'pretty-small', puyoAmountSelect);
+    addOption(lang.small, 'small', puyoAmountSelect);
+    addOption(lang.normal, 'normal', puyoAmountSelect, true);
+    addOption(lang.large, 'large', puyoAmountSelect);
+    addOption(lang.prettyLarge, 'pretty-large', puyoAmountSelect);
+    addOption(lang.random, 'random', puyoAmountSelect);
+    addLabel('puyoAmount', `${lang.puyoAmount} `, configDialog);
     // configDialog.appendChild(puyoAmountSelect);
     append(puyoAmountSelect);
 
     const distributionSelect = document.createElement('select');
     distributionSelect.setAttribute('id', 'distribution');
-    addOption('細', 'narrow', distributionSelect);
-    addOption('標準', 'normal', distributionSelect, true);
-    addOption('広', 'wide', distributionSelect);
-    addLabel('distribution', '種ぷよの幅 ', configDialog);
+    addOption(lang.narrow, 'narrow', distributionSelect);
+    addOption(lang.normal, 'normal', distributionSelect, true);
+    addOption(lang.wide, 'wide', distributionSelect);
+    addLabel('distribution', `${lang.distribution} `, configDialog);
     // configDialog.appendChild(distributionSelect);
     append(distributionSelect);
 
@@ -489,7 +490,7 @@ export class HtmlHandle {
     for (let n = 1; n <= maxNum; n++) {
       addOption(`${n}`, `${n}`, minChainNumSelect);
     }
-    addLabel('minChainNum', '最小必要連鎖数 ', configDialog);
+    addLabel('minChainNum', `${lang.minChain} `, configDialog);
     // configDialog.appendChild(minChainNumSelect);
     append(minChainNumSelect);
 
@@ -498,7 +499,7 @@ export class HtmlHandle {
     for (let n = 1; n <= maxNum; n++) {
       addOption(`${n}`, `${n}`, maxChainNumSelect);
     }
-    addLabel('maxChainNum', '最大必要連鎖数 ', configDialog);
+    addLabel('maxChainNum', `${lang.maxChain} `, configDialog);
     // configDialog.appendChild(maxChainNumSelect);
     append(maxChainNumSelect);
 
@@ -513,7 +514,7 @@ export class HtmlHandle {
 
     const startButton = document.createElement('button');
     append(startButton);
-    startButton.textContent = '始める';
+    startButton.textContent = lang.start;
     startButton.addEventListener('click', (e) => {
       const p = puyoAmountSelect.value;
       const d = distributionSelect.value;
@@ -534,7 +535,7 @@ export class HtmlHandle {
     })
 
     configDialog.appendChild(document.createElement('div'));
-    this.addCloseButton(configDialog, '戻る');
+    this.addCloseButton(configDialog, lang.back);
   }
 
   showGameSetting() {
@@ -659,14 +660,14 @@ export class HtmlHandle {
       ["rgba(55, 185, 87, 1)", "rgba(145, 111, 64, 1)", "rgba(245, 245, 245, 1)", "rgba(223, 32, 115, 1)"],
     ];
 
-    const texts = ['セット：おなじみ', 'セット：ベジタブル', 'セット：イタリアン', 'セット：かまくら', 'セット：むめい'];
+    const texts = [lang.setFamiliar, lang.setVegetable, lang.setItalian, lang.setKamakura, lang.setUnnamed];
 
     colorss.forEach((colors, index) => {
       makeRadioButton(`${index}`, texts[index], settingDialog, colors);
       createCircles(colors, settingDialog);
     })
 
-    makeRadioButton('custom', 'カスタム(クリックで色を変更できます)', settingDialog);
+    makeRadioButton('custom', lang.customColor, settingDialog);
     addColorPickers(settingDialog);
 
     // temp
@@ -703,7 +704,7 @@ export class HtmlHandle {
   }
 
 
-  private addCloseButton(dialogElement: HTMLDialogElement, text: string = '閉じる') {
+  private addCloseButton(dialogElement: HTMLDialogElement, text: string = lang.close) {
     const closeButton = document.createElement("button");
     closeButton.textContent = text;
     closeButton.addEventListener("click", (e) => {
