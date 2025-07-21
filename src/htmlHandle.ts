@@ -225,6 +225,11 @@ export class HtmlHandle {
     const highScoreDialog = document.createElement("dialog");
     document.body.appendChild(highScoreDialog);
 
+    Object.assign(highScoreDialog.style, {
+      width: '90vw',
+      maxWidth: '800px'
+    });
+
     highScoreDialog.showModal();
 
     highScoreDialog.addEventListener("close", async (e) => {
@@ -395,6 +400,7 @@ export class HtmlHandle {
     // <th>達成日</th>
     //   <td>${entry.createdat.split('T')[0]}</td>
     scoreTable.style.backgroundColor = 'black';
+    scoreTable.style.width = '100%';
     dynamicContent.appendChild(scoreTable);
 
     // data.scores.rows.forEach(entry => {
