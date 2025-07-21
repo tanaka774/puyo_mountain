@@ -388,8 +388,8 @@ export class HtmlHandle {
         ${data?.scores?.map(entry => `
           <tr>
             <td>${entry.username}</td>
-            <td>　${entry.wholerank}</td>
-            <td>　${entry.seasonrank}</td>
+            <td>${entry.wholerank}</td>
+            <td>${entry.seasonrank}</td>
             <td>${this.formatTime(entry.playduration)}</td>
             <td>${this.formatCreatedAt(entry.createdat)}</td>
           </tr>
