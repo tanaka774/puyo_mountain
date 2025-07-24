@@ -103,4 +103,6 @@ export const ja = {
   retry: "リトライする",
   backToMenu: "メニューに戻る",
   climbAgain: "もう一度登る",
+  replay: "リプレイを見る",
+  replayDesc: "今回のプレイを再生します",
 };

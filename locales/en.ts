@@ -103,4 +103,6 @@ export const en = {
   retry: "Retry",
   backToMenu: "Back to Menu",
   climbAgain: "Climb Again",
+  replay: "Watch Replay",
+  replayDesc: "Replay your last game",
 };

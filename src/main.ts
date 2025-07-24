@@ -158,6 +158,11 @@ function main() {
         resetStatus();
         stateHandle.setState(GameState.MENU);
       },
+      () => {
+        // replay mode
+        resetStatus();
+        stateHandle.setState(GameState.REPLAY);
+      }
     );
   }
 }

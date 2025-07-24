@@ -18,6 +18,7 @@ export enum GameState {
   GAMECLEAR,
   PAUSING,
   JUST_DRAWING,
+  REPLAY
 }
 
 export const stateHandle = {
