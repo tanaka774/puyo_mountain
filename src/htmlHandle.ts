@@ -736,7 +736,7 @@ ${lang.totalScore}: ${this._mountain.resultGrade}
   }
 
   private addTwitterShareButton(parent: HTMLElement, shareText: string) {
-    const shareUrl = 'https://puyo-mountain.pages.dev/';
+    const shareUrl = 'https://puyomountain.com';
     const hashtags = 'ぷよマウンテン';
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}&hashtags=${hashtags}`;
     const twitterButton = document.createElement('a');
