@@ -106,4 +106,6 @@ export const en = {
   shareOnX: "Share on X",
   puyoMountainArcade: "Puyo Mountain [Arcade]",
   puyoMountainScore: "Puyo Mountain [Score]",
+  rank: "Rank",
+  summitReached: "Reached the summit!",
 };

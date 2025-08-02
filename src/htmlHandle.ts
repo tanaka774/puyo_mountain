@@ -211,7 +211,7 @@ export class HtmlHandle {
       });
       rankInDialog.appendChild(notSendButton);
 
-      const shareText = `${lang.puyoMountainScore}\nスコア: ${hours}h${minutes}m${seconds}s\n${lang.rankIn(wholeRankToEnter, seasonRankToEnter)}\n`;
+      const shareText = `⛰️${lang.summitReached}⛰️\n\n${lang.puyoMountainScore}\n⏰${lang.time}: ${hours}h${minutes}m${seconds}s\n🏅${lang.rank}: ${lang.rankIn(wholeRankToEnter, seasonRankToEnter)}\n`;
       this.addTwitterShareButton(rankInDialog, shareText);
 
     } else {
@@ -219,7 +219,7 @@ export class HtmlHandle {
         `${lang.yourTime}${hours}h${minutes}m${seconds}s <br>
       ${lang.notRanked}<br>`
 
-      const shareText = `${lang.puyoMountainScore}\nスコア: ${hours}h${minutes}m${seconds}s\n\n`;
+      const shareText = `⛰️${lang.summitReached}⛰️\n\n${lang.puyoMountainScore}\n⏰${lang.time}: ${hours}h${minutes}m${seconds}s\n`;
       this.addTwitterShareButton(rankInDialog, shareText);
 
       this.addCloseButton(rankInDialog);
@@ -443,9 +443,12 @@ export class HtmlHandle {
     tempDiv.innerHTML = `${resultDifficulty}${resultScore}${resultPlayTime}${resultUnne}`;
     resultDialog.appendChild(tempDiv);
 
-    const shareText = `${lang.puyoMountainArcade}
+    const shareText = `⛰️${lang.summitReached}⛰️
+
+${lang.puyoMountainArcade}
 ${lang.difficulty}: ${difficulty}
-${lang.totalScore}: ${this._mountain.resultGrade}
+🏆${lang.totalScore}: ${this._mountain.resultGrade}
+⏰${lang.time}: ${playDuration}
 
 `;
     this.addTwitterShareButton(resultDialog, shareText);
