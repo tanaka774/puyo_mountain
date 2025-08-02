@@ -103,4 +103,7 @@ export const ja = {
   retry: "リトライする",
   backToMenu: "メニューに戻る",
   climbAgain: "もう一度登る",
+  shareOnX: "Xでシェア",
+  puyoMountainScore: "ぷよマウンテン【スコア】",
+  puyoMountainArcade: "ぷよマウンテン【アーケード】",
 };
