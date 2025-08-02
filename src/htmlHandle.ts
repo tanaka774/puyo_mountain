@@ -211,10 +211,17 @@ export class HtmlHandle {
       });
       rankInDialog.appendChild(notSendButton);
 
+      const shareText = `${lang.puyoMountainScore}\nスコア: ${hours}h${minutes}m${seconds}s\n${lang.rankIn(wholeRankToEnter, seasonRankToEnter)}\n`;
+      this.addTwitterShareButton(rankInDialog, shareText);
+
     } else {
       rankInDialog.innerHTML =
         `${lang.yourTime}${hours}h${minutes}m${seconds}s <br>
       ${lang.notRanked}<br>`
+
+      const shareText = `${lang.puyoMountainScore}\nスコア: ${hours}h${minutes}m${seconds}s\n\n`;
+      this.addTwitterShareButton(rankInDialog, shareText);
+
       this.addCloseButton(rankInDialog);
     }
 
@@ -435,6 +442,14 @@ export class HtmlHandle {
     tempDiv.style.fontSize = "26px"
     tempDiv.innerHTML = `${resultDifficulty}${resultScore}${resultPlayTime}${resultUnne}`;
     resultDialog.appendChild(tempDiv);
+
+    const shareText = `${lang.puyoMountainArcade}
+${lang.difficulty}: ${difficulty}
+${lang.totalScore}: ${this._mountain.resultGrade}
+
+`;
+    this.addTwitterShareButton(resultDialog, shareText);
+
     this.addCloseButton(resultDialog);
   }
 
@@ -718,6 +733,41 @@ export class HtmlHandle {
       dialogElement.close();
     });
     dialogElement.appendChild(closeButton);
+  }
+
+  private addTwitterShareButton(parent: HTMLElement, shareText: string) {
+    const shareUrl = 'https://puyo-mountain.pages.dev/';
+    const hashtags = 'ぷよマウンテン';
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}&hashtags=${hashtags}`;
+    const twitterButton = document.createElement('a');
+    twitterButton.setAttribute('href', twitterShareUrl);
+    twitterButton.setAttribute('target', '_blank');
+    twitterButton.textContent = lang.shareOnX;
+
+    Object.assign(twitterButton.style, {
+      display: 'inline-block',
+      padding: '5px 10px',
+      marginLeft: '10px',
+      marginRight: '10px',
+      backgroundColor: '#1DA1F2',
+      color: 'white',
+      borderRadius: '5px',
+      textDecoration: 'none',
+      fontWeight: 'bold',
+      fontSize: '16px',
+      textAlign: 'center',
+      transition: 'background-color 0.3s'
+    });
+
+    twitterButton.addEventListener('mouseover', () => {
+      twitterButton.style.backgroundColor = '#0c85d0';
+    });
+
+    twitterButton.addEventListener('mouseout', () => {
+      twitterButton.style.backgroundColor = '#1DA1F2';
+    });
+
+    parent.appendChild(twitterButton);
   }
 
   private addRecaptcha(parent: HTMLElement) {
