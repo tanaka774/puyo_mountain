@@ -130,15 +130,6 @@ export async function showHighScoresModal(apiHandle: ApiHandle) {
 function makeContentFromDB(dynamicContent: HTMLElement, data) {
   dynamicContent.innerHTML = '';
 
-  // for (let item of data.scores.rows) {
-  // const li = document.createElement('li');
-  // li.textContent =
-  //   `UN:${item.username} WR:${item.wholerank} SR:${item.seasonrank} 
-  //   PD:${item.playduration.hours || '0'}:${item.playduration.minutes || '00'}:${item.playduration.seconds || '00'} 
-  //   WHEN:${item.createdat.split('T')[0]}`;
-  // dynamicContent.appendChild(li);
-  // }
-
   const scoreTable = document.createElement('table');
   scoreTable.innerHTML = `
     <thead>
@@ -162,16 +153,7 @@ function makeContentFromDB(dynamicContent: HTMLElement, data) {
       `).join('')}
     </tbody>
   `;
-  // reserve
-  // <th>達成日</th>
-  //   <td>${entry.createdat.split('T')[0]}</td>
   scoreTable.style.backgroundColor = 'black';
   scoreTable.style.width = '100%';
   dynamicContent.appendChild(scoreTable);
-
-  // data.scores.rows.forEach(entry => {
-  //   const div = document.createElement('div');
-  //   div.textContent = `${entry.username}, ${entry.wholerank}, ${entry.seasonrank}`;
-  //   dynamicContent.appendChild(div);
-  // });
 }
