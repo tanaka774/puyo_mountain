@@ -18,7 +18,7 @@ export async function handleGetNextWholeRank(url, env) {
       ) AS subquery;
     `).bind(playDuration, gamemode).first();
 
-    const nextWholeRank = result?.next_rank ?? 1;
+    const nextWholeRank = result?.next_rank ?? 0;
 
     return new Response(JSON.stringify({ nextWholeRank }), {
       headers: { "Content-Type": "application/json" }
