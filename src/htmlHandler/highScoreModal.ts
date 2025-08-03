@@ -134,21 +134,21 @@ function makeContentFromDB(dynamicContent: HTMLElement, data) {
   scoreTable.innerHTML = `
     <thead>
       <tr>
-        <th>${lang.name}</th>
-        <th>${lang.whole}</th>
-        <th>${lang.season}</th>
-        <th>${lang.time}</th>
-        <th>${lang.dateAchieved}</th>
+        <th style="text-align: center;">${lang.name}</th>
+        <th style="text-align: center;">${lang.whole}</th>
+        <th style="text-align: center;">${lang.season}</th>
+        <th style="text-align: center;">${lang.time}</th>
+        <th style="text-align: center;">${lang.dateAchieved}</th>
       </tr>
     </thead>
     <tbody>
       ${data?.scores?.map(entry => `
         <tr>
-          <td>${entry.username}</td>
-          <td>${entry.wholerank}</td>
-          <td>${entry.seasonrank}</td>
-          <td>${formatTime(entry.playduration)}</td>
-          <td>${formatCreatedAt(entry.createdat)}</td>
+          <td style="text-align: center;">${entry.username}</td>
+          <td style="text-align: center;">${entry.wholerank}</td>
+          <td style="text-align: center;">${entry.seasonrank}</td>
+          <td style="text-align: center;">${formatTime(entry.playduration)}</td>
+          <td style="text-align: center;">${formatCreatedAt(entry.createdat)}</td>
         </tr>
       `).join('')}
     </tbody>
