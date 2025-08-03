@@ -1,4 +1,5 @@
 import lang from "../../locales";
+import { renderTurnstileWidget } from "../captchaHandle.js"
 
 export function addCloseButton(dialogElement: HTMLDialogElement, text: string = lang.close) {
   const closeButton = document.createElement("button");
@@ -62,6 +63,9 @@ export function addRecaptcha(parent: HTMLElement) {
   }
 
   parent.appendChild(turnstileContainer);
+
+  // Attempt to render immediately if Turnstile API is already loaded
+  renderTurnstileWidget(turnstileContainer);
 }
 
 export function formatTime(timeInSeconds: number): string {
