@@ -41,6 +41,7 @@ export async function showRankInModal(
   rankInDialog.addEventListener("close", async (e) => {
     // generate buttons here so that both of dialog and menu buttons don't appear at the same time.
     menu.generateButtons(MenuSelect.GAME_CLEAR);
+    rankInDialog.remove();
   });
 
   let seasonRankToEnter: number;
