@@ -47,25 +47,19 @@ export function addTwitterShareButton(parent: HTMLElement, shareText: string) {
 
 export function addRecaptcha(parent: HTMLElement) {
   const turnstileContainer = document.createElement('div');
-  turnstileContainer.innerHTML = '';
   turnstileContainer.setAttribute("id", "turnstileContainer");
 
-  function removeExistingTurnstileScript(): void {
-    const existingScript = document.querySelector(
-      'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
-    );
+  const existingScript = document.querySelector(
+    'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
+  );
 
-    if (existingScript) {
-      existingScript.remove();
-    }
+  if (!existingScript) {
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
   }
-
-  removeExistingTurnstileScript();
-  const script = document.createElement('script');
-  script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback';
-  script.async = true;
-  script.defer = true;
-  document.head.appendChild(script);
 
   parent.appendChild(turnstileContainer);
 }
