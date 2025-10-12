@@ -169,6 +169,7 @@ function main() {
       },
       () => {
         // replay mode
+        resetStatus();
         replay.startReplay();
       }
     );
