@@ -61,7 +61,27 @@ export class Replay {
             const record = this._recordedPuyos[i];
             const currentFlag = record[3];
 
-            if (currentFlag === recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG) {
+            if (currentFlag === recordPuyoSteps.FLOAT_PUYO_REC_FLAG) {
+                const floatStep = [];
+                while (i < this._recordedPuyos.length && this._recordedPuyos[i][3] === recordPuyoSteps.FLOAT_PUYO_REC_FLAG) {
+                    floatStep.push(this._recordedPuyos[i]);
+                    i++;
+                }
+
+                // The next group should be DID_FLOAT records.
+                if (i < this._recordedPuyos.length && this._recordedPuyos[i][3] === recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG) {
+                    const didFloatStep = [];
+                    while (i < this._recordedPuyos.length && this._recordedPuyos[i][3] === recordPuyoSteps.DID_FLOAT_PUYO_REC_FLAG) {
+                        didFloatStep.push(this._recordedPuyos[i]);
+                        i++;
+                    }
+                    // Merge them into one step
+                    replaySteps.push([...floatStep, ...didFloatStep]);
+                } else {
+                    // Should not happen, but as a fallback, add floatStep as a separate step.
+                    replaySteps.push(floatStep);
+                }
+            } else if (currentFlag === recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG) {
                 if (i + 1 < this._recordedPuyos.length && this._recordedPuyos[i+1][3] === recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG) {
                     replaySteps.push([this._recordedPuyos[i], this._recordedPuyos[i+1]]);
                     i += 2;
