@@ -52,6 +52,9 @@ export const stateHandle = {
     return this.prevState === state;
   },
   duringGamePlay: function () {
+    if (this.checkCurrentState(GameState.REPLAY)) {
+      return false;
+    }
     const res: boolean = this.duringGamePlayWithoutJustDrawing() ||
       this.checkCurrentState(GameState.JUST_DRAWING);
     ;

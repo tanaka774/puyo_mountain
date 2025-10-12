@@ -241,7 +241,9 @@ export class Game {
         break;
     }
 
-    this._draw.draw();
+    if (!stateHandle.checkCurrentState(GameState.REPLAY)) {
+      this._draw.draw();
+    }
 
     this._htmlHandle.htmlUpdate();
 

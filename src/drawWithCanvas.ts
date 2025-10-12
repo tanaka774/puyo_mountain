@@ -197,11 +197,11 @@ export class DrawWithCanvas {
     this.ctx.stroke();
   }
 
-  drawBoardPuyos() {
-    if (this._board.board) {
+  drawBoardPuyos(board = this._board.board) {
+    if (board) {
       for (let y = gameConfig.BOARD_TOP_EDGE - 1; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
         for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
-          const cell = this._board.board[y][x];
+          const cell = board[y][x];
           if (cell !== gameConfig.NO_COLOR) {
             this.drawPuyo(this.ctx, x, y, PUYO_COLORS[cell])
           }

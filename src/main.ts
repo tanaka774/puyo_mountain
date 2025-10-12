@@ -3,7 +3,7 @@ import { recordPuyoSteps } from "./record"
 import { GameState, stateHandle } from "./state"
 import { baseSinglePuyo } from "./types"
 import { Chain } from "./chain"
-import { Menu } from "./menu.js"
+import { Menu, MenuSelect } from "./menu.js"
 import { Move } from "./move"
 import { Split } from "./split"
 import { Game } from "./game"
@@ -22,6 +22,7 @@ import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
 import { LSHandle } from "./localStorageHandle"
 import { EnduranceMode } from "./mountain/mountainEndurance"
+import { Replay } from "./replay"
 import { initializePhaserForFramerateControl, requestPhaserAnimationFrame } from "./phaserHandler"
 
 function main() {
@@ -46,6 +47,7 @@ function main() {
   const htmlHandle = new HtmlHandle(lSHandle, apiHandle, timer, chain, mountain, menu);
   const game = new Game(menu, apiHandle, timer, bounce, board, current, move, rotate,
     split, chain, input, draw, mountain, htmlHandle);
+  const replay = new Replay(draw);
 
   setCallback();
 
@@ -53,6 +55,13 @@ function main() {
   stateHandle.setState(GameState.OPENING);
   initializePhaserForFramerateControl(gameConfig.TARGET_FPS)
   game.gameLoop();
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'q' && stateHandle.checkCurrentState(GameState.REPLAY)) {
+      replay.endReplay();
+      menu.generateButtons(MenuSelect.START_MENU);
+    }
+  });
 
   function setCallback() {
     move.setCallback(
@@ -160,8 +169,7 @@ function main() {
       },
       () => {
         // replay mode
-        resetStatus();
-        stateHandle.setState(GameState.REPLAY);
+        replay.startReplay();
       }
     );
   }
