@@ -85,13 +85,21 @@ export class Replay {
     }
 
     private drawStep(step: number) {
-        const boardState = this._board.createBoard();
-        const recordsToApply = this._replaySteps.slice(0, step + 1).flat();
+        let boardState = this._board.createBoard();
+        const stepsToApply = this._replaySteps.slice(0, step + 1);
 
-        for (const record of recordsToApply) {
-            const [x, y, color] = record;
-            if (x >= gameConfig.BOARD_LEFT_EDGE && x < gameConfig.BOARD_RIGHT_EDGE && y < gameConfig.BOARD_BOTTOM_EDGE) {
-                boardState[y][x] = color;
+        for (const currentStep of stepsToApply) {
+            const firstRecord = currentStep[0];
+            if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
+                // New phase, clear the board before applying seed puyos
+                boardState = this._board.createBoard();
+            }
+
+            for (const record of currentStep) {
+                const [x, y, color] = record;
+                if (x >= gameConfig.BOARD_LEFT_EDGE && x < gameConfig.BOARD_RIGHT_EDGE && y < gameConfig.BOARD_BOTTOM_EDGE) {
+                    boardState[y][x] = color;
+                }
             }
         }
 
@@ -106,7 +114,8 @@ export class Replay {
             this._replaySlider.remove();
             this._replaySlider = null;
         }
-        this._recordedPuyos = [];
+        recordPuyoSteps.recordedPuyos = [];
+        this._replaySteps = [];
         stateHandle.setState(GameState.MENU);
         this._draw.clear();
     }
