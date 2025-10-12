@@ -49,6 +49,18 @@ function main() {
     split, chain, input, draw, mountain, htmlHandle);
   const replay = new Replay(draw);
 
+  const resetStatus = () => {
+    board.initBoard();
+    current.initManiPuyos();
+    chain.initFloatingPuyos();
+    chain.initConnectedPuyos();
+    chain.initVanishPuyos();
+    split.initSplittedPuyo();
+    mountain.initAll();
+    timer.initTimer();
+    recordPuyoSteps.init();
+  }
+
   setCallback();
 
   game.beforeLoop();
@@ -60,6 +72,7 @@ function main() {
     if (e.key === 'q' && stateHandle.checkCurrentState(GameState.REPLAY)) {
       replay.endReplay();
       menu.generateButtons(MenuSelect.START_MENU);
+      resetStatus();
     }
   });
 
@@ -71,17 +84,6 @@ function main() {
     current.setCallback(
       () => chain.detectPossibleChain(board.board, current.currentPuyo)
     );
-
-    const resetStatus = () => {
-      board.initBoard();
-      current.initManiPuyos();
-      chain.initFloatingPuyos();
-      chain.initConnectedPuyos();
-      chain.initVanishPuyos();
-      split.initSplittedPuyo();
-      mountain.initAll();
-      timer.initTimer();
-    }
 
     menu.setCallback(
       () => {
@@ -169,7 +171,6 @@ function main() {
       },
       () => {
         // replay mode
-        resetStatus();
         replay.startReplay();
       }
     );
