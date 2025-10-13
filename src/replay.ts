@@ -249,6 +249,42 @@ export class Replay {
     } else if (e.key === 'ArrowRight') {
       this._replaySlider.value = String(Math.min(parseInt(this._replaySlider.max), parseInt(this._replaySlider.value) + 1));
       this.drawStep(parseInt(this._replaySlider.value));
+    } else if (e.key === 'm') {
+        const currentStep = parseInt(this._replaySlider.value);
+        let nextPhaseStep = -1;
+        for (let i = currentStep + 1; i < this._replaySteps.length; i++) {
+            const step = this._replaySteps[i];
+            const firstRecord = step[0];
+            if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
+                nextPhaseStep = i;
+                break;
+            }
+        }
+
+        if (nextPhaseStep !== -1) {
+            this._replaySlider.value = String(nextPhaseStep);
+            this.drawStep(nextPhaseStep);
+        }
+    } else if (e.key === 'M') { // Shift + m
+        const currentStep = parseInt(this._replaySlider.value);
+        let prevPhaseStep = -1;
+        for (let i = currentStep - 1; i >= 0; i--) {
+            const step = this._replaySteps[i];
+            const firstRecord = step[0];
+            if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
+                prevPhaseStep = i;
+                break;
+            }
+        }
+
+        if (prevPhaseStep !== -1) {
+            this._replaySlider.value = String(prevPhaseStep);
+            this.drawStep(prevPhaseStep);
+        } else {
+            // If no previous seed puyo step is found, go to the beginning.
+            this._replaySlider.value = '0';
+            this.drawStep(0);
+        }
     }
   }
 
@@ -258,6 +294,7 @@ export class Replay {
     ctx.font = '20px Arial';
     ctx.fillText(`Step: ${step + 1} / ${this._replaySteps.length}`, 10, 30);
     ctx.fillText(`Press 'q' to quit replay`, 10, 60);
+    ctx.fillText(`'m'/'M' to skip phase`, 10, 90);
   }
 
   private updateSliderTrack() {
