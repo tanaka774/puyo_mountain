@@ -239,6 +239,10 @@ export class Replay {
   }
 
   private handleKeyDown(e: KeyboardEvent) {
+    if (e.repeat) return; // Ignore key-down repeats
+    e.preventDefault();
+    e.stopPropagation();
+
     if (e.key === 'ArrowLeft') {
       this._replaySlider.value = String(Math.max(0, parseInt(this._replaySlider.value) - 1));
       this.drawStep(parseInt(this._replaySlider.value));
