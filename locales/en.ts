@@ -105,4 +105,7 @@ export const en = {
   climbAgain: "Climb Again",
   replay: "Watch Replay",
   replayDesc: "Replay your last game",
+  replayStep: "'←'/'→': Step",
+  replayPhase: "'M'/'m': Block",
+  replayQuit: "'q': Quit",
 };

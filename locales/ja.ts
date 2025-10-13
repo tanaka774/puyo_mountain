@@ -105,4 +105,7 @@ export const ja = {
   climbAgain: "もう一度登る",
   replay: "リプレイを見る",
   replayDesc: "今回のプレイを再生します",
+  replayStep: "'←'/'→': 前/次の手",
+  replayPhase: "'M'/'m': 前/次のブロック",
+  replayQuit: "'q': 終了",
 };

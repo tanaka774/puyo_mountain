@@ -5,6 +5,7 @@ import { DrawWithCanvas } from "./drawWithCanvas";
 import { gameConfig } from "./config";
 import { Board } from "./board";
 import { Bounce } from "./bounce";
+import lang from "../locales";
 
 export class Replay {
   private _replaySlider: HTMLInputElement;
@@ -12,6 +13,7 @@ export class Replay {
   private _replaySteps: any[];
   private _board: Board;
   private _styleElement: HTMLStyleElement;
+  private _infoElement: HTMLDivElement;
   private _boundKeydownHandler: (e: KeyboardEvent) => void;
 
   constructor(
@@ -47,6 +49,10 @@ export class Replay {
     this._replaySlider.min = '0';
     this._replaySlider.max = String(this._replaySteps.length - 1);
     this._replaySlider.value = '0';
+
+    this._infoElement = document.createElement('div');
+    this._infoElement.id = 'replay-info';
+    document.body.appendChild(this._infoElement);
 
     const styles = `
       @keyframes pulse {
@@ -98,6 +104,17 @@ export class Replay {
         border-radius: 50%;
         border: 2px solid #fff;
         box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      }
+
+      #replay-info {
+        position: fixed;
+        bottom: 40px; /* Position above the slider */
+        left: 10%;
+        width: 80%;
+        text-align: center;
+        color: white;
+        font-size: 16px;
+        z-index: 1000;
       }
     `;
     this._styleElement = document.createElement("style");
@@ -213,10 +230,11 @@ export class Replay {
       }
     }
 
+    this._infoElement.innerText = `Step: ${step + 1} / ${this._replaySteps.length} | ${lang.replayStep} | ${lang.replayPhase} | ${lang.replayQuit}`;
+
     this._draw.clear();
     this._draw.drawBoardBackground();
     this._draw.drawNextBoard(nextPuyo, doubleNextPuyo);
-    this.addReplayInfo(step);
     this._draw.drawBoardPuyos(boardState);
     this.updateSliderTrack();
   }
@@ -229,6 +247,10 @@ export class Replay {
     if (this._styleElement) {
       this._styleElement.remove();
       this._styleElement = null;
+    }
+    if (this._infoElement) {
+        this._infoElement.remove();
+        this._infoElement = null;
     }
     recordPuyoSteps.recordedPuyos = [];
     this._replaySteps = [];
@@ -288,14 +310,6 @@ export class Replay {
     }
   }
 
-  private addReplayInfo(step: number) {
-    const ctx = this._draw.mainCanvas.getContext('2d');
-    ctx.fillStyle = 'white';
-    ctx.font = '20px Arial';
-    ctx.fillText(`Step: ${step + 1} / ${this._replaySteps.length}`, 10, 30);
-    ctx.fillText(`Press 'q' to quit replay`, 10, 60);
-    ctx.fillText(`'m'/'M' to skip phase`, 10, 90);
-  }
 
   private updateSliderTrack() {
     const slider = this._replaySlider;
