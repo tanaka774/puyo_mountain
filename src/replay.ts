@@ -1,3 +1,4 @@
+import { baseManiPuyo } from "./types";
 import { recordPuyoSteps } from "./record";
 import { stateHandle, GameState } from "./state";
 import { DrawWithCanvas } from "./drawWithCanvas";
@@ -180,8 +181,41 @@ export class Replay {
       }
     }
 
+    // Find next and double next puyos for replay display
+    let nextPuyo: baseManiPuyo = null;
+    let doubleNextPuyo: baseManiPuyo = null;
+    let foundNext = false;
+
+    for (let i = step + 1; i < this._replaySteps.length; i++) {
+      const futureStep = this._replaySteps[i];
+      const firstRecord = futureStep[0];
+
+      if (firstRecord && firstRecord[3] === recordPuyoSteps.MANIPULATE_PUYO_REC_FLAG) {
+        if (!foundNext) {
+          if (futureStep.length >= 2) {
+            nextPuyo = {
+              parentColor: futureStep[0][2],
+              childColor: futureStep[1][2],
+              parentX: 0, parentY: 0, angle: 180
+            };
+          }
+          foundNext = true;
+        } else {
+          if (futureStep.length >= 2) {
+            doubleNextPuyo = {
+              parentColor: futureStep[0][2],
+              childColor: futureStep[1][2],
+              parentX: 0, parentY: 0, angle: 180
+            };
+          }
+          break;
+        }
+      }
+    }
+
     this._draw.clear();
     this._draw.drawBoardBackground();
+    this._draw.drawNextBoard(nextPuyo, doubleNextPuyo);
     this.addReplayInfo(step);
     this._draw.drawBoardPuyos(boardState);
     this.updateSliderTrack();
