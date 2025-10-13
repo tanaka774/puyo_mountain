@@ -10,6 +10,7 @@ export class Replay {
   private _recordedPuyos: any[];
   private _replaySteps: any[];
   private _board: Board;
+  private _styleElement: HTMLStyleElement;
   private _boundKeydownHandler: (e: KeyboardEvent) => void;
 
   constructor(
@@ -40,15 +41,67 @@ export class Replay {
 
   private createReplaySlider() {
     this._replaySlider = document.createElement('input');
+    this._replaySlider.id = 'replay-slider';
     this._replaySlider.type = 'range';
     this._replaySlider.min = '0';
     this._replaySlider.max = String(this._replaySteps.length - 1);
     this._replaySlider.value = '0';
-    this._replaySlider.style.position = 'fixed';
-    this._replaySlider.style.bottom = '10px';
-    this._replaySlider.style.width = '80%';
-    this._replaySlider.style.left = '10%';
-    this._replaySlider.style.zIndex = '1000';
+
+    const styles = `
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+        }
+      }
+
+      #replay-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 80%;
+        height: 10px;
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+        position: fixed;
+        bottom: 10px;
+        left: 10%;
+        z-index: 1000;
+      }
+
+      #replay-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 28px;
+        height: 28px;
+        background: #ff8c00;
+        cursor: pointer;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        animation: pulse 2s infinite;
+      }
+
+      #replay-slider::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+        background: #ff8c00;
+        cursor: pointer;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      }
+    `;
+    this._styleElement = document.createElement("style");
+    this._styleElement.innerText = styles;
+    document.head.appendChild(this._styleElement);
 
     document.body.appendChild(this._replaySlider);
 
@@ -131,12 +184,17 @@ export class Replay {
     this._draw.drawBoardBackground();
     this.addReplayInfo(step);
     this._draw.drawBoardPuyos(boardState);
+    this.updateSliderTrack();
   }
 
   public endReplay() {
     if (this._replaySlider) {
       this._replaySlider.remove();
       this._replaySlider = null;
+    }
+    if (this._styleElement) {
+      this._styleElement.remove();
+      this._styleElement = null;
     }
     recordPuyoSteps.recordedPuyos = [];
     this._replaySteps = [];
@@ -162,5 +220,14 @@ export class Replay {
     ctx.font = '20px Arial';
     ctx.fillText(`Step: ${step + 1} / ${this._replaySteps.length}`, 10, 30);
     ctx.fillText(`Press 'q' to quit replay`, 10, 60);
+  }
+
+  private updateSliderTrack() {
+    const slider = this._replaySlider;
+    if (!slider) return;
+    const progress = (parseInt(slider.value) / parseInt(slider.max)) * 100;
+    const color = '#ff8c00'; // DarkOrange
+    const trackColor = '#d3d3d3'; // lightgray
+    slider.style.background = `linear-gradient(to right, ${color} ${progress}%, ${trackColor} ${progress}%)`;
   }
 }
