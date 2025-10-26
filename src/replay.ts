@@ -257,8 +257,8 @@ export class Replay {
       this._styleElement = null;
     }
     if (this._infoElement) {
-        this._infoElement.remove();
-        this._infoElement = null;
+      this._infoElement.remove();
+      this._infoElement = null;
     }
     recordPuyoSteps.recordedPuyos = [];
     this._replaySteps = [];
@@ -279,41 +279,41 @@ export class Replay {
       this._replaySlider.value = String(Math.min(parseInt(this._replaySlider.max), parseInt(this._replaySlider.value) + 1));
       this.drawStep(parseInt(this._replaySlider.value));
     } else if (e.key === 'm') {
-        const currentStep = parseInt(this._replaySlider.value);
-        let nextPhaseStep = -1;
-        for (let i = currentStep + 1; i < this._replaySteps.length; i++) {
-            const step = this._replaySteps[i];
-            const firstRecord = step[0];
-            if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
-                nextPhaseStep = i;
-                break;
-            }
+      const currentStep = parseInt(this._replaySlider.value);
+      let nextPhaseStep = -1;
+      for (let i = currentStep + 1; i < this._replaySteps.length; i++) {
+        const step = this._replaySteps[i];
+        const firstRecord = step[0];
+        if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
+          nextPhaseStep = i;
+          break;
         }
+      }
 
-        if (nextPhaseStep !== -1) {
-            this._replaySlider.value = String(nextPhaseStep);
-            this.drawStep(nextPhaseStep);
-        }
+      if (nextPhaseStep !== -1) {
+        this._replaySlider.value = String(nextPhaseStep);
+        this.drawStep(nextPhaseStep);
+      }
     } else if (e.key === 'M') { // Shift + m
-        const currentStep = parseInt(this._replaySlider.value);
-        let prevPhaseStep = -1;
-        for (let i = currentStep - 1; i >= 0; i--) {
-            const step = this._replaySteps[i];
-            const firstRecord = step[0];
-            if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
-                prevPhaseStep = i;
-                break;
-            }
+      const currentStep = parseInt(this._replaySlider.value);
+      let prevPhaseStep = -1;
+      for (let i = currentStep - 1; i >= 0; i--) {
+        const step = this._replaySteps[i];
+        const firstRecord = step[0];
+        if (firstRecord && firstRecord[3] === recordPuyoSteps.SEED_PUYO_REC_FLAG) {
+          prevPhaseStep = i;
+          break;
         }
+      }
 
-        if (prevPhaseStep !== -1) {
-            this._replaySlider.value = String(prevPhaseStep);
-            this.drawStep(prevPhaseStep);
-        } else {
-            // If no previous seed puyo step is found, go to the beginning.
-            this._replaySlider.value = '0';
-            this.drawStep(0);
-        }
+      if (prevPhaseStep !== -1) {
+        this._replaySlider.value = String(prevPhaseStep);
+        this.drawStep(prevPhaseStep);
+      } else {
+        // If no previous seed puyo step is found, go to the beginning.
+        this._replaySlider.value = '0';
+        this.drawStep(0);
+      }
     }
   }
 
