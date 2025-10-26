@@ -261,7 +261,6 @@ export class Replay {
   }
 
   private handleKeyDown(e: KeyboardEvent) {
-    if (e.repeat) return; // Ignore key-down repeats
     e.preventDefault();
     e.stopPropagation();
 
