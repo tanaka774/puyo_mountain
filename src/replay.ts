@@ -5,6 +5,7 @@ import { DrawWithCanvas } from "./drawWithCanvas";
 import { gameConfig } from "./config";
 import { Board } from "./board";
 import { Bounce } from "./bounce";
+import { Chain } from "./chain";
 import lang from "../locales";
 
 export class Replay {
@@ -15,9 +16,11 @@ export class Replay {
   private _styleElement: HTMLStyleElement;
   private _infoElement: HTMLDivElement;
   private _boundKeydownHandler: (e: KeyboardEvent) => void;
+  private _debounceTimer: any;
 
   constructor(
-    private _draw: DrawWithCanvas
+    private _draw: DrawWithCanvas,
+    private _chain: Chain
   ) {
     this._recordedPuyos = [];
     this._replaySteps = [];
@@ -124,8 +127,11 @@ export class Replay {
     document.body.appendChild(this._replaySlider);
 
     this._replaySlider.addEventListener('input', (e) => {
-      const step = parseInt((e.target as HTMLInputElement).value);
-      this.drawStep(step);
+      clearTimeout(this._debounceTimer);
+      this._debounceTimer = setTimeout(() => {
+        const step = parseInt((e.target as HTMLInputElement).value);
+        this.drawStep(step);
+      }, 10);
     });
   }
 
@@ -235,7 +241,9 @@ export class Replay {
     this._draw.clear();
     this._draw.drawBoardBackground();
     this._draw.drawNextBoard(nextPuyo, doubleNextPuyo);
+    this._chain.findConnectedPuyos(boardState, () => { }, 2, true);
     this._draw.drawBoardPuyos(boardState);
+    this._draw.drawConnecting();
     this.updateSliderTrack();
   }
 

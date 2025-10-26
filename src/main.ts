@@ -47,7 +47,7 @@ function main() {
   const htmlHandle = new HtmlHandle(lSHandle, apiHandle, timer, chain, mountain, menu);
   const game = new Game(menu, apiHandle, timer, bounce, board, current, move, rotate,
     split, chain, input, draw, mountain, htmlHandle);
-  const replay = new Replay(draw);
+  const replay = new Replay(draw, chain);
 
   const resetStatus = () => {
     board.initBoard();
