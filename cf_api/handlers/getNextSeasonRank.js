@@ -30,7 +30,7 @@ export async function handleGetNextSeasonRank(url, env) {
       gamemode
     ).first();
 
-    const nextRank = result?.next_rank ?? 1; // default to 1 if no rank found
+    const nextRank = result?.next_rank ?? 0;
 
     return new Response(JSON.stringify({ nextRank }), {
       headers: { "Content-Type": "application/json" }

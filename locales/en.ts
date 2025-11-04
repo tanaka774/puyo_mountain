@@ -108,4 +108,9 @@ export const en = {
   replayStep: "'←'/'→': Step",
   replayPhase: "'M'/'m': Block",
   replayQuit: "'q': Quit",
+  shareOnX: "Share on X",
+  puyoMountainArcade: "Puyo Mountain [Arcade]",
+  puyoMountainScore: "Puyo Mountain [Score]",
+  rank: "Rank",
+  summitReached: "Reached the summit!",
 };

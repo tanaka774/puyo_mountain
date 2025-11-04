@@ -108,4 +108,9 @@ export const ja = {
   replayStep: "'←'/'→': 前/次の手",
   replayPhase: "'M'/'m': 前/次のブロック",
   replayQuit: "'q': 終了",
+  shareOnX: "Xでシェア",
+  puyoMountainScore: "ぷよマウンテン【スコア】",
+  rank: "ランク",
+  summitReached: "登頂達成！",
+  puyoMountainArcade: "ぷよマウンテン【アーケード】",
 };

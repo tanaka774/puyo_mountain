@@ -4,6 +4,17 @@ export function getTurnstileToken() {
   return turnstileToken;
 }
 
+export function renderTurnstileWidget(container) {
+  if (window.turnstile) {
+    window.turnstile.render(container, {
+      sitekey: "0x4AAAAAABjqqBmx_j-RtuXq",
+      callback: window.onTurnstileSuccess,
+      "error-callback": window.onTurnstileError,
+      "expired-callback": window.onTurnstileExpired,
+    });
+  }
+}
+
 window.onloadTurnstileCallback = function () {
   console.log("onloadTurnstileCallback is defined")
   const container = document.getElementById("turnstileContainer");
@@ -12,12 +23,7 @@ window.onloadTurnstileCallback = function () {
     return;
   }
 
-  window.turnstile.render(container, {
-    sitekey: "0x4AAAAAABjqqBmx_j-RtuXq",
-    callback: window.onTurnstileSuccess,
-    "error-callback": window.onTurnstileError,
-    "expired-callback": window.onTurnstileExpired,
-  });
+  renderTurnstileWidget(container);
 };
 
 window.onTurnstileSuccess = function (token) {
