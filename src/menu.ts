@@ -26,6 +26,7 @@ export class Menu {
   private customMode: () => void;
   private gameSetting: () => void;
   private watchHighScores: () => void;
+  private watchReplay: () => void;
   private backToGameInPause: () => void;
   private backToMenuInPause: () => void;
   private retryAfterGameOver: () => void;
@@ -221,10 +222,12 @@ export class Menu {
         break;
       case MenuSelect.GAME_OVER:
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); });
+        geneButton(lang.replay, () => { this.watchReplay(); });
         geneButton(lang.backToMenu, () => { this.backToMenuAfterGameOver(); this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.GAME_CLEAR:
         geneButton(lang.climbAgain, () => { this.retryAfterGameClear(); this.closeModal(); });
+        geneButton(lang.replay, () => { this.watchReplay(); });
         geneButton(lang.backToMenu, () => { this.backToMenuAfterGameClear(); this.generateButtons(MenuSelect.START_MENU) });
         break;
 
@@ -241,8 +244,23 @@ export class Menu {
     if (descDivFirst) descDivFirst.style.display = '';
   }
 
-  setCallback(arcadeEasy, arcadeNormal, arcadeHard, enduranceMode1, enduranceMode2, customMode, gameSetting, watchHighScores,
-    backToGameInPause, backToMenuInPause, retryAfterGameOver, backToMenuAfterGameOver, retryAfterGameClear, backToMenuAfterGameClear) {
+  setCallback(
+    arcadeEasy,
+    arcadeNormal,
+    arcadeHard,
+    enduranceMode1,
+    enduranceMode2,
+    customMode,
+    gameSetting,
+    watchHighScores,
+    backToGameInPause,
+    backToMenuInPause,
+    retryAfterGameOver,
+    backToMenuAfterGameOver,
+    retryAfterGameClear,
+    backToMenuAfterGameClear,
+    watchReplay,
+  ) {
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
     this.arcadeHard = arcadeHard;
@@ -257,6 +275,7 @@ export class Menu {
     this.backToMenuAfterGameOver = backToMenuAfterGameOver;
     this.retryAfterGameClear = retryAfterGameClear;
     this.backToMenuAfterGameClear = backToMenuAfterGameClear;
+    this.watchReplay = watchReplay;
   }
 }
 

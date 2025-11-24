@@ -236,9 +236,14 @@ export class Game {
         // if you press pause
         // after this, go back to origianl state
         break;
+      case GameState.REPLAY:
+        this.handleReplay();
+        break;
     }
 
-    this._draw.draw();
+    if (!stateHandle.checkCurrentState(GameState.REPLAY)) {
+      this._draw.draw();
+    }
 
     this._htmlHandle.htmlUpdate();
 
@@ -288,5 +293,9 @@ export class Game {
     } else if (this._mountain.currentMode === GameMode.ARCADE) {
       this._htmlHandle.showArcadeResult();
     }
+  }
+
+  private handleReplay() {
+    this._menu.closeModal();
   }
 }

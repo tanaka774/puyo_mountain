@@ -197,11 +197,11 @@ export class DrawWithCanvas {
     this.ctx.stroke();
   }
 
-  drawBoardPuyos() {
-    if (this._board.board) {
+  drawBoardPuyos(board = this._board.board) {
+    if (board) {
       for (let y = gameConfig.BOARD_TOP_EDGE - 1; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
         for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
-          const cell = this._board.board[y][x];
+          const cell = board[y][x];
           if (cell !== gameConfig.NO_COLOR) {
             this.drawPuyo(this.ctx, x, y, PUYO_COLORS[cell])
           }
@@ -211,37 +211,46 @@ export class DrawWithCanvas {
 
   }
 
-  drawNextBoard() {
-    // this.drawUIInfo();
-    // TODO: move up a little??
-    // UI
+  drawNextBoard(nextPuyo: baseManiPuyo = null, doubleNextPuyo: baseManiPuyo = null) {
+    this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
+
     const backColor = 'rgba(200,200,200,0.7)';
     const cs = gameConfig.CELL_SIZE;
     this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
     this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
 
-    // current puyo goes up from next pos
     const nextFixX = 0.5;
     const nextFixY = 2.5;
     const doubleNextFixX = 2;
     const doubleNextFixY = 4.5;
-    const diffX = doubleNextFixX - nextFixX;
-    const diffY = doubleNextFixY - nextFixY;
-    const rate = this._current.nextMovingCount / gameConfig.NEXT_MOVING_TIME;
 
-    if (this._current.currentPuyo) {
-      this.drawWaitingPuyo(this.nextPuyoCtx, this._current.currentPuyo, nextFixX, nextFixY - rate * 3 * (nextFixY));
-    }
+    if (nextPuyo || doubleNextPuyo) {
+      // Replay mode: draw statically
+      if (nextPuyo) {
+        this.drawWaitingPuyo(this.nextPuyoCtx, nextPuyo, nextFixX, nextFixY);
+      }
+      if (doubleNextPuyo) {
+        this.drawWaitingPuyo(this.nextPuyoCtx, doubleNextPuyo, doubleNextFixX, doubleNextFixY);
+      }
+    } else {
+      // Live game mode: draw with animation
+      const rate = this._current.nextMovingCount / gameConfig.NEXT_MOVING_TIME;
+      const diffX = doubleNextFixX - nextFixX;
+      const diffY = doubleNextFixY - nextFixY;
 
-    if (this._current.nextPuyo) {
-      this.drawWaitingPuyo(this.nextPuyoCtx, this._current.nextPuyo, nextFixX + (1 - rate) * diffX, nextFixY + (1 - rate) * diffY);
-    }
-    if (this._current.doubleNextPuyo) {
-      this.drawWaitingPuyo(this.nextPuyoCtx, this._current.doubleNextPuyo, doubleNextFixX, doubleNextFixY + (1 - rate) * 3);
-    }
+      if (this._current.currentPuyo) {
+        this.drawWaitingPuyo(this.nextPuyoCtx, this._current.currentPuyo, nextFixX, nextFixY - rate * 3 * (nextFixY));
+      }
+      if (this._current.nextPuyo) {
+        this.drawWaitingPuyo(this.nextPuyoCtx, this._current.nextPuyo, nextFixX + (1 - rate) * diffX, nextFixY + (1 - rate) * diffY);
+      }
+      if (this._current.doubleNextPuyo) {
+        this.drawWaitingPuyo(this.nextPuyoCtx, this._current.doubleNextPuyo, doubleNextFixX, doubleNextFixY + (1 - rate) * 3);
+      }
 
-    if (this._current.nextMovingCount < gameConfig.NEXT_MOVING_TIME) {
-      this._current.incrementNextMovingCount();
+      if (this._current.nextMovingCount < gameConfig.NEXT_MOVING_TIME) {
+        this._current.incrementNextMovingCount();
+      }
     }
   }
 
