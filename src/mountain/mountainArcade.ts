@@ -6,6 +6,7 @@ import lang from "../../locales";
 
 
 export enum Difficulty {
+  BEGINNER,
   EASY,
   NORMAL,
   HARD
@@ -26,11 +27,34 @@ export class MountainArcade extends MountainBase {
     this._backgroundColors = ["rgb(44,125,76)", "rgb(188,135,62)", "rgb(84,36,28)", "rgb(89,190,200)"]
   }
 
+  public prepareSeedPuyos() {
+    if (this.checkDifficulty(Difficulty.BEGINNER)) {
+      let possibleChains = 0;
+      do {
+        // this.initInternalInfo();
+        this.decideVariability();
+        this.generateSeedPuyos();
+        this.changeExcessPuyo();
+
+        const virtualBoard = this.getVirtualBoard();
+        this._chain.detectPossibleChain(virtualBoard, null);
+        possibleChains = this._chain.maxVirtualChainCount;
+
+      } while (possibleChains < 4);
+
+      this.setFloatingSeedPuyos();
+
+    } else {
+      super.prepareSeedPuyos();
+    }
+  }
+
   protected decideSeedPuyoNum(): number {
     let difficultyRate =
-      (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
-        (this.checkDifficulty(Difficulty.NORMAL)) ? 1 :
-          (this.checkDifficulty(Difficulty.HARD)) ? 1.25 : 1;
+      (this.checkDifficulty(Difficulty.BEGINNER)) ? 2 :
+        (this.checkDifficulty(Difficulty.EASY)) ? 0.75 :
+          (this.checkDifficulty(Difficulty.NORMAL)) ? 1 :
+            (this.checkDifficulty(Difficulty.HARD)) ? 1.25 : 1;
     let phaseRate = 1 + (0.1 * this._phase)
 
     const getRandomNum = (num) => Math.floor(Math.random() * num)
@@ -66,11 +90,12 @@ export class MountainArcade extends MountainBase {
 
   initTargetChain() {
     this._targetChainNums =
-      (this._currentDifficulty === Difficulty.EASY) ? [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [12]] :
-        (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [13]] :
-          // (this._currentDifficulty === Difficulty.HARD) ? [[2, 2], [2, 2], [2, 2], [2]] :
-          (this._currentDifficulty === Difficulty.HARD) ? [[6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12], [14]] :
-            [[]];
+      (this._currentDifficulty === Difficulty.BEGINNER) ? [[3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [10]] :
+        (this._currentDifficulty === Difficulty.EASY) ? [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [12]] :
+          (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [13]] :
+            // (this._currentDifficulty === Difficulty.HARD) ? [[2, 2], [2, 2], [2, 2], [2]] :
+            (this._currentDifficulty === Difficulty.HARD) ? [[6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12], [14]] :
+              [[]];
 
     this._currentTargetChainIndex = 0;
     this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
@@ -94,7 +119,7 @@ export class MountainArcade extends MountainBase {
 
   goNextLevel(setStateGeneSeed: () => void, setStateGameClear: () => void): void {
     if ((this.checkDifficulty(Difficulty.HARD) && this.isLastPhase() && this._board.isBoardPlain()) ||
-      ((this.checkDifficulty(Difficulty.EASY) || (this.checkDifficulty(Difficulty.NORMAL))) && this.isLastPhase())
+      ((this.checkDifficulty(Difficulty.BEGINNER) || this.checkDifficulty(Difficulty.EASY) || (this.checkDifficulty(Difficulty.NORMAL))) && this.isLastPhase())
     ) {
       setStateGameClear();
       this._changeBackGround(this._backgroundColors[this._backgroundColors.length - 1]);

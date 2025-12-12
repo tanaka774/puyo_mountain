@@ -87,6 +87,15 @@ function main() {
 
     menu.setCallback(
       () => {
+        // arcade beginner
+        stateHandle.setState(GameState.GENE_SEED_PUYOS);
+        mountain.setGameMode(GameMode.ARCADE);
+        mountain.setDifficulty(Difficulty.BEGINNER);
+        mountain.initTargetChain();
+        // this must be after setGamemode
+        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
+      },
+      () => {
         // arcade easy
         stateHandle.setState(GameState.GENE_SEED_PUYOS);
         mountain.setGameMode(GameMode.ARCADE);

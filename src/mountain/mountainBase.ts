@@ -66,7 +66,7 @@ export class MountainBase {
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const baseRand = 4;
     // const randModi = (getRandomNum(2) === 0) ? getRandomNum(baseRand) : (-1) * getRandomNum(baseRand);
-    const randModi =  (-1) * getRandomNum(baseRand);
+    const randModi = (-1) * getRandomNum(baseRand);
     const meanPuyoHeight = 2;
     const seedPuyoNum = boardWidth * meanPuyoHeight + randModi;
     return seedPuyoNum;
@@ -117,7 +117,7 @@ export class MountainBase {
       }
       // setVariability(randomIndex, getRandomNum(meanPuyoHeight * 2) + getRandomNum(meanPuyoHeight * 2));
     }
-  } 
+  }
 
   changeExcessPuyo() {
     // don't use lockpuyo() here
@@ -187,9 +187,21 @@ export class MountainBase {
     });
   }
 
+  public prepareSeedPuyos() {
+    // this.initInternalInfo();
+    this.decideVariability();
+    this.generateSeedPuyos();
+    this.changeExcessPuyo();
+    this.setFloatingSeedPuyos();
+  }
+
   nextTargetChain() {/*child implements this*/ }
 
   initTargetChain() {/*child implements this*/ }
+
+  getVirtualBoard() {
+    return this._virtualBoard;
+  }
 
   initVariability() {
     this._seedPuyoVariability =

@@ -174,7 +174,9 @@ export class Chain {
     }, 3, false);
 
     this.searchIgnitionHole(board, triggerPuyosGroup);
-    this.searchWithCurrentPuyo(board, triggerPuyosGroup, currentPuyo);
+    if (currentPuyo) {
+      this.searchWithCurrentPuyo(board, triggerPuyosGroup, currentPuyo);
+    }
 
     for (let triggerPuyos of triggerPuyosGroup) {
       const virtualBoard = JSON.parse(JSON.stringify(board));

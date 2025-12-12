@@ -75,6 +75,10 @@ export class Mountain {
     this._mountainBase.setFloatingSeedPuyos();
   }
 
+  prepareSeedPuyos() {
+    this._mountainBase.prepareSeedPuyos();
+  }
+
   nextTargetChain() {
     this._mountainBase.nextTargetChain();
   }
