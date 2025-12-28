@@ -188,7 +188,7 @@ export class MountainBase {
   }
 
   public prepareSeedPuyos() {
-    // this.initInternalInfo();
+    this.initInternalInfo();
     this.decideVariability();
     this.generateSeedPuyos();
     this.changeExcessPuyo();

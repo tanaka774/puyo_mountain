@@ -30,22 +30,66 @@ export class MountainArcade extends MountainBase {
   public prepareSeedPuyos() {
     if (this.checkDifficulty(Difficulty.BEGINNER)) {
       let possibleChains = 0;
+      let attempt = 0;
+      const MAX_ATTEMPTS = 200000;
+
       do {
-        // this.initInternalInfo();
-        this.decideVariability();
+        attempt++;
+        console.log(`Beginner mode attempt ${attempt}`);
+
+        // TODO: all logic of seed generating for begginer
+        this.initInternalInfo();
+        this.decideVariabilitySimpler(
+          Math.min(60, this._currentTargetChainNum * 4 + 16)
+        );
+        console.log("Variability: ", this._seedPuyoVariability);
+
         this.generateSeedPuyos();
+        console.log("Generated seed puyos: ", this._seedPuyos.length);
+
         this.changeExcessPuyo();
 
         const virtualBoard = this.getVirtualBoard();
+        console.log("Virtual board created");
+
         this._chain.detectPossibleChain(virtualBoard, null);
         possibleChains = this._chain.maxVirtualChainCount;
+        console.log("possibleChains: ", possibleChains);
 
-      } while (possibleChains < 4);
+        if (attempt >= MAX_ATTEMPTS) {
+          console.error("Beginner mode: Max attempts reached, using fallback");
+          super.prepareSeedPuyos();
+          return;
+        }
 
+      } while (possibleChains < this._currentTargetChainNum);
+
+      console.log("Beginner mode: Found configuration with", possibleChains, "chains");
       this.setFloatingSeedPuyos();
 
     } else {
       super.prepareSeedPuyos();
+    }
+  }
+
+  private decideVariabilitySimpler(seedPuyoNum: number) {
+    // set this._seedPuyoVariability with all number of seedPuyoNum
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const basePuyosPerColumn = Math.floor(seedPuyoNum / boardWidth / 2);
+    const leftPuyos = seedPuyoNum - basePuyosPerColumn * boardWidth;
+    const getRandomNum = (num) => Math.floor(Math.random() * num)
+
+    for (let index = 0; index < boardWidth; index++) {
+      this._seedPuyoVariability[index] = basePuyosPerColumn;
+    }
+
+    for (let i = 0; i < leftPuyos; i++) {
+      const index = getRandomNum(boardWidth);
+      if (this._seedPuyoVariability[index] >= 11) {
+        i--;
+        continue;
+      }
+      this._seedPuyoVariability[index]++;
     }
   }
 
