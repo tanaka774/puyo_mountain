@@ -30,43 +30,35 @@ export class MountainArcade extends MountainBase {
   public prepareSeedPuyos() {
     if (this.checkDifficulty(Difficulty.BEGINNER)) {
       let possibleChains = 0;
-      let attempt = 0;
-      const MAX_ATTEMPTS = 200000;
 
-      do {
-        attempt++;
-        console.log(`Beginner mode attempt ${attempt}`);
+      const firstPossibleChains = 2;
 
-        // TODO: all logic of seed generating for begginer
+      while (possibleChains < firstPossibleChains) {
         this.initInternalInfo();
-        this.decideVariabilitySimpler(
-          Math.min(60, this._currentTargetChainNum * 4 + 16)
-        );
-        console.log("Variability: ", this._seedPuyoVariability);
-
+        this.decideVariabilitySimpler(firstPossibleChains * 2 + 4);
         this.generateSeedPuyos();
-        console.log("Generated seed puyos: ", this._seedPuyos.length);
-
         this.changeExcessPuyo();
-
-        const virtualBoard = this.getVirtualBoard();
-        console.log("Virtual board created");
-
-        this._chain.detectPossibleChain(virtualBoard, null);
+        this._chain.detectPossibleChain(this.getVirtualBoard(), null);
         possibleChains = this._chain.maxVirtualChainCount;
-        console.log("possibleChains: ", possibleChains);
+      }
 
-        if (attempt >= MAX_ATTEMPTS) {
-          console.error("Beginner mode: Max attempts reached, using fallback");
-          super.prepareSeedPuyos();
-          return;
+      while (possibleChains < this._currentTargetChainNum) {
+        // add some seed puyos, and if you can succeed to increment chain number, go to next, if not go back and do it again
+        const originalVirtualBoard = JSON.parse(JSON.stringify(this.getVirtualBoard()));
+        const virtualBoardToBeAdded = this.addMoreSeedPuyos(6, this.getVirtualBoard());
+
+        this._chain.detectPossibleChain(virtualBoardToBeAdded, null);
+        if (this._chain.maxVirtualChainCount <= possibleChains) {
+          // reset chain instance status relating to virtual board
+          this._virtualBoard = originalVirtualBoard;
+          continue;
         }
 
-      } while (possibleChains < this._currentTargetChainNum);
+        possibleChains = this._chain.maxVirtualChainCount;
+      }
 
-      console.log("Beginner mode: Found configuration with", possibleChains, "chains");
-      this.setFloatingSeedPuyos();
-
+      // set floating puyos manually here only with virtual board
+      this.createFloatingPuyosFromVirtualBoard();
     } else {
       super.prepareSeedPuyos();
     }
@@ -90,6 +82,70 @@ export class MountainArcade extends MountainBase {
         continue;
       }
       this._seedPuyoVariability[index]++;
+    }
+  }
+
+  /**
+  * return new board adding seed puyos
+  */
+  private addMoreSeedPuyos(puyosToBeAdded: number, originalBoard: number[][]): number[][] {
+    const newBoard: number[][] = JSON.parse(JSON.stringify(originalBoard));
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+    const getRandomNum = (num: number) => Math.floor(Math.random() * num)
+    const getLowestY = (x: number): number => {
+      for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE; y--) {
+        if (newBoard[y][x] === gameConfig.NO_COLOR) {
+          return y;
+        }
+      }
+      return gameConfig.BOARD_TOP_EDGE;
+    }
+
+    for (let i = 0; i < puyosToBeAdded; i++) {
+      const x = getRandomNum(boardWidth) + gameConfig.BOARD_LEFT_EDGE;
+      const y = getLowestY(x)
+
+      if (y <= gameConfig.BOARD_TOP_EDGE + 2) {
+        i--;
+        continue;
+      }
+      newBoard[y][x] = Math.floor(Math.random() * 4) + 1  // set puyo color
+    }
+
+    return newBoard;
+  }
+
+  /**
+   * Simple conversion from virtual board to floating puyos
+   * Positions floating puyos directly above their final positions
+   */
+  private createFloatingPuyosFromVirtualBoard() {
+    const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
+
+    // Clear any existing floating puyos
+    this._floatingSeedPuyos = [];
+
+    // For each column, create floating puyos from bottom to top
+    for (let xIndex = 0; xIndex < boardWidth; xIndex++) {
+      const x = xIndex + gameConfig.BOARD_LEFT_EDGE;
+      let puyoCount = 0;
+
+      // Count puyos in this column from bottom up
+      for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE; y--) {
+        if (this._virtualBoard[y][x] !== gameConfig.NO_COLOR) {
+          puyoCount++;
+
+          // Create floating puyo positioned above the board
+          // Position them in a stack starting from BOARD_TOP_EDGE - 1
+          const floatingY = gameConfig.BOARD_TOP_EDGE - 1 - (puyoCount - 1);
+          const floatingSeedPuyo = {
+            posX: x,
+            posY: floatingY,
+            color: this._virtualBoard[y][x]
+          };
+          this._floatingSeedPuyos.push(floatingSeedPuyo);
+        }
+      }
     }
   }
 
