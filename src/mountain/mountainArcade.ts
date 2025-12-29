@@ -29,36 +29,74 @@ export class MountainArcade extends MountainBase {
 
   public prepareSeedPuyos() {
     if (this.checkDifficulty(Difficulty.BEGINNER)) {
+      console.log("=== BEGINNER MODE START ===");
+      console.log("Target chain num:", this._currentTargetChainNum);
+
       let possibleChains = 0;
 
       const firstPossibleChains = 2;
+      console.log("First target: create board with", firstPossibleChains, "chains");
 
       while (possibleChains < firstPossibleChains) {
+        console.log("Attempting to create initial board...");
         this.initInternalInfo();
         this.decideVariabilitySimpler(firstPossibleChains * 2 + 4);
+        console.log("Seed puyo variability:", this._seedPuyoVariability);
         this.generateSeedPuyos();
+        console.log("Generated", this._seedPuyos.length, "seed puyos");
         this.changeExcessPuyo();
         this._chain.detectPossibleChain(this.getVirtualBoard(), null);
         possibleChains = this._chain.maxVirtualChainCount;
+        console.log("Found board with", possibleChains, "chains");
       }
 
+      console.log("Initial board created with", possibleChains, "chains");
+      console.log("Now building up to target:", this._currentTargetChainNum);
+
+      let attempts = 100;
       while (possibleChains < this._currentTargetChainNum) {
+
+        console.log("attempts: ", attempts);
+        attempts--;
+        if (attempts <= 0) {
+          console.warn("attempts aren't left")
+          break;
+        }
+
+        console.log("Current chains:", possibleChains, "Target:", this._currentTargetChainNum);
         // add some seed puyos, and if you can succeed to increment chain number, go to next, if not go back and do it again
         const originalVirtualBoard = JSON.parse(JSON.stringify(this.getVirtualBoard()));
+        console.log("virtual board: ", originalVirtualBoard);
+        console.log("Adding 6 more seed puyos...");
         const virtualBoardToBeAdded = this.addMoreSeedPuyos(6, this.getVirtualBoard());
 
         this._chain.detectPossibleChain(virtualBoardToBeAdded, null);
+        console.log("After adding puyos, chains:", this._chain.maxVirtualChainCount);
+        console.log("virtual board after: ", virtualBoardToBeAdded);
+
         if (this._chain.maxVirtualChainCount <= possibleChains) {
+          console.log("No improvement, reverting...");
           // reset chain instance status relating to virtual board
           this._virtualBoard = originalVirtualBoard;
           continue;
         }
 
+        // Accept the improved board
+        this._virtualBoard = virtualBoardToBeAdded;
         possibleChains = this._chain.maxVirtualChainCount;
+        console.log("Improved to", possibleChains, "chains");
+
       }
 
+      console.log("Reached target of", possibleChains, "chains");
+      console.log("Virtual board final state - non-empty cells:");
+
       // set floating puyos manually here only with virtual board
+      console.log("Creating floating puyos from virtual board...");
       this.createFloatingPuyosFromVirtualBoard();
+      console.log("Created", this._floatingSeedPuyos.length, "floating puyos");
+      console.log(this._floatingSeedPuyos);
+      console.log("=== BEGINNER MODE END ===");
     } else {
       super.prepareSeedPuyos();
     }
@@ -190,7 +228,7 @@ export class MountainArcade extends MountainBase {
 
   initTargetChain() {
     this._targetChainNums =
-      (this._currentDifficulty === Difficulty.BEGINNER) ? [[3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [10]] :
+      (this._currentDifficulty === Difficulty.BEGINNER) ? [[7, 8, 9, 10, 11], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [10]] :
         (this._currentDifficulty === Difficulty.EASY) ? [[4, 5, 6, 7, 8], [5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [12]] :
           (this._currentDifficulty === Difficulty.NORMAL) ? [[5, 6, 7, 8, 9], [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [13]] :
             // (this._currentDifficulty === Difficulty.HARD) ? [[2, 2], [2, 2], [2, 2], [2]] :

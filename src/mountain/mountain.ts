@@ -55,17 +55,17 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
-  generateSeedPuyos() {
-    this._mountainBase.generateSeedPuyos();
-  }
+  // generateSeedPuyos() {
+  //   this._mountainBase.generateSeedPuyos();
+  // }
 
   decideVariability() {
     this._mountainBase.decideVariability();
   }
 
-  changeExcessPuyo() {
-    this._mountainBase.changeExcessPuyo();
-  }
+  // changeExcessPuyo() {
+  //   this._mountainBase.changeExcessPuyo();
+  // }
 
   // private subChangeExcessPuyo(chainablePuyos) {
   // 
@@ -137,7 +137,7 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
-  decideGameResult(hours:number, minutes:number, seconds:number) {
+  decideGameResult(hours: number, minutes: number, seconds: number) {
     if (this._mountainBase instanceof MountainArcade) this._mountainBase.decideGameResult(hours, minutes, seconds);
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
