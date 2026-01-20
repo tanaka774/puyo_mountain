@@ -168,20 +168,45 @@ export class MountainArcade extends MountainBase {
       const x = xIndex + gameConfig.BOARD_LEFT_EDGE;
       let puyoCount = 0;
 
-      // Count puyos in this column from bottom up
+      // First pass: count puyos in this column
       for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE; y--) {
         if (this._virtualBoard[y][x] !== gameConfig.NO_COLOR) {
           puyoCount++;
+        }
+      }
 
-          // Create floating puyo positioned above the board
-          // Position them in a stack starting from BOARD_TOP_EDGE - 1
-          const floatingY = gameConfig.BOARD_TOP_EDGE - 1 - (puyoCount - 1);
+      if (puyoCount === 0) continue;
+
+      // Calculate lowestY similar to setFloatingSeedPuyos but with higher value
+      let lowestY: number;
+      const lowestLine = gameConfig.BOARD_BOTTOM_EDGE / 2;
+      // Use higher base value to ensure puyos are placed within valid range
+      const baseOffset = 8; // Additional offset to ensure higher position (higher than original)
+      if (puyoCount >= lowestLine) {
+        lowestY = puyoCount + baseOffset;
+      } else {
+        lowestY = Math.floor(Math.random() * lowestLine) + puyoCount + baseOffset;
+      }
+
+      // Ensure lowestY is within board bounds and high enough
+      lowestY = Math.min(lowestY, gameConfig.BOARD_BOTTOM_EDGE - 1);
+      // Also ensure the stack doesn't go below BOARD_TOP_EDGE
+      if (lowestY - (puyoCount - 1) < gameConfig.BOARD_TOP_EDGE) {
+        lowestY = gameConfig.BOARD_TOP_EDGE + (puyoCount - 1);
+      }
+
+      // Second pass: create floating puyos
+      let currentPuyoIndex = 0;
+      for (let y = gameConfig.BOARD_BOTTOM_EDGE - 1; y >= gameConfig.BOARD_TOP_EDGE; y--) {
+        if (this._virtualBoard[y][x] !== gameConfig.NO_COLOR) {
+          const floatingY = lowestY - currentPuyoIndex;
           const floatingSeedPuyo = {
             posX: x,
             posY: floatingY,
             color: this._virtualBoard[y][x]
           };
           this._floatingSeedPuyos.push(floatingSeedPuyo);
+          currentPuyoIndex++;
         }
       }
     }
