@@ -50,10 +50,24 @@ export class MountainArcade extends MountainBase {
         console.log("Found board with", possibleChains, "chains");
       }
 
+      // Verify initial board has no 4+ groups
+      let initialChainable = [];
+      this._chain.findConnectedPuyos(this._virtualBoard, (savePuyos) => {
+        initialChainable.push(savePuyos)
+      }, 4, false);
+      if (initialChainable.length > 0) {
+        console.error("ERROR: Initial board still has", initialChainable.length, "chainable groups of 4+ puyos!");
+        initialChainable.forEach((group, idx) => {
+          console.error(`  group ${idx}: size ${group.length}`);
+        });
+      } else {
+        console.log("Verified: No 4+ connected groups in initial board.");
+      }
+
       console.log("Initial board created with", possibleChains, "chains");
       console.log("Now building up to target:", this._currentTargetChainNum);
 
-      let attempts = 100;
+      let attempts = 10000;
       while (possibleChains < this._currentTargetChainNum) {
 
         console.log("attempts: ", attempts);
@@ -66,23 +80,37 @@ export class MountainArcade extends MountainBase {
         console.log("Current chains:", possibleChains, "Target:", this._currentTargetChainNum);
         // add some seed puyos, and if you can succeed to increment chain number, go to next, if not go back and do it again
         const originalVirtualBoard = JSON.parse(JSON.stringify(this.getVirtualBoard()));
+        const originalSeedPuyos = JSON.parse(JSON.stringify(this._seedPuyos));
         console.log("virtual board: ", originalVirtualBoard);
         console.log("Adding 6 more seed puyos...");
-        const virtualBoardToBeAdded = this.addMoreSeedPuyos(6, this.getVirtualBoard());
+        let virtualBoardToBeAdded = this.addMoreSeedPuyos(6, this.getVirtualBoard());
+
+        // Fix 4+ connected groups in the new board before checking improvement
+        const savedVirtualBoard = this._virtualBoard;
+        const savedSeedPuyos = this._seedPuyos;
+        this._virtualBoard = JSON.parse(JSON.stringify(virtualBoardToBeAdded));
+        this.updateSeedPuyosFromVirtualBoard();
+        this.changeExcessPuyo();
+        virtualBoardToBeAdded = this._virtualBoard; // get fixed board
+        // Restore original state for now
+        this._virtualBoard = savedVirtualBoard;
+        this._seedPuyos = savedSeedPuyos;
 
         this._chain.detectPossibleChain(virtualBoardToBeAdded, null);
-        console.log("After adding puyos, chains:", this._chain.maxVirtualChainCount);
+        console.log("After adding puyos and fixing 4+ groups, chains:", this._chain.maxVirtualChainCount);
         console.log("virtual board after: ", virtualBoardToBeAdded);
 
         if (this._chain.maxVirtualChainCount <= possibleChains) {
           console.log("No improvement, reverting...");
           // reset chain instance status relating to virtual board
           this._virtualBoard = originalVirtualBoard;
+          this._seedPuyos = originalSeedPuyos;
           continue;
         }
 
-        // Accept the improved board
+        // Accept the improved board (already fixed)
         this._virtualBoard = virtualBoardToBeAdded;
+        this.updateSeedPuyosFromVirtualBoard(); // ensure seed puyos match
         possibleChains = this._chain.maxVirtualChainCount;
         console.log("Improved to", possibleChains, "chains");
 
@@ -90,6 +118,20 @@ export class MountainArcade extends MountainBase {
 
       console.log("Reached target of", possibleChains, "chains");
       console.log("Virtual board final state - non-empty cells:");
+
+      // Final verification: ensure no 4+ connected groups
+      let finalChainable = [];
+      this._chain.findConnectedPuyos(this._virtualBoard, (savePuyos) => {
+        finalChainable.push(savePuyos)
+      }, 4, false);
+      if (finalChainable.length > 0) {
+        console.error("ERROR: Final board still has", finalChainable.length, "chainable groups of 4+ puyos!");
+        finalChainable.forEach((group, idx) => {
+          console.error(`  group ${idx}: size ${group.length}`);
+        });
+      } else {
+        console.log("Verified: No 4+ connected groups in final board.");
+      }
 
       // set floating puyos manually here only with virtual board
       console.log("Creating floating puyos from virtual board...");
@@ -157,6 +199,17 @@ export class MountainArcade extends MountainBase {
    * Simple conversion from virtual board to floating puyos
    * Positions floating puyos directly above their final positions
    */
+  private updateSeedPuyosFromVirtualBoard() {
+    this._seedPuyos = [];
+    for (let x = gameConfig.BOARD_LEFT_EDGE; x < gameConfig.BOARD_RIGHT_EDGE; x++) {
+      for (let y = gameConfig.BOARD_TOP_EDGE; y < gameConfig.BOARD_BOTTOM_EDGE; y++) {
+        if (this._virtualBoard[y][x] !== gameConfig.NO_COLOR) {
+          this._seedPuyos.push({ posX: x, posY: y, color: this._virtualBoard[y][x] });
+        }
+      }
+    }
+  }
+
   private createFloatingPuyosFromVirtualBoard() {
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
 

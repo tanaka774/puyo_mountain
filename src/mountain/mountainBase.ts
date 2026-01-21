@@ -132,6 +132,15 @@ export class MountainBase {
     if (chainablePuyos.length > 0) {
       this.subChangeExcessPuyo(chainablePuyos);
     }
+    // Sync seed puyos colors with modified virtual board
+    this.syncSeedPuyosFromVirtualBoard();
+  }
+
+  protected syncSeedPuyosFromVirtualBoard() {
+    // Update seed puyos colors to match virtual board
+    for (const puyo of this._seedPuyos) {
+      puyo.color = this._virtualBoard[puyo.posY][puyo.posX];
+    }
   }
 
   private subChangeExcessPuyo(chainablePuyos) {
