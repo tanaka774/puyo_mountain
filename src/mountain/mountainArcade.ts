@@ -185,7 +185,8 @@ export class MountainArcade extends MountainBase {
       const x = getRandomNum(boardWidth) + gameConfig.BOARD_LEFT_EDGE;
       const y = getLowestY(x)
 
-      if (y <= gameConfig.BOARD_TOP_EDGE + 0) {
+      const limitRow = (x === gameConfig.PUYO_BIRTH_POSX) ? gameConfig.BOARD_TOP_EDGE : gameConfig.BOARD_TOP_EDGE - 2;
+      if (y <= limitRow) {
         i--;
         continue;
       }
