@@ -8,7 +8,7 @@ import { Board } from "./board"
 import { Current } from "./current"
 import { Bounce } from "./bounce"
 import { Rotate } from "./rotate"
-import { Mountain } from "./mountain/mountain"
+import { Mountain, GameMode } from "./mountain/mountain"
 import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
 import lang from "../locales";
@@ -102,6 +102,7 @@ export class DrawWithCanvas {
     // this.drawNextBoard(this._current.versatilePuyo, 9);
     this.drawNextBoard();
     this.drawVBoard();
+    this.drawResetHint();
   }
 
   clear() {
@@ -801,6 +802,20 @@ export class DrawWithCanvas {
       // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
       // this.ctx.lineWidth = 1;
       // this.ctx.strokeText(`${text}`, drawX, drawY);
+    }
+  }
+
+  drawResetHint() {
+    if (this._mountain.currentMode === GameMode.ARCADE &&
+      this._mountain.checkDifficulty(Difficulty.BEGINNER)) {
+      const cs = gameConfig.CELL_SIZE;
+      // Draw at same height as line 180 (cs * 1)
+      const y = cs * 0.9;
+      const x = cs * 0.5; // Left side of the board
+
+      this.ctx.fillStyle = `rgba(255, 165, 0, 0.9)`;
+      this.ctx.font = "14px Comic Sans MS";
+      this.ctx.fillText(lang.resetHint, x, y);
     }
   }
 

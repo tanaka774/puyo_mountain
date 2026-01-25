@@ -63,6 +63,28 @@ export class Game {
     setNextState();
   }
 
+  resetLevel() {
+    // Clear the board and reset board state
+    this._board.initBoard();
+    // Reset current puyos
+    this._current.initPuyos();
+    // Reset chain detection state
+    this._chain.initChainCount();
+    this._chain.initVanishPuyos();
+    this._chain.initFloatingPuyos();
+    this._chain.initConnectedPuyos();
+    // Reset split
+    this._split.initSplittedPuyo();
+    // Reset lock wait count
+    this._board.initLockWaitCount();
+    // Reset quick turn
+    this._rotate.quickTurn.isPossible = false;
+    // Generate new seed puyos
+    this._mountain.resetSeedPuyosOnly();
+    // Transition to falling seed puyos state
+    stateHandle.setState(GameState.FALLING_SEED_PUYOS);
+  }
+
   gameLoop() {
     this.beforeStateCheck();
 
@@ -77,10 +99,7 @@ export class Game {
       case GameState.GENE_SEED_PUYOS:
         this._current.initPuyos();
         this._board.board = this._board.createBoard();
-        this._mountain.decideVariability();
-        this._mountain.generateSeedPuyos();
-        this._mountain.changeExcessPuyo();
-        this._mountain.setFloatingSeedPuyos();
+        this._mountain.prepareSeedPuyos();
         stateHandle.setState(GameState.FALLING_SEED_PUYOS);
         break;
       case GameState.FALLING_SEED_PUYOS:

@@ -18,6 +18,7 @@ export class Menu {
   private _menuContainer: HTMLDialogElement;
   private _titleElement: HTMLElement;
   private _selectedIndex: number;
+  private arcadeBeginner: () => void;
   private arcadeEasy: () => void;
   private arcadeNormal: () => void;
   private arcadeHard: () => void;
@@ -183,17 +184,21 @@ export class Menu {
         );
         break;
       case MenuSelect.ARCADE_SELECT_1:
+        geneButton(lang.beginnerMountain,
+          () => { this.arcadeBeginner(); this.closeModal(); },
+          lang.difficultyBeginner, 0
+        );
         geneButton(lang.easyMountain,
           () => { this.arcadeEasy(); this.closeModal(); },
-          lang.difficultyEasy, 0
+          lang.difficultyEasy, 1
         );
         geneButton(lang.normalMountain,
           () => { this.arcadeNormal(); this.closeModal(); },
-          lang.difficultyNormal, 1
+          lang.difficultyNormal, 2
         );
         geneButton(lang.hardMountain,
           () => { this.arcadeHard(); this.closeModal(); },
-          lang.difficultyHard, 2
+          lang.difficultyHard, 3
         );
         geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
@@ -245,6 +250,7 @@ export class Menu {
   }
 
   setCallback(
+    arcadeBeginner,
     arcadeEasy,
     arcadeNormal,
     arcadeHard,
@@ -261,6 +267,7 @@ export class Menu {
     backToMenuAfterGameClear,
     watchReplay,
   ) {
+    this.arcadeBeginner = arcadeBeginner;
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
     this.arcadeHard = arcadeHard;
