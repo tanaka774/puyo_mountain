@@ -73,6 +73,10 @@ function main() {
       replay.endReplay();
       menu.generateButtons(MenuSelect.START_MENU);
       resetStatus();
+    } else if (e.key === 'r' && stateHandle.duringGamePlayWithoutJustDrawing() &&
+               mountain.currentMode === GameMode.ARCADE &&
+               mountain.checkDifficulty(Difficulty.BEGINNER)) {
+      game.resetLevel();
     }
   });
 

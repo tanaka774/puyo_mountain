@@ -175,6 +175,10 @@ export class Mountain {
     this._mountainBase.setCallback(changeBackground);
   }
 
+  resetSeedPuyosOnly() {
+    this._mountainBase.resetSeedPuyosOnly();
+  }
+
   detectTargetChain() { }
   calculateTime() { }
   isLevelClear() { }

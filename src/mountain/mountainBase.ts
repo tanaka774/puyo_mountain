@@ -277,6 +277,11 @@ export class MountainBase {
     this._changeBackGround = changeBackground;
   }
 
+  resetSeedPuyosOnly() {
+    this.initInternalInfo();
+    this.prepareSeedPuyos();
+  }
+
   // unused??
   detectTargetChain() { }
   calculateTime() { }
