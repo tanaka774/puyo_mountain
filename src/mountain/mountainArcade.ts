@@ -83,7 +83,7 @@ export class MountainArcade extends MountainBase {
         const originalSeedPuyos = JSON.parse(JSON.stringify(this._seedPuyos));
         console.log("virtual board: ", originalVirtualBoard);
         console.log("Adding 6 more seed puyos...");
-        let virtualBoardToBeAdded = this.addMoreSeedPuyos(6, this.getVirtualBoard());
+        let virtualBoardToBeAdded = this.addMoreSeedPuyos((possibleChains < 7 ? 6 : 5), this.getVirtualBoard());
 
         // Fix 4+ connected groups in the new board before checking improvement
         const savedVirtualBoard = this._virtualBoard;
