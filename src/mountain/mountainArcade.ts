@@ -61,6 +61,8 @@ export class MountainArcade extends MountainBase {
 
 
       let attempts = 10000;
+      let patternIndex = 0;
+      const pattern = [2, 3];
       while (possibleChains < this._currentTargetChainNum) {
 
         console.log("attempts: ", attempts);
@@ -74,7 +76,12 @@ export class MountainArcade extends MountainBase {
         const originalVirtualBoard = JSON.parse(JSON.stringify(this.getVirtualBoard()));
         const originalSeedPuyos = JSON.parse(JSON.stringify(this._seedPuyos));
         console.log("virtual board: ", originalVirtualBoard);
-        let virtualBoardToBeAdded = this.addMoreSeedPuyos((possibleChains < 7 ? 6 : 5), this.getVirtualBoard());
+
+        const expectedIncrement = pattern[patternIndex % 2];
+        const remainingChains = this._currentTargetChainNum - possibleChains;
+        const requiredIncrease = Math.min(expectedIncrement, remainingChains);
+
+        let virtualBoardToBeAdded = this.addMoreSeedPuyos(requiredIncrease * (possibleChains < 7 ? 6 : 5), this.getVirtualBoard());
 
         // Fix 4+ connected groups in the new board before checking improvement
         const savedVirtualBoard = this._virtualBoard;
@@ -89,8 +96,7 @@ export class MountainArcade extends MountainBase {
 
         this._chain.detectPossibleChain(virtualBoardToBeAdded, null);
 
-        if (this._chain.maxVirtualChainCount <= possibleChains) {
-          console.log("No improvement, reverting...");
+        if (this._chain.maxVirtualChainCount < possibleChains + requiredIncrease) {
           // reset chain instance status relating to virtual board
           this._virtualBoard = originalVirtualBoard;
           this._seedPuyos = originalSeedPuyos;
@@ -101,7 +107,7 @@ export class MountainArcade extends MountainBase {
         this._virtualBoard = virtualBoardToBeAdded;
         this.updateSeedPuyosFromVirtualBoard(); // ensure seed puyos match
         possibleChains = this._chain.maxVirtualChainCount;
-        console.log("Improved to", possibleChains, "chains");
+        patternIndex++;
 
       }
 
