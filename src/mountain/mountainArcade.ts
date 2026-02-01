@@ -33,33 +33,6 @@ export class MountainArcade extends MountainBase {
       console.log("Target chain num:", this._currentTargetChainNum);
 
       let possibleChains = 0;
-
-      const firstPossibleChains = 2;
-      console.log("First target: create board with", firstPossibleChains, "chains");
-
-      while (possibleChains < firstPossibleChains) {
-        console.log("Attempting to create initial board...");
-        this.initInternalInfo();
-        this.decideVariabilitySimpler(firstPossibleChains * 2 + 4);
-        console.log("Seed puyo variability:", this._seedPuyoVariability);
-        this.generateSeedPuyos();
-        this.changeExcessPuyo();
-        this._chain.detectPossibleChain(this.getVirtualBoard(), null);
-        possibleChains = this._chain.maxVirtualChainCount;
-      }
-
-      // Verify initial board has no 4+ groups
-      let initialChainable = [];
-      this._chain.findConnectedPuyos(this._virtualBoard, (savePuyos) => {
-        initialChainable.push(savePuyos)
-      }, 4, false);
-      if (initialChainable.length > 0) {
-        initialChainable.forEach((group, idx) => {
-        });
-      } else {
-      }
-
-
       let attempts = 10000;
       let patternIndex = 0;
       const pattern = [2, 3];
