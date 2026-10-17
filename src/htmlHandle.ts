@@ -80,7 +80,7 @@ export class HtmlHandle {
 
     this._targetChainNumShow.textContent = this._mountain.getGameStatus();
     // this._chainNumShow.textContent = ` 最大${this._chain.maxVirtualChainCount}連鎖可能`
-    this._chainNumShow.textContent = `MAX: ${this._chain.maxVirtualChainCount}`
+    this._chainNumShow.textContent = `MAX:${this._chain.maxVirtualChainCount}`
     // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
     this._timerElement.innerText = this._timer.formattedTime;
   }

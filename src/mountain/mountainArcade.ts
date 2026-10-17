@@ -33,28 +33,28 @@ export class MountainArcade extends MountainBase {
       console.log("Target chain num:", this._currentTargetChainNum);
 
       let possibleChains = 0;
-      let attempts = 10000;
+      let attempts = 9000;
       let patternIndex = 0;
       const pattern = [2, 3];
       while (possibleChains < this._currentTargetChainNum) {
 
-        console.log("attempts: ", attempts);
+        // console.log("attempts: ", attempts);
         attempts--;
         if (attempts <= 0) {
           break;
         }
 
-        console.log("Current chains:", possibleChains, "Target:", this._currentTargetChainNum);
+        // console.log("Current chains:", possibleChains, "Target:", this._currentTargetChainNum);
         // add some seed puyos, and if you can succeed to increment chain number, go to next, if not go back and do it again
         const originalVirtualBoard = JSON.parse(JSON.stringify(this.getVirtualBoard()));
         const originalSeedPuyos = JSON.parse(JSON.stringify(this._seedPuyos));
-        console.log("virtual board: ", originalVirtualBoard);
+        // console.log("virtual board: ", originalVirtualBoard);
 
         const expectedIncrement = pattern[patternIndex % 2];
         const remainingChains = this._currentTargetChainNum - possibleChains;
         const requiredIncrease = Math.min(expectedIncrement, remainingChains);
 
-        let virtualBoardToBeAdded = this.addMoreSeedPuyos(requiredIncrease * (possibleChains < 7 ? 6 : 5), this.getVirtualBoard());
+        let virtualBoardToBeAdded = this.addMoreSeedPuyos(requiredIncrease * (possibleChains < 6 ? 6 : 5), this.getVirtualBoard(), possibleChains);
 
         // Fix 4+ connected groups in the new board before checking improvement
         const savedVirtualBoard = this._virtualBoard;
@@ -105,6 +105,9 @@ export class MountainArcade extends MountainBase {
     }
   }
 
+  /**
+   * unused but being simple is good
+   */
   private decideVariabilitySimpler(seedPuyoNum: number) {
     // set this._seedPuyoVariability with all number of seedPuyoNum
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
@@ -120,6 +123,7 @@ export class MountainArcade extends MountainBase {
       const index = getRandomNum(boardWidth);
       if (this._seedPuyoVariability[index] >= 11) {
         i--;
+
         continue;
       }
       this._seedPuyoVariability[index]++;
@@ -129,7 +133,7 @@ export class MountainArcade extends MountainBase {
   /**
   * return new board adding seed puyos
   */
-  private addMoreSeedPuyos(puyosToBeAdded: number, originalBoard: number[][]): number[][] {
+  private addMoreSeedPuyos(puyosToBeAdded: number, originalBoard: number[][], possibleChains: number): number[][] {
     const newBoard: number[][] = JSON.parse(JSON.stringify(originalBoard));
     const boardWidth = gameConfig.BOARD_RIGHT_EDGE - gameConfig.BOARD_LEFT_EDGE;
     const getRandomNum = (num: number) => Math.floor(Math.random() * num)
@@ -146,7 +150,9 @@ export class MountainArcade extends MountainBase {
       const x = getRandomNum(boardWidth) + gameConfig.BOARD_LEFT_EDGE;
       const y = getLowestY(x)
 
-      const limitRow = (x === gameConfig.PUYO_BIRTH_POSX) ? gameConfig.BOARD_TOP_EDGE : gameConfig.BOARD_TOP_EDGE - 2;
+      const limitRow = (possibleChains < 6) ? gameConfig.BOARD_TOP_EDGE + 3 :
+        ((possibleChains < 9) ? gameConfig.BOARD_TOP_EDGE + 1
+          : ((x === gameConfig.PUYO_BIRTH_POSX) ? gameConfig.BOARD_TOP_EDGE : gameConfig.BOARD_TOP_EDGE - 2));
       if (y <= limitRow) {
         i--;
         continue;
