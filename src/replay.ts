@@ -60,13 +60,13 @@ export class Replay {
     const styles = `
       @keyframes pulse {
         0% {
-          box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.4);
+          box-shadow: 0 0 0 0 rgba(217, 72, 43, 0.4);
         }
         70% {
-          box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+          box-shadow: 0 0 0 10px rgba(217, 72, 43, 0);
         }
         100% {
-          box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+          box-shadow: 0 0 0 0 rgba(217, 72, 43, 0);
         }
       }
 
@@ -74,10 +74,11 @@ export class Replay {
         -webkit-appearance: none;
         appearance: none;
         width: 80%;
-        height: 10px;
-        background: #d3d3d3;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(244, 234, 216, 0.25);
         outline: none;
-        opacity: 0.7;
+        opacity: 0.9;
         -webkit-transition: .2s;
         transition: opacity .2s;
         position: fixed;
@@ -91,10 +92,10 @@ export class Replay {
         appearance: none;
         width: 28px;
         height: 28px;
-        background: #ff8c00;
+        background: #d9482b;
         cursor: pointer;
         border-radius: 50%;
-        border: 2px solid #fff;
+        border: 3px solid #f4ead8;
         box-shadow: 0 0 5px rgba(0,0,0,0.5);
         animation: pulse 2s infinite;
       }
@@ -102,10 +103,10 @@ export class Replay {
       #replay-slider::-moz-range-thumb {
         width: 28px;
         height: 28px;
-        background: #ff8c00;
+        background: #d9482b;
         cursor: pointer;
         border-radius: 50%;
-        border: 2px solid #fff;
+        border: 3px solid #f4ead8;
         box-shadow: 0 0 5px rgba(0,0,0,0.5);
       }
 
@@ -115,8 +116,9 @@ export class Replay {
         left: 10%;
         width: 80%;
         text-align: center;
-        color: white;
+        color: #f4ead8;
         font-size: 16px;
+        text-shadow: 0 1px 0 #0a0e1e;
         z-index: 1000;
       }
     `;
@@ -242,8 +244,8 @@ export class Replay {
     this._draw.drawBoardBackground();
     this._draw.drawNextBoard(nextPuyo, doubleNextPuyo);
     this._chain.findConnectedPuyos(boardState, () => { }, 2, true);
-    this._draw.drawBoardPuyos(boardState);
     this._draw.drawConnecting();
+    this._draw.drawBoardPuyos(boardState);
     this.updateSliderTrack();
   }
 
@@ -322,8 +324,8 @@ export class Replay {
     const slider = this._replaySlider;
     if (!slider) return;
     const progress = (parseInt(slider.value) / parseInt(slider.max)) * 100;
-    const color = '#ff8c00'; // DarkOrange
-    const trackColor = '#d3d3d3'; // lightgray
+    const color = '#d9482b'; // vermilion
+    const trackColor = 'rgba(244, 234, 216, 0.25)';
     slider.style.background = `linear-gradient(to right, ${color} ${progress}%, ${trackColor} ${progress}%)`;
   }
 }

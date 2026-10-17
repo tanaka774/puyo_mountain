@@ -13,6 +13,14 @@ import { FontHandle } from "./fontHandle"
 import { Difficulty } from "./mountain/mountainArcade"
 import lang from "../locales";
 
+// palette shared with styles.css
+const INK_PANEL = 'rgba(10, 14, 30, 0.86)';
+const INK_PANEL_DEEP = 'rgba(6, 9, 20, 0.92)';
+const BOARD = 'rgba(10, 14, 30, 0.93)';
+const KEYLINE = 'rgba(244, 234, 216, 0.22)';
+const PAPER = 'rgba(244, 234, 216, 1)';
+const VERMILION = 'rgba(217, 72, 43, 1)';
+const FONT = 'custom, sans-serif';
 
 export class DrawWithCanvas {
   // TODO: add _
@@ -46,10 +54,6 @@ export class DrawWithCanvas {
     this.nextPuyoCtx = this.nextPuyoCanvas.getContext('2d');
     this.VPuyoCanvas = document.getElementById('VPuyoCanvas') as HTMLCanvasElement;
     this.VPuyoCtx = this.VPuyoCanvas.getContext('2d');
-
-    // call just once
-    this.drawWholeBackground("rgb(102, 0, 204)");
-    // this.drawUIInfo();
   }
 
   draw() {
@@ -60,10 +64,10 @@ export class DrawWithCanvas {
     // in pause state, don't show current board
     if (stateHandle.checkCurrentState(GameState.PAUSING)) { return; }
 
-    this.drawBoardPuyos();
-
-    // draw first
+    // glue goes underneath so puyo highlights stay on top
     this.drawConnecting();
+
+    this.drawBoardPuyos();
 
     if (this._mountain.floatingSeedPuyos.length > 0) {
       for (const floatingSeedPuyo of this._mountain.floatingSeedPuyos) {
@@ -110,91 +114,49 @@ export class DrawWithCanvas {
     this.VPuyoCtx.clearRect(0, 0, this.VPuyoCanvas.width, this.VPuyoCanvas.height);
   }
 
-  drawWholeBackground(upperColor: string) {
-    const wholeCanvas = document.getElementById("canvasBackground") as HTMLCanvasElement;
-    const wholeCtx = wholeCanvas.getContext("2d");
-    wholeCanvas.width = window.innerWidth;
-    wholeCanvas.height = window.innerHeight;
-
-    const ww = wholeCanvas.width;
-    const wh = wholeCanvas.height;
-    const drawMountain = (cw, ch, color: string) => {
-      wholeCtx.beginPath();
-      wholeCtx.moveTo(cw, ch);
-      cw = cw + ww / 10; ch = ch - wh / 15; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch - wh / 10; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 10; ch = ch - wh / 6; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch - wh / 25; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 20; ch = ch + wh / 20; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch + wh / 16; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch + wh / 6; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch + wh / 16; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch + wh / 20; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 20; ch = ch + wh / 32; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch - wh / 25; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch - wh / 8; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 16; ch = ch - wh / 20; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 20; ch = ch - wh / 40; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 20; ch = ch + wh / 32; wholeCtx.lineTo(cw, ch);
-      cw = cw + ww / 20; ch = ch + wh / 20; wholeCtx.lineTo(cw, ch);
-      wholeCtx.lineTo(ww, wh / 2);
-      wholeCtx.lineTo(ww, wh);
-      wholeCtx.lineTo(0, wh);
-      wholeCtx.fillStyle = color;
-      wholeCtx.fill();
-      wholeCtx.closePath();
-    }
-    const createGradient = (x0, y0, x1, y1, upColor, downColor) => {
-      const gradient = wholeCtx.createLinearGradient(0, 0, 0, wholeCanvas.height);
-      gradient.addColorStop(0, upColor);
-      gradient.addColorStop(1, downColor);
-      wholeCtx.fillStyle = gradient;
-      wholeCtx.fill();
-    }
-
-    // TODO: more investigating for better background, want to mix green on mountain
-    // const upperColor = "rgb(102, 0, 204)";
-    const color1 = 'black';
-    const color2 = 'rgb(69, 69, 69)';
-    const color3 = 'gray';
-    wholeCtx.fillStyle = upperColor;
-    wholeCtx.fillRect(0, 0, ww, wh);
-    // let cw = 0; // current width
-    // let ch = wh * 3 / 5; // current height
-    drawMountain(0, wh * 4.5 / 10, color3);
-    createGradient(0, 0, 0, wholeCanvas.height, upperColor, color3);
-    drawMountain(0, wh * 5.5 / 10, color2);
-    createGradient(0, 0, 0, wholeCanvas.height, upperColor, color2);
-    drawMountain(0, wh * 6 / 10, color1);
-    createGradient(0, 0, 0, wholeCanvas.height, upperColor, color1);
-
-  }
-
   drawBoardBackground() {
-    // TODO: use board size
     const cs = gameConfig.CELL_SIZE;
-    const alpha = 0.7;
-    this.ctx.fillStyle = `rgba(160,160,160,${alpha})`;
-    this.ctx.fillRect(0, 0, this._mainCanvas.width, cs * 1);
-    this.ctx.fillStyle = `rgba(200,200,200,${alpha})`;
-    this.ctx.fillRect(0, cs * 1, this._mainCanvas.width, cs * 1);
-    this.ctx.fillStyle = `rgba(240,240,240,${alpha})`;
-    this.ctx.fillRect(0, cs * 2, this._mainCanvas.width, cs * 12);
+    const w = this._mainCanvas.width;
+    const h = this._mainCanvas.height;
+    const ghost = cs * gameConfig.BOARD_GHOST_ZONE;
 
-    // draw "x" on birth pos
+    this.ctx.fillStyle = INK_PANEL_DEEP;
+    this.ctx.fillRect(0, 0, w, ghost);
+    this.ctx.fillStyle = BOARD;
+    this.ctx.fillRect(0, ghost, w, h - ghost);
+
+    // dotted grid on cell corners
+    this.ctx.fillStyle = 'rgba(244, 234, 216, 0.13)';
+    for (let y = ghost + cs; y < h; y += cs) {
+      for (let x = cs; x < w; x += cs) {
+        this.ctx.fillRect(x - 1, y - 1, 2, 2);
+      }
+    }
+
+    // ceiling line between ghost zone and board
+    this.ctx.strokeStyle = 'rgba(244, 234, 216, 0.18)';
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([4, 4]);
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, ghost + 0.5);
+    this.ctx.lineTo(w, ghost + 0.5);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+
+    // "x" on birth pos
     const birthX = (gameConfig.PUYO_BIRTH_POSX - 1) * cs;
     const birthY = (gameConfig.PUYO_BIRTH_POSY - 2) * cs;
-    const modifier = cs / 4;
-    this.ctx.strokeStyle = `rgba(255, 82, 93, 0.4)`;
-    this.ctx.lineWidth = 4;
+    const modifier = cs * 0.3;
+    this.ctx.strokeStyle = this.addAlpha(VERMILION, 0.55);
+    this.ctx.lineWidth = 3;
+    this.ctx.lineCap = 'round';
     this.ctx.beginPath();
     this.ctx.moveTo(birthX + modifier, birthY + modifier);
     this.ctx.lineTo(birthX + cs - modifier, birthY + cs - modifier);
-    this.ctx.stroke();
-    this.ctx.beginPath();
     this.ctx.moveTo(birthX + cs - modifier, birthY + modifier);
     this.ctx.lineTo(birthX + modifier, birthY + cs - modifier);
     this.ctx.stroke();
+    this.ctx.lineCap = 'butt';
   }
 
   drawBoardPuyos(board = this._board.board) {
@@ -214,10 +176,9 @@ export class DrawWithCanvas {
   drawNextBoard(nextPuyo: baseManiPuyo = null, doubleNextPuyo: baseManiPuyo = null) {
     this.nextPuyoCtx.clearRect(0, 0, this.nextPuyoCanvas.width, this.nextPuyoCanvas.height);
 
-    const backColor = 'rgba(200,200,200,0.7)';
     const cs = gameConfig.CELL_SIZE;
-    this.drawRoundedRect(this.nextPuyoCtx, 0, cs * 2, cs * 2, cs * 3, cs / 2, backColor);
-    this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
+    this.drawRoundedRect(this.nextPuyoCtx, 0.5, cs * 2 + 0.5, cs * 2 - 1, cs * 3 - 1, 6, INK_PANEL, KEYLINE);
+    this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5 + 0.5, cs * 4 + 0.5, cs * 2 - 1, cs * 3 - 1, 6, INK_PANEL, KEYLINE);
 
     const nextFixX = 0.5;
     const nextFixY = 2.5;
@@ -256,25 +217,17 @@ export class DrawWithCanvas {
 
   drawVBoard() {
     const cs = gameConfig.CELL_SIZE;
+    const ctx = this.VPuyoCtx;
 
     const startY = 0.5;
-    this.drawRoundedRect(this.VPuyoCtx, 0, cs * (startY + 0.2), cs * 2, cs * 3, cs / 2, 'rgba(50,50,50,0.7)');
+    this.drawRoundedRect(ctx, 0.5, cs * (startY + 0.2) + 0.5, cs * 2 - 1, cs * 3 - 1, 6,
+      this._current.versatilePuyo ? INK_PANEL : INK_PANEL_DEEP, KEYLINE);
     if (this._current.versatilePuyo) {
-      this.drawWaitingPuyo(this.VPuyoCtx, this._current.versatilePuyo, 0.5, 1);
+      this.drawWaitingPuyo(ctx, this._current.versatilePuyo, 0.5, 1);
     }
-    this.VPuyoCtx.fillStyle = `rgba(151, 255, 151, 0.8)`;
-    this.VPuyoCtx.font = "bold 16px Comic Sans MS";
-    this.VPuyoCtx.fillText(lang.vPuyo, cs * 0.4, cs * startY);
-    // this.nextPuyoCtx.strokeStyle = 'rgba(230,230,230,0.8)';
-    // this.nextPuyoCtx.lineWidth = 0.001;
-    // this.nextPuyoCtx.strokeText('Vぷよ', cs * 0.3, cs * 8.3);
-
-    this.VPuyoCtx.font = "14px Comic Sans MS";
-    this.VPuyoCtx.fillText(lang.useVPuyo, cs * 2.3, cs * (startY + 0.5));
-    this.VPuyoCtx.fillText(lang.changeVPuyoColor, cs * 2.3, cs * (startY + 1.2));
-    this.VPuyoCtx.fillText(lang.rotate, cs * 2.3, cs * (startY + 1.9));
-    this.VPuyoCtx.fillText(lang.move, cs * 2.3, cs * (startY + 2.6));
-    this.VPuyoCtx.fillText(lang.pause, cs * 2.3, cs * (startY + 3.3));
+    ctx.fillStyle = PAPER;
+    ctx.font = `16px ${FONT}`;
+    ctx.fillText(lang.vPuyo, cs * 0.3, cs * startY);
   }
 
   private drawWaitingPuyo(ctx: CanvasRenderingContext2D, puyo: baseManiPuyo, x, y) {
@@ -289,7 +242,7 @@ export class DrawWithCanvas {
   //   this.drawRoundedRect(this.nextPuyoCtx, cs * 1.5, cs * 4, cs * 2, cs * 3, cs / 2, backColor);
   // }
 
-  private drawRoundedRect = (ctx, x, y, width, height, radius, color: string) => {
+  private drawRoundedRect = (ctx, x, y, width, height, radius, color: string, strokeColor: string = null) => {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.arcTo(x + width, y, x + width, y + height, radius);
@@ -297,9 +250,13 @@ export class DrawWithCanvas {
     ctx.arcTo(x, y + height, x, y, radius);
     ctx.arcTo(x, y, x + width, y, radius);
     ctx.closePath();
-    // ctx.stroke();
     ctx.fillStyle = color;
     ctx.fill();
+    if (strokeColor) {
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
   }
 
 
@@ -370,7 +327,7 @@ export class DrawWithCanvas {
 
     // if in ghost zone, add transparency
     if (y <= gameConfig.BOARD_TOP_EDGE - 0.5 && ctx === this.ctx) {
-      color = this.addAlpha(color, 0.5);
+      color = this.addAlpha(color, 0.6);
     }
 
     if (this._bounce.willBounce &&
@@ -542,9 +499,18 @@ export class DrawWithCanvas {
       const drawPosX = (elem[0] - gameConfig.BOARD_LEFT_EDGE) * gameConfig.CELL_SIZE;
       const drawPosY = (elem[1] - gameConfig.BOARD_TOP_EDGE + gameConfig.BOARD_GHOST_ZONE) * gameConfig.CELL_SIZE;
 
-      this.ctx.strokeStyle = "gray";
+      // corner brackets around the cell
+      const cs = gameConfig.CELL_SIZE;
+      const l = cs * 0.18;
+      const x0 = drawPosX + 4, y0 = drawPosY + 4, x1 = drawPosX + cs - 4, y1 = drawPosY + cs - 4;
+      this.ctx.strokeStyle = 'rgba(244, 234, 216, 0.6)';
       this.ctx.lineWidth = 2;
-      this.ctx.strokeRect(drawPosX, drawPosY, gameConfig.CELL_SIZE, gameConfig.CELL_SIZE);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x0, y0 + l); this.ctx.lineTo(x0, y0); this.ctx.lineTo(x0 + l, y0);
+      this.ctx.moveTo(x1 - l, y0); this.ctx.lineTo(x1, y0); this.ctx.lineTo(x1, y0 + l);
+      this.ctx.moveTo(x1, y1 - l); this.ctx.lineTo(x1, y1); this.ctx.lineTo(x1 - l, y1);
+      this.ctx.moveTo(x0 + l, y1); this.ctx.lineTo(x0, y1); this.ctx.lineTo(x0, y1 - l);
+      this.ctx.stroke();
     })
   }
 
@@ -635,15 +601,19 @@ export class DrawWithCanvas {
     this.ctx.fill();
   }
 
-  drawEllipse(ctx: CanvasRenderingContext2D, X, Y, radiusX, radiusY, color, willStorke = true) {
-    // this.draw the ellipse
+  drawEllipse(ctx: CanvasRenderingContext2D, X, Y, radiusX, radiusY, color, withShine = true) {
     ctx.beginPath();
     ctx.ellipse(X, Y, radiusX, radiusY, 0, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(150,150,150,0.5)';
-    ctx.lineWidth = 2;
-    (willStorke) && ctx.stroke();
+    if (!withShine) return;
+
+    // gloss on upper left, faded along with the body color
+    const alpha = Number(color.match(/([\d.]+)\s*\)\s*$/)?.[1] ?? 1);
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.26 * alpha})`;
+    ctx.beginPath();
+    ctx.ellipse(X - radiusX * 0.36, Y - radiusY * 0.44, radiusX * 0.26, radiusY * 0.14, -0.55, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   drawEyes(X, Y) {
@@ -746,62 +716,45 @@ export class DrawWithCanvas {
       : ((meanX + 1 >= gameConfig.BOARD_RIGHT_EDGE - 1)
         ? gameConfig.BOARD_RIGHT_EDGE - 2
         : meanX);
-    const drawX = posX * cs;
+    const drawX = (posX - gameConfig.BOARD_LEFT_EDGE + 0.5) * cs;
 
-    // TODO: use custom font of ultimate pop-style one
     const alpha = 1 - this._chain.chainVanishWaitCount / gameConfig.VANISH_WAIT_TIME;
-    const chainRate = Math.min(chainCount / this._mountain.currentTargetChainNum, 1);
-    // TODO: if you cant use custom font, try another with google font api (with link)
-    this._fontHandle.fontFace.load()
-      .then(() => {
-        this.ctx.font = "bold 40px custom";
-      })
-      .catch((err) => {
-        this.ctx.font = "bold 40px Comic Sans MS";
-        console.error(err)
-      })
-    // this.ctx.font = "bold italic 40px Comic Sans MS";
-    this.ctx.fillStyle = `rgba(${50 + 200 * chainRate},${250 - 90 * chainRate},${40 + 140 * chainRate},${alpha})`;
-    this.ctx.fillText(`${chainCount}`, drawX, drawY);
-    this.ctx.strokeStyle = `rgba(50, 50, 50, ${alpha})`;
-    this.ctx.lineWidth = 2;
+    const reached = chainCount >= this._mountain.currentTargetChainNum;
+    // pop up a little while fading in
+    const size = Math.round(34 + 10 * Math.min(1, alpha * 1.5));
+    this.ctx.save();
+    this.ctx.font = `${size}px ${FONT}`;
+    this.ctx.textAlign = 'center';
+    this.ctx.lineJoin = 'round';
+    this.ctx.strokeStyle = `rgba(6, 9, 20, ${alpha})`;
+    this.ctx.lineWidth = 6;
     this.ctx.strokeText(`${chainCount}`, drawX, drawY);
+    this.ctx.fillStyle = reached ? `rgba(255, 196, 77, ${alpha})` : `rgba(244, 234, 216, ${alpha})`;
+    this.ctx.fillText(`${chainCount}`, drawX, drawY);
+    this.ctx.restore();
   }
 
   showCurrentChainCount() {
-    // TODO: use custom font of ultimate pop-style one
     const chainCount = this._mountain.currentTargetChainNum;
-    const drawY = (gameConfig.BOARD_TOP_EDGE + 1) * gameConfig.CELL_SIZE;
-    const diffX = (chainCount >= 10) ? -1.0 : -0.5;
-    const drawX = (gameConfig.BOARD_LEFT_EDGE + diffX) * gameConfig.CELL_SIZE;
+    const cs = gameConfig.CELL_SIZE;
+    const centerX = this._mainCanvas.width / 2;
+    const drawY = (gameConfig.BOARD_TOP_EDGE + 1) * cs;
+    const lines = (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD))
+      ? [`${chainCount} ${lang.chain}`, lang.chainAllClearStr]
+      : [lang.chainMust(chainCount)];
 
-    this._fontHandle.fontFace.load()
-      .then(() => {
-        this.ctx.font = "bold 26px custom";
-      })
-      .catch((err) => {
-        this.ctx.font = "bold 26px Arial";
-        console.error(err)
-      })
-
-    if (this._mountain.isLastPhase() && this._mountain.checkDifficulty(Difficulty.HARD)) {
-      const text1 = `${chainCount} ${lang.chain}`;
-      const text2 = lang.chainAllClearStr;
-      this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
-      this.ctx.fillText(`${text1}`, drawX + 1 * gameConfig.CELL_SIZE, drawY);
-      this.ctx.fillText(`${text2}`, drawX, drawY + 1 * gameConfig.CELL_SIZE);
-      // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
-      // this.ctx.lineWidth = 1;
-      // this.ctx.strokeText(`${text}`, drawX, drawY);
-    } else {
-      const text = lang.chainMust(chainCount);
-      // const text = `12 れんさすべし`; //for debug
-      this.ctx.fillStyle = `rgba(101, 67, 33, 0.8)`;
-      this.ctx.fillText(`${text}`, drawX, drawY);
-      // this.ctx.strokeStyle = `rgba(50, 50, 50, 0.8)`;
-      // this.ctx.lineWidth = 1;
-      // this.ctx.strokeText(`${text}`, drawX, drawY);
-    }
+    this.ctx.save();
+    this.ctx.font = `26px ${FONT}`;
+    this.ctx.textAlign = 'center';
+    this.ctx.lineJoin = 'round';
+    this.ctx.lineWidth = 5;
+    this.ctx.strokeStyle = 'rgba(6, 9, 20, 0.85)';
+    this.ctx.fillStyle = PAPER;
+    lines.forEach((text, i) => {
+      this.ctx.strokeText(text, centerX, drawY + i * cs);
+      this.ctx.fillText(text, centerX, drawY + i * cs);
+    });
+    this.ctx.restore();
   }
 
   get mainCanvas() { return this._mainCanvas; }

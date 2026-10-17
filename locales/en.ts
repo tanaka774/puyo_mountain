@@ -71,6 +71,8 @@ export const en = {
   rotate: "Z,X: Rotate",
   move: "←↑→↓: Move",
   pause: "P: Pause",
+  pauseAndControls: "Pause / Controls",
+  controls: "Controls",
   vPuyo: "V Puyo",
   chain: "Chain",
   chainAllClearStr: "and All Clear!",

@@ -14,7 +14,6 @@ export enum Difficulty {
 export class MountainArcade extends MountainBase {
   private _resultGrade: string;
   private _currentDifficulty: Difficulty;
-  private _backgroundColors: string[];
 
   constructor(
     _board: Board,
@@ -22,8 +21,6 @@ export class MountainArcade extends MountainBase {
     _chain: Chain,
   ) {
     super(_board, _chain);
-    // same length as chainnums
-    this._backgroundColors = ["rgb(44,125,76)", "rgb(188,135,62)", "rgb(84,36,28)", "rgb(89,190,200)"]
   }
 
   protected decideSeedPuyoNum(): number {
@@ -56,10 +53,13 @@ export class MountainArcade extends MountainBase {
       // go to next phase
       this._phase++;
       this._currentTargetChainIndex = 0;
-      this._changeBackGround(this._backgroundColors[this._phase - 2]);
     } else {
       this._currentTargetChainIndex++;
     }
+    // reaching the last phase means standing just below the summit
+    const phaseNum = this._targetChainNums.length;
+    const levelRate = this._currentTargetChainIndex / this._targetChainNums[this._phase - 1].length;
+    this._changeClimb(0.9 * (this._phase - 1 + levelRate) / (phaseNum - 1));
 
     this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
   }
@@ -97,7 +97,7 @@ export class MountainArcade extends MountainBase {
       ((this.checkDifficulty(Difficulty.EASY) || (this.checkDifficulty(Difficulty.NORMAL))) && this.isLastPhase())
     ) {
       setStateGameClear();
-      this._changeBackGround(this._backgroundColors[this._backgroundColors.length - 1]);
+      this._changeClimb(1);
     } else if (!this.isLastPhase()) {
       setStateGeneSeed();
       this.addValidVanishPuyoNum(this.currentTargetChainNum * 4);

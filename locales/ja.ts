@@ -71,6 +71,8 @@ export const ja = {
   rotate: "Z,X: 回転",
   move: "←↑→↓: 移動",
   pause: "P: ポーズ",
+  pauseAndControls: "ポーズ・操作説明",
+  controls: "操作",
   vPuyo: "Vぷよ",
   chain: "れんさ",
   chainAllClearStr: "ぜんけしすべし",

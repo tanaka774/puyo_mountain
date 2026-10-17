@@ -20,28 +20,7 @@ export function addTwitterShareButton(parent: HTMLElement, shareText: string) {
   twitterButton.setAttribute('target', '_blank');
   twitterButton.textContent = lang.shareOnX;
 
-  Object.assign(twitterButton.style, {
-    display: 'inline-block',
-    padding: '5px 10px',
-    marginLeft: '10px',
-    marginRight: '10px',
-    backgroundColor: '#1DA1F2',
-    color: 'white',
-    borderRadius: '5px',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    fontSize: '16px',
-    textAlign: 'center',
-    transition: 'background-color 0.3s'
-  });
-
-  twitterButton.addEventListener('mouseover', () => {
-    twitterButton.style.backgroundColor = '#0c85d0';
-  });
-
-  twitterButton.addEventListener('mouseout', () => {
-    twitterButton.style.backgroundColor = '#1DA1F2';
-  });
+  twitterButton.classList.add('share-button');
 
   parent.appendChild(twitterButton);
 }

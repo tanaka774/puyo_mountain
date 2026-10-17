@@ -104,6 +104,7 @@ export function showCustomConfig(mountain: Mountain) {
     menu.close();
     const title = document.getElementById('title');
     title.style.display = 'none';
+    document.body.dataset.screen = 'game';
   })
 
   configDialog.appendChild(document.createElement('div'));

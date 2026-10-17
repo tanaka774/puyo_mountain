@@ -24,14 +24,20 @@
     <div class="side-container" id="sideContainer">
       <canvas id="nextPuyoCanvas"></canvas>
       <canvas id="VPuyoCanvas"></canvas>
-      <div class="game-info" id="chainCount"></div>
-      <div class="game-info" id="chainPuyoNum"></div>
-      <div class="game-info" id="timer"></div>
+      <div class="stats">
+        <div class="game-info" id="chainCount"></div>
+        <div class="game-info" id="chainPuyoNum"></div>
+        <div class="game-info" id="timer"></div>
+      </div>
+      <div class="key-hint" id="keyHint"><kbd>P</kbd><span id="keyHintText"></span></div>
     </div>
 
   </div>
 
-  <div class="title" id="title">ぷよマウンテン</div>
+  <div class="title" id="title">
+    <h1 class="title-main">ぷよマウンテン<span class="title-seal">山</span></h1>
+    <p class="title-sub">PUYO MOUNTAIN</p>
+  </div>
   <dialog class="menu-container" id="menu"></dialog>
 
   <canvas class="canvas-background" id="canvasBackground"></canvas>

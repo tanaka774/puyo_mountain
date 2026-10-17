@@ -129,6 +129,7 @@ export class Menu {
   closeModal() {
     this._menuContainer.close();
     this._titleElement.style.display = 'none';
+    document.body.dataset.screen = 'game';
   }
 
   generateButtons(menuSelect: MenuSelect) {
@@ -136,12 +137,15 @@ export class Menu {
     this.deleteButtons();
     if (!this._menuContainer.open) this._menuContainer.showModal();
     this._titleElement.style.display = '';
+    // the board is hidden behind title menus but stays visible behind pause/result menus
+    const isTitleMenu = menuSelect === MenuSelect.START_MENU ||
+      menuSelect === MenuSelect.ARCADE_SELECT_1 ||
+      menuSelect === MenuSelect.ENDURANCE_SELECT_1;
+    document.body.dataset.screen = isTitleMenu ? 'title' : 'game';
 
     const geneButton = (showText: string, callback: () => void, description: string = undefined, index: number = -1) => {
       const tempButton = document.createElement('button');
       tempButton.innerText = showText;
-      // TODO: why css doesn't apply to these button???
-      tempButton.style.fontFamily = this._fontHandle.fontName;
       tempButton.addEventListener('click', callback);
       tempButton.addEventListener('mouseover', this.handleMouseOver.bind(this));
       tempButton.addEventListener('click', this.handleMouseClick.bind(this));
@@ -151,9 +155,7 @@ export class Menu {
       if (description) {
         const descDiv = document.createElement('div');
         descDiv.style.display = 'none';
-        descDiv.style.textAlign = 'center';
-        descDiv.style.color = 'white';
-        descDiv.style.fontSize = '16px';
+        descDiv.classList.add('menu-desc');
         descDiv.innerHTML = `${description}`;
         // descDiv.style.marginTop = '3px';
         // descDiv.style.width = 'min-content'
@@ -219,6 +221,7 @@ export class Menu {
         geneButton(lang.backToGame, () => { this.backToGameInPause(); this.closeModal(); });
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); }); // this is not afterGameOver though
         geneButton(lang.backToMenu, () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
+        this.appendControlsList();
         break;
       case MenuSelect.GAME_OVER:
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); });
@@ -242,6 +245,32 @@ export class Menu {
 
     const descDivFirst = document.getElementById(`desc0`) as HTMLElement;
     if (descDivFirst) descDivFirst.style.display = '';
+  }
+
+  // locale strings look like "Z,X: Rotate"; show the keys as keycaps
+  private appendControlsList() {
+    const list = document.createElement('div');
+    list.classList.add('controls-list');
+    const title = document.createElement('div');
+    title.classList.add('controls-title');
+    title.textContent = lang.controls;
+    list.appendChild(title);
+    for (const line of [lang.move, lang.rotate, lang.useVPuyo, lang.changeVPuyoColor, lang.pause]) {
+      const sep = line.indexOf(':');
+      const row = document.createElement('div');
+      row.classList.add('controls-row');
+      const keys = document.createElement('span');
+      line.slice(0, sep).split(',').forEach(key => {
+        const kbd = document.createElement('kbd');
+        kbd.textContent = key.trim();
+        keys.appendChild(kbd);
+      });
+      const desc = document.createElement('span');
+      desc.textContent = line.slice(sep + 1).trim();
+      row.append(keys, desc);
+      list.appendChild(row);
+    }
+    this._menuContainer.appendChild(list);
   }
 
   setCallback(

@@ -15,7 +15,6 @@ export class MountainEndurance extends MountainBase {
   private _enduranceChainVariablity: number[];
   private _enduranceMinTargetChainNum: number;
   private _enduranceMaxTargetChainNum: number;
-  private _backgroundColors: number[]; // [r,g,b]
   private _currentEnduranceMode: EnduranceMode;
 
   constructor(
@@ -29,7 +28,6 @@ export class MountainEndurance extends MountainBase {
     // this._enduranceMinTargetChainNum = gameConfig.ENDURANCE_MIN_ONCE;
     // this._enduranceMaxTargetChainNum = gameConfig.ENDURANCE_MAX_ONCE;
     // this.initEnduranceChainNums();
-    this._backgroundColors = [200, 100, 200];
   }
 
   initEnduranceChainNums() {
@@ -110,8 +108,7 @@ export class MountainEndurance extends MountainBase {
 
   goNextLevel(setStateGeneSeed: () => void, setStateGameClear: () => void): void {
     this._totalChainNum += this._currentTargetChainNum;
-    this.decideColor();
-    this._changeBackGround(`rgb(${this._backgroundColors[0]}, ${this._backgroundColors[1]}, ${this._backgroundColors[2]})`);
+    this._changeClimb(this._totalChainNum / this._enduranceTotalTargetChainNum);
     if (this._totalChainNum >= this._enduranceTotalTargetChainNum &&
       this._enduranceChainVariablity.every(n => n === 0) // need to verify
     ) {
@@ -121,24 +118,6 @@ export class MountainEndurance extends MountainBase {
       this.addValidVanishPuyoNum(this.currentTargetChainNum * 4);
       this.nextTargetChain();
       this._chain.initConnectedPuyos();
-    }
-  }
-
-  private decideColor() {
-    // (200,100,200) -> (100,100,200) -> (100,200,200) -> (100,200,100) -> (200,200,100)
-    const rate = this._totalChainNum / this._enduranceTotalTargetChainNum;
-    if (rate <= 1 / 4) {
-      const red = 200 - 100 * (rate / (1 / 4));
-      this._backgroundColors = [red, 100, 200];
-    } else if (rate <= 2 / 4) {
-      const green = 100 + 100 * ((rate - 1 / 4) / (1 / 4));
-      this._backgroundColors = [100, green, 200];
-    } else if (rate <= 3 / 4) {
-      const blue = 200 - 100 * ((rate - 2 / 4) / (1 / 4));
-      this._backgroundColors = [100, 200, blue];
-    } else {
-      const red = 100 + 100 * ((rate - 3 / 4) / (1 / 4));
-      this._backgroundColors = [red, 200, 100];
     }
   }
 

@@ -27,7 +27,7 @@ export class MountainBase {
   protected _totalChainNum: number;
   protected _unnecessaryChainNum: number;
   protected _everyPhaseEnds: boolean;
-  protected _changeBackGround: (color: string) => void;
+  protected _changeClimb: (progress: number) => void = () => { };
   private _currentMode: GameMode;
 
   constructor(
@@ -252,8 +252,8 @@ export class MountainBase {
   // setEnduranceMode(mode: EnduranceMode) {/*child implements this*/}
   getEnduraceMode(): string { return 'child implements this'; }
 
-  setCallback(changeBackground: (color: string) => void) {
-    this._changeBackGround = changeBackground;
+  setCallback(changeClimb: (progress: number) => void) {
+    this._changeClimb = changeClimb;
   }
 
   // unused??

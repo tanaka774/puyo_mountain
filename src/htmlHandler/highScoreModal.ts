@@ -153,7 +153,6 @@ function makeContentFromDB(dynamicContent: HTMLElement, data) {
       `).join('')}
     </tbody>
   `;
-  scoreTable.style.backgroundColor = 'black';
   scoreTable.style.width = '100%';
   dynamicContent.appendChild(scoreTable);
 }

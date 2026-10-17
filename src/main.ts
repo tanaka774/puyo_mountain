@@ -24,9 +24,11 @@ import { LSHandle } from "./localStorageHandle"
 import { EnduranceMode } from "./mountain/mountainEndurance"
 import { Replay } from "./replay"
 import { initializePhaserForFramerateControl, requestPhaserAnimationFrame } from "./phaserHandler"
+import { Scenery } from "./scenery"
 
 function main() {
   const lSHandle = new LSHandle();
+  const scenery = new Scenery('canvasBackground');
   const fontHandle = new FontHandle();
   const menu = new Menu(fontHandle);
   const apiHandle = new ApiHandle();
@@ -59,6 +61,7 @@ function main() {
     mountain.initAll();
     timer.initTimer();
     recordPuyoSteps.init();
+    scenery.setClimb(0);
   }
 
   setCallback();
@@ -93,7 +96,7 @@ function main() {
         mountain.setDifficulty(Difficulty.EASY);
         mountain.initTargetChain();
         // this must be after setGamemode
-        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
+        mountain.setCallback((progress: number) => scenery.setClimb(progress));
       },
       () => {
         // arcade normal
@@ -101,7 +104,7 @@ function main() {
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.NORMAL);
         mountain.initTargetChain();
-        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
+        mountain.setCallback((progress: number) => scenery.setClimb(progress));
       },
       () => {
         // arcade hard
@@ -109,7 +112,7 @@ function main() {
         mountain.setGameMode(GameMode.ARCADE);
         mountain.setDifficulty(Difficulty.HARD);
         mountain.initTargetChain();
-        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
+        mountain.setCallback((progress: number) => scenery.setClimb(progress));
       },
       () => {
         // endurance mode1
@@ -117,7 +120,7 @@ function main() {
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.setEnduranceMode(EnduranceMode.Mode1);
         mountain.initTargetChain();
-        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
+        mountain.setCallback((progress: number) => scenery.setClimb(progress));
       },
       () => {
         // endurance mode2
@@ -125,7 +128,7 @@ function main() {
         mountain.setGameMode(GameMode.ENDURANCE);
         mountain.setEnduranceMode(EnduranceMode.Mode2);
         mountain.initTargetChain();
-        mountain.setCallback((color: string) => draw.drawWholeBackground(color));
+        mountain.setCallback((progress: number) => scenery.setClimb(progress));
       },
       () => {
         // custom mode

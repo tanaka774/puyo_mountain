@@ -167,8 +167,8 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
-  setCallback(changeBackground: (color: string) => void) {
-    this._mountainBase.setCallback(changeBackground);
+  setCallback(changeClimb: (progress: number) => void) {
+    this._mountainBase.setCallback(changeClimb);
   }
 
   detectTargetChain() { }
