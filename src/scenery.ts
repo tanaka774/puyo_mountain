@@ -8,13 +8,19 @@ import { PUYO_COLORS } from "./config";
 //
 // Debug params: ?sky=5.5 fixes the starting hour, ?skyspeed=10 multiplies how fast play advances it,
 // ?climb=0.8 starts partway up, ?season=spring|summer|autumn|winter overrides the season,
-// ?orbs releases a burst of spirit lights on load.
+// ?orbs releases a burst of spirit lights on load, ?pixel=0 switches back to smooth (non-pixel) rendering.
 
 type RGB = [number, number, number];
 
 const FPS = 20;
 const PLAY_HOURS_PER_MINUTE = 1;
+// the star field turns slower than the sun and moon during play, so it doesn't drift distractingly
+const STAR_PLAY_RATE = 1 / 3;
 const MAX_DPR = 1.5;
+// pixel-art mode: the scene is drawn at low resolution and scaled up without smoothing.
+// Gradients are drawn as flat bands joined by a checkered row, like hand-dithered pixel art.
+const PIXEL_CSS = 4; // rough CSS px per art pixel
+const SKY_BANDS = 9;
 const HORIZON = 0.66; // fraction of height where sun and moon touch the horizon
 
 const hex = (h: string): RGB => [
@@ -127,7 +133,10 @@ export class Scenery {
   private _ctx: CanvasRenderingContext2D;
   private _w = 0;
   private _h = 0;
-  private _dpr = 1;
+  private _pixel = true;
+  private _pc = 1; // CSS px per canvas px
+  private _checkers = new Map<string, CanvasPattern>();
+  private _sparse = new Map<string, CanvasPattern>();
   private _needsBuild = true;
   private _reducedMotion: boolean;
 
@@ -170,10 +179,11 @@ export class Scenery {
 
   constructor(canvasId: string) {
     this._canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+    const params = new URLSearchParams(location.search);
+    this._pixel = params.get('pixel') !== '0';
     this._ctx = this._canvas.getContext('2d', { alpha: false });
     this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const params = new URLSearchParams(location.search);
     if (params.has('sky')) this._hourOverride = Number(params.get('sky')) || 0;
     if (params.has('skyspeed')) this._speed = Number(params.get('skyspeed')) || 1;
     if (params.has('climb')) this._climb = this._climbTarget = clamp01(Number(params.get('climb')));
@@ -213,13 +223,13 @@ export class Scenery {
     this.render(now / 1000, dt);
   }
 
-  private skyHours(): number {
+  private skyHours(playRate = 1): number {
     let base = this._hourOverride;
     if (base === null) {
       const d = new Date();
       base = d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
     }
-    return base + this._playHours;
+    return base + this._playHours * playRate;
   }
 
   private currentSeason(): Season {
@@ -239,11 +249,16 @@ export class Scenery {
 
   private build() {
     this._needsBuild = false;
-    this._dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    const dpr = window.devicePixelRatio || 1;
     this._w = window.innerWidth;
     this._h = window.innerHeight;
-    this._canvas.width = Math.round(this._w * this._dpr);
-    this._canvas.height = Math.round(this._h * this._dpr);
+    // a whole number of device pixels per art pixel keeps every pixel the same size
+    this._pc = this._pixel ? Math.max(2, Math.round(PIXEL_CSS * dpr)) / dpr : 1 / Math.min(dpr, MAX_DPR);
+    this._canvas.width = Math.ceil(this._w / this._pc);
+    this._canvas.height = Math.ceil(this._h / this._pc);
+    this._canvas.style.width = `${this._canvas.width * this._pc}px`;
+    this._canvas.style.height = `${this._canvas.height * this._pc}px`;
+    this._canvas.style.imageRendering = this._pixel ? 'pixelated' : 'auto';
 
     this._season = this.currentSeason();
     const rand = seeded(1183);
@@ -497,10 +512,10 @@ export class Scenery {
     const rMin = this._starCenterY - horizonY;
     const rMax = Math.hypot(w / 2, this._starCenterY);
     const area = Math.PI * (rMax * rMax - rMin * rMin);
-    const fieldCount = Math.min(4000, Math.round(area / 2600));
+    const fieldCount = Math.min(4000, Math.round(area / 6500));
     const rMid = (rMin + rMax) / 2;
     this._milkyWay = { tilt: 0.12, offset: rMid * 0.92, half: rMax, width: h * 0.16 };
-    const bandCount = Math.round(fieldCount * 0.3);
+    const bandCount = Math.round(fieldCount * 0.25);
 
     const xs: number[][] = [[], [], []], ys: number[][] = [[], [], []];
     const sizes: number[][] = [[], [], []], brights: number[][] = [[], [], []], phases: number[][] = [[], [], []];
@@ -606,35 +621,34 @@ export class Scenery {
     const sunPos = this.arcPosition(dayAngle, horizonY, arcH);
     const moonPos = this.arcPosition(moonAngle, horizonY, arcH * 0.9);
 
-    ctx.setTransform(this._dpr, 0, 0, this._dpr, 0, 0);
+    ctx.setTransform(1 / this._pc, 0, 0, 1 / this._pc, 0, 0);
     ctx.globalAlpha = 1;
 
-    const sky = ctx.createLinearGradient(0, 0, 0, horizonY);
-    sky.addColorStop(0, rgba(zenith));
-    sky.addColorStop(0.55, rgba(mid));
-    sky.addColorStop(1, rgba(horizon));
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
-
-    // ichimonji-bokashi: the dark band printed along the top edge of a woodblock sky
-    const band = ctx.createLinearGradient(0, 0, 0, h * 0.16);
-    band.addColorStop(0, rgba(mix(zenith, TOP_BAND, 0.55), 0.75));
-    band.addColorStop(1, rgba(mix(zenith, TOP_BAND, 0.55), 0));
-    ctx.fillStyle = band;
-    ctx.fillRect(0, 0, w, h * 0.16);
+    // three-stop sky, darkened along the top edge like the ichimonji-bokashi band of a woodblock print
+    const topBand = mix(zenith, TOP_BAND, 0.45);
+    const bandEnd = 0.16 * h / horizonY;
+    this.bandedFill(0, w, 0, horizonY, SKY_BANDS, f => {
+      let c = f < 0.55 ? mix(zenith, mid, f / 0.55) : mix(mid, horizon, (f - 0.55) / 0.45);
+      if (f < bandEnd) c = mix(c, topBand, 0.7 * (1 - f / bandEnd));
+      return rgba(c);
+    });
+    ctx.fillStyle = rgba(horizon);
+    ctx.fillRect(0, horizonY, w, h - horizonY);
 
     if (warmth > 0.02) {
-      const glow = ctx.createRadialGradient(sunPos.x, Math.min(sunPos.y, horizonY), 0,
-        sunPos.x, Math.min(sunPos.y, horizonY), w * 0.55);
       const glowColor = mix(SUN_LOW, PAPER, 0.25);
-      glow.addColorStop(0, rgba(glowColor, 0.5 * warmth));
-      glow.addColorStop(1, rgba(glowColor, 0));
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, w, h);
+      // glow spreads along the horizon rather than in circles
+      const gy = Math.min(sunPos.y, horizonY);
+      ctx.fillStyle = rgba(glowColor, 0.1 * warmth);
+      for (const f of [1, 0.65, 0.35]) {
+        ctx.beginPath();
+        ctx.ellipse(sunPos.x, gy, w * 0.55 * f, h * 0.2 * f, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     const starVis = (1 - smooth(-0.28, -0.04, sunAlt)) * (1 - 0.35 * moonLight);
-    if (starVis > 0.01) this.drawStars(t, dt, hours, starVis, horizonY);
+    if (starVis > 0.01) this.drawStars(t, dt, this.skyHours(STAR_PLAY_RATE), starVis, horizonY);
 
     if (moonAlt > -0.1) this.drawMoon(moonPos.x, moonPos.y, phase, dayness, zenith);
     if (sunAlt > -0.1) this.drawSun(sunPos.x, sunPos.y, sunAlt);
@@ -668,10 +682,68 @@ export class Scenery {
       this.drawOrbs(dt);
     }
 
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = this._grain;
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalAlpha = 1;
+    // paper grain only for the smooth style; pixel art keeps its flat colors clean
+    if (!this._pixel) {
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = this._grain;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // dither patterns of one canvas pixel per cell: a 50% checkerboard, or a sparse 25% grid
+  private checker(color: string, sparse = false): CanvasPattern {
+    const cache = sparse ? this._sparse : this._checkers;
+    let pattern = cache.get(color);
+    if (!pattern) {
+      if (cache.size > 400) cache.clear();
+      const c = document.createElement('canvas');
+      c.width = c.height = 2;
+      const g = c.getContext('2d');
+      g.fillStyle = color;
+      g.fillRect(0, 0, 1, 1);
+      if (!sparse) g.fillRect(1, 1, 1, 1);
+      pattern = this._ctx.createPattern(c, 'repeat');
+      cache.set(color, pattern);
+    }
+    // patterns follow the user-space transform; scale back so one cell is one canvas pixel
+    pattern.setTransform(new DOMMatrix([this._pc, 0, 0, this._pc, 0, 0]));
+    return pattern;
+  }
+
+  // vertical gradient as flat steps, each step dithered into the one above it
+  private bandedFill(x: number, width: number, y0: number, y1: number, bands: number, colorAt: (t: number) => string) {
+    const ctx = this._ctx, pc = this._pc;
+    const bh = (y1 - y0) / bands;
+    for (let k = 0; k < bands; k++) {
+      const top = this.snap(y0 + k * bh), bottom = k === bands - 1 ? y1 : this.snap(y0 + (k + 1) * bh);
+      const color = colorAt(bands === 1 ? 0 : k / (bands - 1));
+      ctx.fillStyle = color;
+      ctx.fillRect(x, top, width, bottom - top);
+      if (k > 0) {
+        // fade into the band above: 50% just over the join, then 25% higher up
+        ctx.fillStyle = this.checker(color);
+        ctx.fillRect(x, top - pc * 2, width, pc * 2);
+        ctx.fillStyle = this.checker(color, true);
+        ctx.fillRect(x, top - pc * 5, width, pc * 3);
+      }
+    }
+  }
+
+  // soft glow as a few stacked flat discs
+  private rings(x: number, y: number, radii: number[], color: RGB, alphaEach: number) {
+    const ctx = this._ctx;
+    ctx.fillStyle = rgba(color, alphaEach);
+    for (const r of radii) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // snap a CSS coordinate to the art-pixel grid
+  private snap(v: number) {
+    return this._pixel ? Math.round(v / this._pc) * this._pc : v;
   }
 
   private sampleSky(alt: number) {
@@ -706,12 +778,8 @@ export class Scenery {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(rot + mw.tilt);
-    const band = ctx.createLinearGradient(0, -mw.offset - mw.width, 0, -mw.offset + mw.width);
-    band.addColorStop(0, 'rgba(200,210,235,0)');
-    band.addColorStop(0.5, `rgba(200,210,235,${0.05 * vis})`);
-    band.addColorStop(1, 'rgba(200,210,235,0)');
-    ctx.fillStyle = band;
-    ctx.fillRect(-mw.half, -mw.offset - mw.width, mw.half * 2, mw.width * 2);
+    ctx.fillStyle = `rgba(200,210,235,${0.018 * vis})`;
+    for (const f of [1, 0.6, 0.3]) ctx.fillRect(-mw.half, -mw.offset - mw.width * f, mw.half * 2, mw.width * f * 2);
     ctx.restore();
 
     let start = 0;
@@ -729,13 +797,24 @@ export class Scenery {
         if (a < 0.03) continue;
         const s = this._starSize[i];
         ctx.globalAlpha = a;
-        ctx.fillRect(x - s / 2, y - s / 2, s, s);
+        if (this._pixel) {
+          // one art pixel, bright ones get a small cross
+          const pc = this._pc, px = this.snap(x), py = this.snap(y);
+          ctx.fillRect(px, py, pc, pc);
+          if (s > 1.5) {
+            ctx.globalAlpha = a * 0.4;
+            ctx.fillRect(px - pc, py, pc * 3, pc);
+            ctx.fillRect(px, py - pc, pc, pc * 3);
+          }
+        } else {
+          ctx.fillRect(x - s / 2, y - s / 2, s, s);
+        }
       }
       start = end;
     }
     ctx.globalAlpha = 1;
 
-    ctx.lineWidth = 1;
+    ctx.lineWidth = this._pixel ? this._pc : 1;
     for (const c of this._constellations) {
       const px = c.xs.map((sx, i) => cx + sx * cos - c.ys[i] * sin);
       const py = c.xs.map((sx, i) => cy + sx * sin + c.ys[i] * cos);
@@ -749,9 +828,13 @@ export class Scenery {
       ctx.fillStyle = c.tint;
       for (let i = 0; i < 4; i++) {
         ctx.globalAlpha = vis * fade * (twinkle ? 0.8 + 0.2 * Math.sin(t * 1.7 + i) : 1);
-        ctx.beginPath();
-        ctx.arc(px[i], py[i], 2.2, 0, Math.PI * 2);
-        ctx.fill();
+        if (this._pixel) {
+          ctx.fillRect(this.snap(px[i]) - this._pc, this.snap(py[i]) - this._pc, this._pc * 2, this._pc * 2);
+        } else {
+          ctx.beginPath();
+          ctx.arc(px[i], py[i], 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
     ctx.globalAlpha = 1;
@@ -778,7 +861,7 @@ export class Scenery {
     g.addColorStop(0, `rgba(255,250,235,${Math.min(1, m.life * 2) * vis})`);
     g.addColorStop(1, 'rgba(255,250,235,0)');
     ctx.strokeStyle = g;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = Math.max(1.5, this._pixel ? this._pc : 0);
     ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - m.vx * tail, m.y - m.vy * tail); ctx.stroke();
   }
 
@@ -789,14 +872,8 @@ export class Scenery {
     const k = Math.cos(phase * Math.PI * 2); // 1: new, -1: full
     const fullness = (1 - k) / 2;
 
-    // wide, faint moonlight glow that grows with the phase
-    const glowR = r * 9;
-    const glow = ctx.createRadialGradient(x, y, r * 0.5, x, y, glowR);
-    glow.addColorStop(0, rgba(MOON_LIT, (0.1 + 0.14 * fullness) * night));
-    glow.addColorStop(0.35, rgba(MOON_LIT, (0.035 + 0.05 * fullness) * night));
-    glow.addColorStop(1, rgba(MOON_LIT, 0));
-    ctx.fillStyle = glow;
-    ctx.fillRect(x - glowR, y - glowR, glowR * 2, glowR * 2);
+    // faint moonlight rings that grow with the phase
+    this.rings(x, y, [r * 5, r * 3, r * 1.8], MOON_LIT, (0.015 + 0.025 * fullness) * night);
 
     // barely-there earthshine instead of a hard dark disc
     ctx.beginPath();
@@ -815,20 +892,15 @@ export class Scenery {
       lit.ellipse(x, y, r * Math.abs(k), r, 0, -Math.PI / 2, Math.PI / 2, k > 0);
     }
     const alpha = 0.92 - dayness * 0.55;
-    // soft rim: a slightly larger, faint copy under the lit face
+    ctx.fillStyle = rgba(MOON_LIT, alpha);
+    ctx.fill(lit);
+    // a couple of darker maria
     ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(1.08, 1.08);
-    ctx.translate(-x, -y);
-    ctx.fillStyle = rgba(MOON_LIT, alpha * 0.25);
-    ctx.fill(lit);
+    ctx.clip(lit);
+    ctx.fillStyle = rgba(mix(MOON_LIT, zenith, 0.25), alpha);
+    ctx.fillRect(this.snap(x - r * 0.35), this.snap(y - r * 0.3), this._pc * 2, this._pc * 2);
+    ctx.fillRect(this.snap(x + r * 0.15), this.snap(y + r * 0.2), this._pc * 3, this._pc * 2);
     ctx.restore();
-    // lit face, a touch warmer at the centre
-    const face = ctx.createRadialGradient(x - r * 0.2, y - r * 0.2, 0, x, y, r);
-    face.addColorStop(0, rgba(MOON_LIT, alpha));
-    face.addColorStop(1, rgba(mix(MOON_LIT, zenith, 0.22), alpha));
-    ctx.fillStyle = face;
-    ctx.fill(lit);
   }
 
   private drawSun(x: number, y: number, alt: number) {
@@ -837,11 +909,7 @@ export class Scenery {
     const r = Math.min(this._w, this._h) * 0.034 * (1 + 0.15 * low);
     const color = mix(SUN_HIGH, SUN_LOW, low);
 
-    const halo = ctx.createRadialGradient(x, y, r, x, y, r * 4.5);
-    halo.addColorStop(0, rgba(color, 0.28));
-    halo.addColorStop(1, rgba(color, 0));
-    ctx.fillStyle = halo;
-    ctx.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
+    this.rings(x, y, [r * 3, r * 1.8], color, 0.08);
 
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -854,12 +922,9 @@ export class Scenery {
     const span = this._w + k.len;
     const drift = this._reducedMotion ? 0 : t * k.speed;
     const x = ((k.offset + drift) % span) - k.len;
-    const g = ctx.createLinearGradient(0, 0, 0, k.height);
-    g.addColorStop(0, rgba(color, alpha));
-    g.addColorStop(1, rgba(color, alpha * 0.25));
     ctx.save();
-    ctx.translate(x, this._h * k.y);
-    ctx.fillStyle = g;
+    ctx.translate(this.snap(x), this.snap(this._h * k.y));
+    ctx.fillStyle = rgba(color, alpha);
     ctx.fill(k.path);
     ctx.restore();
   }
@@ -877,14 +942,21 @@ export class Scenery {
     const color = this.layerColor(index, horizon, dayness);
     const sink = layer.def.sink * this._h * this.easedClimb();
 
-    // bokashi: each ridge is lighter at its crest and settles into a deeper tone below
-    // (gradients follow the transform, so this one moves with the sinking ridge)
-    const g = ctx.createLinearGradient(0, layer.top, 0, layer.top + this._h * 0.3);
-    g.addColorStop(0, rgba(mix(color, horizon, 0.18)));
-    g.addColorStop(1, rgba(mix(color, [0, 0, 0], 0.18)));
+    // bokashi that follows the ridgeline: a light rim along the crest, then the body,
+    // drawn as the same outline shifted down, with a dithered seam between them
+    const light = mix(color, horizon, 0.22), dark = mix(color, [0, 0, 0], 0.12);
+    const pc = this._pc;
+    const rim = this.snap(Math.max(pc * 3, this._h * 0.022));
     ctx.save();
-    ctx.translate(0, sink);
-    ctx.fillStyle = g;
+    ctx.translate(0, this.snap(sink));
+    ctx.fillStyle = rgba(light);
+    ctx.fill(layer.path);
+    ctx.clip(layer.path);
+    ctx.translate(0, rim - pc * 2);
+    ctx.fillStyle = this.checker(rgba(dark));
+    ctx.fill(layer.path);
+    ctx.translate(0, pc * 2);
+    ctx.fillStyle = rgba(dark);
     ctx.fill(layer.path);
     ctx.restore();
   }
@@ -900,11 +972,7 @@ export class Scenery {
 
     // a warm glow from the shrine at night
     if (night > 0.2) {
-      const glow = ctx.createRadialGradient(x, y - s * 0.4, 0, x, y - s * 0.4, s * 2.6);
-      glow.addColorStop(0, `rgba(255,190,110,${0.3 * night})`);
-      glow.addColorStop(1, 'rgba(255,190,110,0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(x - s * 2.6, y - s * 3, s * 5.2, s * 5.2);
+      this.rings(x, y - s * 0.4, [s * 2, s * 1.2], [255, 190, 110], 0.07 * night);
     }
     ctx.save();
     ctx.translate(x, y);
@@ -949,7 +1017,8 @@ export class Scenery {
       ctx.fillStyle = colors[p.color];
       if (season === 'winter') {
         ctx.globalAlpha = 0.85;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
+        if (this._pixel) ctx.fillRect(this.snap(p.x), this.snap(p.y), this._pc * (p.size > 2.4 ? 2 : 1), this._pc * (p.size > 2.4 ? 2 : 1));
+        else ctx.fillRect(p.x, p.y, p.size, p.size);
         continue;
       }
       ctx.globalAlpha = 0.9;
@@ -1039,7 +1108,7 @@ export class Scenery {
     f.x += f.vx * dt;
     if (f.x < -200 || f.x > this._w + 200) { this._flock = null; return; }
     ctx.strokeStyle = rgba(SHADOW_INK, 0.55 * dayness);
-    ctx.lineWidth = 1.4;
+    ctx.lineWidth = Math.max(1.4, this._pixel ? this._pc : 0);
     ctx.lineCap = 'round';
     ctx.beginPath();
     const now = performance.now() / 1000;
@@ -1063,13 +1132,12 @@ export class Scenery {
     const bottom = mix(top, horizon, 0.45);
     const drift = this._reducedMotion ? 0 : (t * 3) % this._seaPeriod;
 
-    const g = ctx.createLinearGradient(0, -20, 0, h * 0.25);
-    g.addColorStop(0, rgba(top, 0.96));
-    g.addColorStop(1, rgba(bottom, 0.96));
     ctx.save();
-    ctx.translate(-drift, seaY);
-    ctx.fillStyle = g;
-    ctx.fill(this._seaPath);
+    ctx.translate(this.snap(-drift), this.snap(seaY));
+    ctx.clip(this._seaPath);
+    this.bandedFill(0, this._w + this._seaPeriod * 2, -h * 0.03, h * 0.25, 4, f => rgba(mix(top, bottom, f), 0.96));
+    ctx.fillStyle = rgba(bottom, 0.96);
+    ctx.fillRect(0, h * 0.25, this._w + this._seaPeriod * 2, h);
     ctx.restore();
   }
 
