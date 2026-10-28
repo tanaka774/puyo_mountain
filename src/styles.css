@@ -401,8 +401,12 @@ dialog tbody tr:nth-child(-n + 3) td:first-child {
   transform: translateY(-50%) rotate(45deg);
 }
 
+/* fixed panel under the buttons: only its text changes, so the menu never shifts */
 .menu-desc {
-  margin: 6px 4px 12px 34px;
+  min-height: calc(2 * 1.45em);
+  margin-top: 12px;
+  padding: 10px 4px 0 16px;
+  border-top: 1px solid var(--keyline);
   font-size: 15px;
   line-height: 1.45;
   color: var(--paper-dim);

@@ -18,6 +18,9 @@ export class Menu {
   private _menuContainer: HTMLDialogElement;
   private _titleElement: HTMLElement;
   private _selectedIndex: number;
+  // one description per button (empty when it has none), shown in a fixed panel under the buttons
+  private _descriptions: string[] = [];
+  private _descPanel: HTMLElement | null = null;
   private arcadeEasy: () => void;
   private arcadeNormal: () => void;
   private arcadeHard: () => void;
@@ -79,10 +82,7 @@ export class Menu {
   }
 
   selectButton(newIndex) {
-    const descDivBefore = document.getElementById(`desc${this._selectedIndex}`) as HTMLElement;
-    if (descDivBefore) { descDivBefore.style.display = 'none'; }
-    const descDivAfter = document.getElementById(`desc${newIndex}`) as HTMLElement;
-    if (descDivAfter) { descDivAfter.style.display = ''; }
+    this.showDescription(newIndex);
 
     this._buttons[this._selectedIndex].classList.remove('selected');
     this._selectedIndex = newIndex;
@@ -90,6 +90,14 @@ export class Menu {
     this._buttons[this._selectedIndex].classList.add('selected');
 
     this.enterKeyUpCallback = () => this._buttons[this._selectedIndex].click();
+  }
+
+  private showDescription(index: number) {
+    if (!this._descPanel) return;
+    const text = this._descriptions[index] ?? '';
+    if (this._descPanel.textContent === text) return;
+    this._descPanel.textContent = text;
+    this._descPanel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
   }
 
   handleArrowUp() {
@@ -143,7 +151,10 @@ export class Menu {
       menuSelect === MenuSelect.ENDURANCE_SELECT_1;
     document.body.dataset.screen = isTitleMenu ? 'title' : 'game';
 
-    const geneButton = (showText: string, callback: () => void, description: string = undefined, index: number = -1) => {
+    this._descriptions = [];
+    this._descPanel = null;
+
+    const geneButton = (showText: string, callback: () => void, description: string = '') => {
       const tempButton = document.createElement('button');
       tempButton.innerText = showText;
       tempButton.addEventListener('click', callback);
@@ -151,59 +162,47 @@ export class Menu {
       tempButton.addEventListener('click', this.handleMouseClick.bind(this));
 
       this._menuContainer.appendChild(tempButton);
-
-      if (description) {
-        const descDiv = document.createElement('div');
-        descDiv.style.display = 'none';
-        descDiv.classList.add('menu-desc');
-        descDiv.innerHTML = `${description}`;
-        // descDiv.style.marginTop = '3px';
-        // descDiv.style.width = 'min-content'
-        // descDiv.style.height = '20px'
-        descDiv.id = `desc${index}`;
-        this._menuContainer.appendChild(descDiv);
-      }
+      this._descriptions.push(description);
     }
 
     switch (menuSelect) {
       case MenuSelect.START_MENU:
         geneButton(lang.arcadeMode,
           () => this.generateButtons(MenuSelect.ARCADE_SELECT_1),
-          lang.arcadeModeDesc, 0
+          lang.arcadeModeDesc
         );
         geneButton(lang.scoreMode,
           () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1),
-          lang.scoreModeDesc, 1
+          lang.scoreModeDesc
         );
         geneButton(lang.customMode,
           () => { this.customMode(); },
-          lang.customModeDesc, 2
+          lang.customModeDesc
         );
         geneButton(lang.setting,
           () => { this.gameSetting(); },
-          lang.settingDesc, 3
+          lang.settingDesc
         );
         break;
       case MenuSelect.ARCADE_SELECT_1:
         geneButton(lang.easyMountain,
           () => { this.arcadeEasy(); this.closeModal(); },
-          lang.difficultyEasy, 0
+          lang.difficultyEasy
         );
         geneButton(lang.normalMountain,
           () => { this.arcadeNormal(); this.closeModal(); },
-          lang.difficultyNormal, 1
+          lang.difficultyNormal
         );
         geneButton(lang.hardMountain,
           () => { this.arcadeHard(); this.closeModal(); },
-          lang.difficultyHard, 2
+          lang.difficultyHard
         );
         geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.ENDURANCE_SELECT_1:
         geneButton(lang.k2,
           () => { this.enduranceMode1(); this.closeModal(); },
-          lang.k2Desc(gameConfig.ENDURANCE_MIN_ONCE1, gameConfig.ENDURANCE_MAX_ONCE1, gameConfig.ENDURANCE_TOTAL1),
-          0
+          lang.k2Desc(gameConfig.ENDURANCE_MIN_ONCE1, gameConfig.ENDURANCE_MAX_ONCE1, gameConfig.ENDURANCE_TOTAL1)
         );
         // geneButton('モード2（テスト用）',
         //   () => { this.enduranceMode2(); this.closeModal(); },
@@ -212,8 +211,7 @@ export class Menu {
         // );
         geneButton(lang.watchRecords,
           () => { this.watchHighScores(); },
-          lang.watchRecordsDesc,
-          1
+          lang.watchRecordsDesc
         );
         geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
@@ -238,13 +236,17 @@ export class Menu {
         break;
     }
 
+    if (this._descriptions.some(desc => desc)) {
+      this._descPanel = document.createElement('div');
+      this._descPanel.classList.add('menu-desc');
+      this._menuContainer.appendChild(this._descPanel);
+    }
+
     // is here ok???
     this._buttons = this._menuContainer.querySelectorAll('button');
     this._selectedIndex = 0;
     this._buttons[this._selectedIndex].classList.add('selected');
-
-    const descDivFirst = document.getElementById(`desc0`) as HTMLElement;
-    if (descDivFirst) descDivFirst.style.display = '';
+    this.showDescription(0);
   }
 
   // locale strings look like "Z,X: Rotate"; show the keys as keycaps
