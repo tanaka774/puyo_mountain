@@ -19,6 +19,10 @@ import { showGameSetting } from "./htmlHandler/gameSettingModal";
 
 export class HtmlHandle {
   private _targetChainNumShow: HTMLElement;
+  private _statusGoal: HTMLElement;
+  private _statusProgress: HTMLElement;
+  private _statusBar: HTMLElement;
+  private _statusBarFill: HTMLElement;
   private _chainNumShow: HTMLElement;
   private _chainPuyoNumShow: HTMLElement;
   private _timerElement: HTMLElement;
@@ -37,6 +41,10 @@ export class HtmlHandle {
     private _menu: Menu
   ) {
     this._targetChainNumShow = document.getElementById("targetChainCount");
+    this._statusGoal = document.getElementById("statusGoal");
+    this._statusProgress = document.getElementById("statusProgress");
+    this._statusBar = document.getElementById("statusBar");
+    this._statusBarFill = document.getElementById("statusBarFill");
     this._chainNumShow = document.getElementById("chainCount");
     this._chainPuyoNumShow = document.getElementById("chainPuyoNum");
     this._chainPuyoNumShow.style.display = 'none'; // unused??
@@ -86,7 +94,11 @@ export class HtmlHandle {
       this._keyHint.style.display = '';
     }
 
-    this._targetChainNumShow.textContent = this._mountain.getGameStatus();
+    const status = this._mountain.getGameStatus();
+    this._statusGoal.textContent = status.goal;
+    this._statusProgress.textContent = status.progress;
+    this._statusBar.style.display = status.ratio === undefined ? 'none' : '';
+    this._statusBarFill.style.width = `${Math.min(1, status.ratio ?? 0) * 100}%`;
     // this._chainNumShow.textContent = ` 最大${this._chain.maxVirtualChainCount}連鎖可能`
     this._chainNumShow.textContent = `${this._chain.maxVirtualChainCount}`
     // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`

@@ -1,5 +1,5 @@
 import { Board } from "@/board";
-import { MountainBase } from "./mountainBase";
+import { GameStatus, MountainBase } from "./mountainBase";
 import { Chain } from "@/chain";
 import { gameConfig } from "../config";
 import lang from "../../locales";
@@ -88,7 +88,10 @@ export class MountainCustom extends MountainBase {
     this._chain.initConnectedPuyos();
   }
 
-  getGameStatus(): string {
-    return lang.chainCustom(this._currentTargetChainNum, this._totalChainNum);
+  getGameStatus(): GameStatus {
+    return {
+      goal: lang.statusGoal(this._currentTargetChainNum),
+      progress: lang.statusCustomTotal(this._totalChainNum),
+    };
   }
 }

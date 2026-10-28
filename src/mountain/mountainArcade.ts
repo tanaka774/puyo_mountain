@@ -1,5 +1,5 @@
 import { Board } from "src/board";
-import { MountainBase } from "./mountainBase";
+import { GameStatus, MountainBase } from "./mountainBase";
 import { Chain } from "src/chain";
 import { gameConfig } from "../config";
 import lang from "../../locales";
@@ -116,16 +116,20 @@ export class MountainArcade extends MountainBase {
     else this._resultGrade = 'C';
   }
 
-  getGameStatus(): string {
-    let res: string;
-    if (this.isLastPhase() && this.checkDifficulty(Difficulty.HARD)) {
-      res = lang.chainAllClear(this._currentTargetChainNum);
-    } else if (this.isLastPhase()) {
-      res = lang.chainLastPhase(this._currentTargetChainNum);
-    } else {
-      res = lang.chainPhase(this._currentTargetChainNum, this._phase);
-    }
-    return res;
+  getGameStatus(): GameStatus {
+    const phaseNum = this._targetChainNums.length;
+    const allTargetNum = this._targetChainNums.reduce((sum, targets) => sum + targets.length, 0);
+    const clearedTargetNum = this._targetChainNums
+      .slice(0, this._phase - 1)
+      .reduce((sum, targets) => sum + targets.length, this._currentTargetChainIndex);
+    const needsAllClear = this.isLastPhase() && this.checkDifficulty(Difficulty.HARD);
+    return {
+      goal: needsAllClear
+        ? lang.statusGoalAllClear(this._currentTargetChainNum)
+        : lang.statusGoal(this._currentTargetChainNum),
+      progress: this.isLastPhase() ? lang.statusLastPhase : lang.statusPhase(this._phase, phaseNum),
+      ratio: clearedTargetNum / allTargetNum,
+    };
   }
 
   setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }

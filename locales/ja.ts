@@ -76,12 +76,13 @@ export const ja = {
   vPuyo: "Vぷよ",
   chain: "れんさ",
   chainAllClearStr: "ぜんけしすべし",
-  chainAllClear: (count: number) => `${count}連鎖全消しすべし`,
-  chainLastPhase: (count: number) => `${count}連鎖すべし 最終フェーズ`,
-  chainPhase: (count: number, phase: number) => `${count}連鎖すべし フェーズ ${phase}`,
   chainMust: (count: number) => `${count}れんさすべし`,
-  chainCustom: (current: number, total: number) => `${current}連鎖すべし　計 ${total}連鎖`,
-  chainEndurance: (current: number, achieved: number, total: number) => `${current}連鎖すべし 　${achieved} / ${total}連鎖`,
+  statusGoal: (count: number) => `${count}連鎖すべし`,
+  statusGoalAllClear: (count: number) => `${count}連鎖全消しすべし`,
+  statusPhase: (phase: number, phaseNum: number) => `フェーズ ${phase} / ${phaseNum}`,
+  statusLastPhase: "最終フェーズ",
+  statusCustomTotal: (total: number) => `累計 ${total}連鎖`,
+  statusEndurance: (achieved: number, total: number) => `累計 ${achieved} / ${total}連鎖`,
 
   // menu
   arcadeMode: "アーケードモード",

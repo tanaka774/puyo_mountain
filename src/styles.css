@@ -106,6 +106,37 @@ body[data-screen="title"] .canvas-container {
   letter-spacing: 0.02em;
 }
 
+/* status plaque: the chain to build now, then progress through the run */
+#targetChainCount > span {
+  display: block;
+}
+
+.status-goal {
+  font-size: 18px;
+  color: var(--gold);
+}
+
+.status-progress {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--paper-dim);
+}
+
+.status-bar {
+  height: 4px;
+  margin: 4px 4px 1px;
+  border-radius: 2px;
+  background: var(--keyline);
+  overflow: hidden;
+}
+
+.status-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--paper);
+  transition: width 0.3s ease-out;
+}
+
 /* both plaques share the width of the wider one; the value sits centred after its label */
 .stats {
   display: inline-grid;

@@ -1,5 +1,5 @@
 import { gameConfig } from "../config";
-import { MountainBase } from "./mountainBase";
+import { GameStatus, MountainBase } from "./mountainBase";
 import { Board } from "src/board";
 import { Move } from "src/move";
 import { Chain } from "src/chain";
@@ -121,8 +121,12 @@ export class MountainEndurance extends MountainBase {
     }
   }
 
-  getGameStatus(): string {
-    return lang.chainEndurance(this._currentTargetChainNum, this._totalChainNum, this._enduranceTotalTargetChainNum);
+  getGameStatus(): GameStatus {
+    return {
+      goal: lang.statusGoal(this._currentTargetChainNum),
+      progress: lang.statusEndurance(this._totalChainNum, this._enduranceTotalTargetChainNum),
+      ratio: this._totalChainNum / this._enduranceTotalTargetChainNum,
+    };
   }
 
   setEnduranceMode(mode: EnduranceMode) {

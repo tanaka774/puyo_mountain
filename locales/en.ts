@@ -76,12 +76,13 @@ export const en = {
   vPuyo: "V Puyo",
   chain: "Chain",
   chainAllClearStr: "and All Clear!",
-  chainAllClear: (count: number) => `${count} Chain and All Clear!`,
-  chainLastPhase: (count: number) => `${count} Chain  Last Phase!`,
-  chainPhase: (count: number, phase: number) => `${count} Chain  Phase ${phase}`,
   chainMust: (count: number) => `Make a ${count}-Chain!`,
-  chainCustom: (current: number, total: number) => `${current} Chain Total ${total}`,
-  chainEndurance: (current: number, achieved: number, total: number) => `${current} Chain ${achieved} / ${total} Total`,
+  statusGoal: (count: number) => `Make a ${count}-Chain!`,
+  statusGoalAllClear: (count: number) => `${count}-Chain + All Clear!`,
+  statusPhase: (phase: number, phaseNum: number) => `Phase ${phase} / ${phaseNum}`,
+  statusLastPhase: "Final Phase!",
+  statusCustomTotal: (total: number) => `Chains so far: ${total}`,
+  statusEndurance: (achieved: number, total: number) => `Chains ${achieved} / ${total}`,
 
   // menu
   arcadeMode: "Arcade Mode",
