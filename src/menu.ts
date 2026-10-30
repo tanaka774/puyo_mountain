@@ -19,6 +19,7 @@ export class Menu {
   private _menuContainer: HTMLDialogElement;
   private _titleElement: HTMLElement;
   private _selectedIndex: number;
+  private _currentMenu: MenuSelect;
   // one description per button (empty when it has none), shown in a fixed panel under the buttons
   private _descriptions: string[] = [];
   private _descPanel: HTMLElement | null = null;
@@ -69,6 +70,19 @@ export class Menu {
     document.addEventListener('keydown', e => {
       if (e.key === 'Enter') enterDownInMenu = !isOtherDialogOpen();
     }, true);
+
+    // Escape would close the menu dialog natively; go back to the parent menu (or resume from pause) instead.
+    // cancelling keydown (not the dialog's cancel event) keeps working on repeated presses
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || !this._menuContainer.open || isOtherDialogOpen()) return;
+      e.preventDefault();
+      if (this._currentMenu === MenuSelect.ARCADE_SELECT_1 ||
+        this._currentMenu === MenuSelect.ENDURANCE_SELECT_1) {
+        this.generateButtons(MenuSelect.START_MENU);
+      } else if (this._currentMenu === MenuSelect.PAUSE) {
+        this.backToGameInPause(); this.closeModal();
+      }
+    });
 
     document.addEventListener('keyup', e => {
       if (!stateHandle.menuButtonAppears() || isOtherDialogOpen()) return;
@@ -154,6 +168,7 @@ export class Menu {
   generateButtons(menuSelect: MenuSelect) {
     this._menuContainer = document.getElementById("menu") as HTMLDialogElement;
     this.deleteButtons();
+    this._currentMenu = menuSelect;
     if (!this._menuContainer.open) this._menuContainer.showModal();
     this._titleElement.style.display = '';
     // the board is hidden behind title menus but stays visible behind pause/result menus
