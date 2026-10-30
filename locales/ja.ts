@@ -66,7 +66,7 @@ export const ja = {
   close: "閉じる",
 
   // drawWithCanvas
-  useVPuyo: "D: Vぷよ使用",
+  useVPuyo: "V: Vぷよ使用",
   changeVPuyoColor: "C: Vぷよ色変更",
   rotate: "Z,X: 回転",
   move: "←↑→↓: 移動",

@@ -28,7 +28,7 @@ export class Current {
     this.initNextMovingCount();
 
     document.addEventListener('keyup', e => {
-      if (e.key === 'c') {
+      if (e.code === 'KeyC') {
         if (!stateHandle.checkCurrentState(GameState.MANIPULATING) ||
           !this._versatilePuyo
         ) return;
@@ -45,7 +45,7 @@ export class Current {
     });
 
     document.addEventListener('keyup', e => {
-      if (e.key === 'd') {
+      if (e.code === 'KeyV') {
         if (!stateHandle.checkCurrentState(GameState.MANIPULATING) ||
           this._hasVPuyoUsed
         ) return;

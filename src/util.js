@@ -2,7 +2,7 @@ export function keyPressedTwice(keyType, callbackInLimit, callbackAlways = null,
   let keyPressed = false;
   let firstKeyPressTime = 0;
   return function (e) {
-    if (e.key !== keyType) return;
+    if (e.code !== keyType) return;
     if (!keyPressed) {
       keyPressed = true;
       firstKeyPressTime = Date.now()

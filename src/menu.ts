@@ -257,7 +257,7 @@ export class Menu {
     title.classList.add('controls-title');
     title.textContent = lang.controls;
     list.appendChild(title);
-    for (const line of [lang.move, lang.rotate, lang.useVPuyo, lang.changeVPuyoColor, lang.pause]) {
+    for (const line of [lang.move, lang.rotate, lang.changeVPuyoColor, lang.useVPuyo, lang.pause]) {
       const sep = line.indexOf(':');
       const row = document.createElement('div');
       row.classList.add('controls-row');

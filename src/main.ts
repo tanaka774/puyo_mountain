@@ -72,7 +72,7 @@ function main() {
   game.gameLoop();
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'q' && stateHandle.checkCurrentState(GameState.REPLAY)) {
+    if (e.code === 'KeyQ' && stateHandle.checkCurrentState(GameState.REPLAY)) {
       replay.endReplay();
       menu.generateButtons(MenuSelect.START_MENU);
       resetStatus();

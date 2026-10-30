@@ -66,7 +66,7 @@ export const en = {
   close: "Close",
 
   // drawWithCanvas
-  useVPuyo: "D: Use V Puyo",
+  useVPuyo: "V: Use V Puyo",
   changeVPuyoColor: "C: Change V Puyo Color",
   rotate: "Z,X: Rotate",
   move: "←↑→↓: Move",

@@ -280,7 +280,7 @@ export class Replay {
     } else if (e.key === 'ArrowRight') {
       this._replaySlider.value = String(Math.min(parseInt(this._replaySlider.max), parseInt(this._replaySlider.value) + 1));
       this.drawStep(parseInt(this._replaySlider.value));
-    } else if (e.key === 'm') {
+    } else if (e.code === 'KeyM' && !e.shiftKey) {
       const currentStep = parseInt(this._replaySlider.value);
       let nextPhaseStep = -1;
       for (let i = currentStep + 1; i < this._replaySteps.length; i++) {
@@ -296,7 +296,7 @@ export class Replay {
         this._replaySlider.value = String(nextPhaseStep);
         this.drawStep(nextPhaseStep);
       }
-    } else if (e.key === 'M') { // Shift + m
+    } else if (e.code === 'KeyM' && e.shiftKey) { // Shift + m
       const currentStep = parseInt(this._replaySlider.value);
       let prevPhaseStep = -1;
       for (let i = currentStep - 1; i >= 0; i--) {
