@@ -15,13 +15,19 @@ import { showHighScoresModal } from "./htmlHandler/highScoreModal";
 import { showArcadeResult } from "./htmlHandler/arcadeResultModal";
 import { showCustomConfig } from "./htmlHandler/customConfigModal";
 import { showGameSetting } from "./htmlHandler/gameSettingModal";
+import { showGuide } from "./htmlHandler/guideModal";
 
 
 export class HtmlHandle {
   private _targetChainNumShow: HTMLElement;
+  private _statusGoal: HTMLElement;
+  private _statusProgress: HTMLElement;
+  private _statusBar: HTMLElement;
+  private _statusBarFill: HTMLElement;
   private _chainNumShow: HTMLElement;
   private _chainPuyoNumShow: HTMLElement;
   private _timerElement: HTMLElement;
+  private _keyHint: HTMLElement;
   private _canvasContainer: HTMLElement;
   private _zoomInButton: HTMLButtonElement;
   private _zoomOutButton: HTMLButtonElement;
@@ -36,10 +42,16 @@ export class HtmlHandle {
     private _menu: Menu
   ) {
     this._targetChainNumShow = document.getElementById("targetChainCount");
+    this._statusGoal = document.getElementById("statusGoal");
+    this._statusProgress = document.getElementById("statusProgress");
+    this._statusBar = document.getElementById("statusBar");
+    this._statusBarFill = document.getElementById("statusBarFill");
     this._chainNumShow = document.getElementById("chainCount");
     this._chainPuyoNumShow = document.getElementById("chainPuyoNum");
     this._chainPuyoNumShow.style.display = 'none'; // unused??
     this._timerElement = document.getElementById('timer');
+    this._keyHint = document.getElementById('keyHint');
+    document.getElementById('keyHintText').textContent = lang.pauseAndControls;
     this._canvasContainer = document.getElementById('canvasContainer');
     this._zoomInButton = document.getElementById('zoom-in') as HTMLButtonElement;
     this._zoomOutButton = document.getElementById('zoom-out') as HTMLButtonElement;
@@ -51,13 +63,16 @@ export class HtmlHandle {
     //   if (e.key === 'p') this.handlePause();
     // })
 
+    // blur so Enter/Space during play doesn't press the zoom button again
     this._zoomInButton.addEventListener('click', () => {
+      this._zoomInButton.blur();
       this._currentScale += 0.1;
       scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
       this._lSHandle.setZoomRate(this._currentScale);
     });
 
     this._zoomOutButton.addEventListener('click', () => {
+      this._zoomOutButton.blur();
       this._currentScale = Math.max(0.1, this._currentScale - 0.1);
       scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
       this._lSHandle.setZoomRate(this._currentScale);
@@ -71,16 +86,22 @@ export class HtmlHandle {
       // this._chainPuyoNumShow.style.display = 'none';
       this._targetChainNumShow.style.display = 'none';
       this._timerElement.style.display = 'none';
+      this._keyHint.style.display = 'none';
     } else {
       this._chainNumShow.style.display = '';
       // this._chainPuyoNumShow.style.display = '';
       this._targetChainNumShow.style.display = '';
       this._timerElement.style.display = '';
+      this._keyHint.style.display = '';
     }
 
-    this._targetChainNumShow.textContent = this._mountain.getGameStatus();
+    const status = this._mountain.getGameStatus();
+    this._statusGoal.textContent = status.goal;
+    this._statusProgress.textContent = status.progress;
+    this._statusBar.style.display = status.ratio === undefined ? 'none' : '';
+    this._statusBarFill.style.width = `${Math.min(1, status.ratio ?? 0) * 100}%`;
     // this._chainNumShow.textContent = ` 最大${this._chain.maxVirtualChainCount}連鎖可能`
-    this._chainNumShow.textContent = `MAX: ${this._chain.maxVirtualChainCount}`
+    this._chainNumShow.textContent = `${this._chain.maxVirtualChainCount}`
     // this._chainPuyoNumShow.textContent = `有効連鎖ぷよ数: ${this._mountain.validVanishPuyoNum} 不要連鎖ぷよ数: ${this._mountain.unnecessaryVanishPuyoNum}`
     this._timerElement.innerText = this._timer.formattedTime;
   }
@@ -104,5 +125,9 @@ export class HtmlHandle {
 
   showGameSetting() {
     showGameSetting(this._lSHandle);
+  }
+
+  showGuide() {
+    showGuide();
   }
 }

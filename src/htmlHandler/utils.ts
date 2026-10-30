@@ -20,28 +20,7 @@ export function addTwitterShareButton(parent: HTMLElement, shareText: string) {
   twitterButton.setAttribute('target', '_blank');
   twitterButton.textContent = lang.shareOnX;
 
-  Object.assign(twitterButton.style, {
-    display: 'inline-block',
-    padding: '5px 10px',
-    marginLeft: '10px',
-    marginRight: '10px',
-    backgroundColor: '#1DA1F2',
-    color: 'white',
-    borderRadius: '5px',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    fontSize: '16px',
-    textAlign: 'center',
-    transition: 'background-color 0.3s'
-  });
-
-  twitterButton.addEventListener('mouseover', () => {
-    twitterButton.style.backgroundColor = '#0c85d0';
-  });
-
-  twitterButton.addEventListener('mouseout', () => {
-    twitterButton.style.backgroundColor = '#1DA1F2';
-  });
+  twitterButton.classList.add('share-button');
 
   parent.appendChild(twitterButton);
 }
@@ -100,4 +79,30 @@ export function scaleAndSetFixedPosition(element: HTMLElement, scale: number) {
   const translateX = originalLeft - newLeft;
   // this does nothing... maybe origin:top, left; in css is just enough
   // element.style.transform = `scale(${scale}) (${translateX}px, ${translateY}px)`;
+}
+
+// locale strings look like "Z,X: Rotate"; show the keys as keycaps
+export function createControlsList(): HTMLElement {
+  const list = document.createElement('div');
+  list.classList.add('controls-list');
+  const title = document.createElement('div');
+  title.classList.add('controls-title');
+  title.textContent = lang.controls;
+  list.appendChild(title);
+  for (const line of [lang.move, lang.rotate, lang.changeVPuyoColor, lang.useVPuyo, lang.pause]) {
+    const sep = line.indexOf(':');
+    const row = document.createElement('div');
+    row.classList.add('controls-row');
+    const keys = document.createElement('span');
+    line.slice(0, sep).split(',').forEach(key => {
+      const kbd = document.createElement('kbd');
+      kbd.textContent = key.trim();
+      keys.appendChild(kbd);
+    });
+    const desc = document.createElement('span');
+    desc.textContent = line.slice(sep + 1).trim();
+    row.append(keys, desc);
+    list.appendChild(row);
+  }
+  return list;
 }

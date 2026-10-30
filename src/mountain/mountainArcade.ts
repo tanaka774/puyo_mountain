@@ -1,5 +1,5 @@
 import { Board } from "src/board";
-import { MountainBase } from "./mountainBase";
+import { GameStatus, MountainBase } from "./mountainBase";
 import { Chain } from "src/chain";
 import { gameConfig } from "../config";
 import lang from "../../locales";
@@ -14,7 +14,6 @@ export enum Difficulty {
 export class MountainArcade extends MountainBase {
   private _resultGrade: string;
   private _currentDifficulty: Difficulty;
-  private _backgroundColors: string[];
 
   constructor(
     _board: Board,
@@ -22,8 +21,6 @@ export class MountainArcade extends MountainBase {
     _chain: Chain,
   ) {
     super(_board, _chain);
-    // same length as chainnums
-    this._backgroundColors = ["rgb(44,125,76)", "rgb(188,135,62)", "rgb(84,36,28)", "rgb(89,190,200)"]
   }
 
   protected decideSeedPuyoNum(): number {
@@ -56,10 +53,13 @@ export class MountainArcade extends MountainBase {
       // go to next phase
       this._phase++;
       this._currentTargetChainIndex = 0;
-      this._changeBackGround(this._backgroundColors[this._phase - 2]);
     } else {
       this._currentTargetChainIndex++;
     }
+    // reaching the last phase means standing just below the summit
+    const phaseNum = this._targetChainNums.length;
+    const levelRate = this._currentTargetChainIndex / this._targetChainNums[this._phase - 1].length;
+    this._changeClimb(0.9 * (this._phase - 1 + levelRate) / (phaseNum - 1));
 
     this._currentTargetChainNum = this._targetChainNums[this._phase - 1][this._currentTargetChainIndex];
   }
@@ -97,7 +97,7 @@ export class MountainArcade extends MountainBase {
       ((this.checkDifficulty(Difficulty.EASY) || (this.checkDifficulty(Difficulty.NORMAL))) && this.isLastPhase())
     ) {
       setStateGameClear();
-      this._changeBackGround(this._backgroundColors[this._backgroundColors.length - 1]);
+      this._changeClimb(1);
     } else if (!this.isLastPhase()) {
       setStateGeneSeed();
       this.addValidVanishPuyoNum(this.currentTargetChainNum * 4);
@@ -116,16 +116,20 @@ export class MountainArcade extends MountainBase {
     else this._resultGrade = 'C';
   }
 
-  getGameStatus(): string {
-    let res: string;
-    if (this.isLastPhase() && this.checkDifficulty(Difficulty.HARD)) {
-      res = lang.chainAllClear(this._currentTargetChainNum);
-    } else if (this.isLastPhase()) {
-      res = lang.chainLastPhase(this._currentTargetChainNum);
-    } else {
-      res = lang.chainPhase(this._currentTargetChainNum, this._phase);
-    }
-    return res;
+  getGameStatus(): GameStatus {
+    const phaseNum = this._targetChainNums.length;
+    const allTargetNum = this._targetChainNums.reduce((sum, targets) => sum + targets.length, 0);
+    const clearedTargetNum = this._targetChainNums
+      .slice(0, this._phase - 1)
+      .reduce((sum, targets) => sum + targets.length, this._currentTargetChainIndex);
+    const needsAllClear = this.isLastPhase() && this.checkDifficulty(Difficulty.HARD);
+    return {
+      goal: needsAllClear
+        ? lang.statusGoalAllClear(this._currentTargetChainNum)
+        : lang.statusGoal(this._currentTargetChainNum),
+      progress: this.isLastPhase() ? lang.statusLastPhase : lang.statusPhase(this._phase, phaseNum),
+      ratio: clearedTargetNum / allTargetNum,
+    };
   }
 
   setDifficulty(difficulty: Difficulty) { this._currentDifficulty = difficulty; }

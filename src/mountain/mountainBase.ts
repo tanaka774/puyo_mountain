@@ -6,6 +6,9 @@ import { Board } from "../board";
 import { Difficulty } from "./mountainArcade";
 import { EnduranceMode } from "./mountainEndurance";
 
+// goal: the chain to build now / progress: where you are in the run / ratio: 0..1 fills the progress bar
+export type GameStatus = { goal: string; progress: string; ratio?: number };
+
 
 export enum GameMode {
   ARCADE, ENDURANCE,
@@ -27,7 +30,7 @@ export class MountainBase {
   protected _totalChainNum: number;
   protected _unnecessaryChainNum: number;
   protected _everyPhaseEnds: boolean;
-  protected _changeBackGround: (color: string) => void;
+  protected _changeClimb: (progress: number) => void = () => { };
   private _currentMode: GameMode;
 
   constructor(
@@ -247,13 +250,13 @@ export class MountainBase {
     /*custom implements this*/
   }
 
-  getGameStatus(): string { return 'child implements this'; }
+  getGameStatus(): GameStatus { return { goal: 'child implements this', progress: '' }; }
 
   // setEnduranceMode(mode: EnduranceMode) {/*child implements this*/}
   getEnduraceMode(): string { return 'child implements this'; }
 
-  setCallback(changeBackground: (color: string) => void) {
-    this._changeBackGround = changeBackground;
+  setCallback(changeClimb: (progress: number) => void) {
+    this._changeClimb = changeClimb;
   }
 
   // unused??

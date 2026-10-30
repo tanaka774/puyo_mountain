@@ -2,6 +2,7 @@ import { gameConfig } from "./config";
 import { FontHandle } from "./fontHandle";
 import { GameState, stateHandle } from "./state";
 import lang from "../locales";
+import { createControlsList } from "./htmlHandler/utils";
 
 export enum MenuSelect {
   START_MENU,
@@ -18,6 +19,10 @@ export class Menu {
   private _menuContainer: HTMLDialogElement;
   private _titleElement: HTMLElement;
   private _selectedIndex: number;
+  private _currentMenu: MenuSelect;
+  // one description per button (empty when it has none), shown in a fixed panel under the buttons
+  private _descriptions: string[] = [];
+  private _descPanel: HTMLElement | null = null;
   private arcadeEasy: () => void;
   private arcadeNormal: () => void;
   private arcadeHard: () => void;
@@ -25,6 +30,7 @@ export class Menu {
   private enduranceMode2: () => void;
   private customMode: () => void;
   private gameSetting: () => void;
+  private showGuide: () => void;
   private watchHighScores: () => void;
   private watchReplay: () => void;
   private backToGameInPause: () => void;
@@ -56,8 +62,30 @@ export class Menu {
     this.handleMouseOver = this.handleMouseOver.bind(this);
     this.handleMouseClick = this.handleMouseClick.bind(this);
 
+    // ignore keys meant for a dialog opened over the menu (guide, settings...),
+    // including the Enter keyup right after it closes, which would reopen it
+    const isOtherDialogOpen = () => document.querySelector('dialog[open]:not(#menu)') !== null;
+    let enterDownInMenu = false;
+    // capture phase: check before the dialog's own Enter handler closes it
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') enterDownInMenu = !isOtherDialogOpen();
+    }, true);
+
+    // Escape would close the menu dialog natively; go back to the parent menu (or resume from pause) instead.
+    // cancelling keydown (not the dialog's cancel event) keeps working on repeated presses
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || !this._menuContainer.open || isOtherDialogOpen()) return;
+      e.preventDefault();
+      if (this._currentMenu === MenuSelect.ARCADE_SELECT_1 ||
+        this._currentMenu === MenuSelect.ENDURANCE_SELECT_1) {
+        this.generateButtons(MenuSelect.START_MENU);
+      } else if (this._currentMenu === MenuSelect.PAUSE) {
+        this.backToGameInPause(); this.closeModal();
+      }
+    });
+
     document.addEventListener('keyup', e => {
-      if (!stateHandle.menuButtonAppears()) return;
+      if (!stateHandle.menuButtonAppears() || isOtherDialogOpen()) return;
 
       if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -67,7 +95,7 @@ export class Menu {
         this.handleArrowDown();
       }
 
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && enterDownInMenu) {
         // console.log("I'm called mom!")
         e.preventDefault();
         this.enterKeyUpCallback();
@@ -79,10 +107,7 @@ export class Menu {
   }
 
   selectButton(newIndex) {
-    const descDivBefore = document.getElementById(`desc${this._selectedIndex}`) as HTMLElement;
-    if (descDivBefore) { descDivBefore.style.display = 'none'; }
-    const descDivAfter = document.getElementById(`desc${newIndex}`) as HTMLElement;
-    if (descDivAfter) { descDivAfter.style.display = ''; }
+    this.showDescription(newIndex);
 
     this._buttons[this._selectedIndex].classList.remove('selected');
     this._selectedIndex = newIndex;
@@ -90,6 +115,14 @@ export class Menu {
     this._buttons[this._selectedIndex].classList.add('selected');
 
     this.enterKeyUpCallback = () => this._buttons[this._selectedIndex].click();
+  }
+
+  private showDescription(index: number) {
+    if (!this._descPanel) return;
+    const text = this._descriptions[index] ?? '';
+    if (this._descPanel.textContent === text) return;
+    this._descPanel.textContent = text;
+    this._descPanel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
   }
 
   handleArrowUp() {
@@ -129,79 +162,77 @@ export class Menu {
   closeModal() {
     this._menuContainer.close();
     this._titleElement.style.display = 'none';
+    document.body.dataset.screen = 'game';
   }
 
   generateButtons(menuSelect: MenuSelect) {
     this._menuContainer = document.getElementById("menu") as HTMLDialogElement;
     this.deleteButtons();
+    this._currentMenu = menuSelect;
     if (!this._menuContainer.open) this._menuContainer.showModal();
     this._titleElement.style.display = '';
+    // the board is hidden behind title menus but stays visible behind pause/result menus
+    const isTitleMenu = menuSelect === MenuSelect.START_MENU ||
+      menuSelect === MenuSelect.ARCADE_SELECT_1 ||
+      menuSelect === MenuSelect.ENDURANCE_SELECT_1;
+    document.body.dataset.screen = isTitleMenu ? 'title' : 'game';
 
-    const geneButton = (showText: string, callback: () => void, description: string = undefined, index: number = -1) => {
+    this._descriptions = [];
+    this._descPanel = null;
+
+    const geneButton = (showText: string, callback: () => void, description: string = '') => {
       const tempButton = document.createElement('button');
       tempButton.innerText = showText;
-      // TODO: why css doesn't apply to these button???
-      tempButton.style.fontFamily = this._fontHandle.fontName;
       tempButton.addEventListener('click', callback);
       tempButton.addEventListener('mouseover', this.handleMouseOver.bind(this));
       tempButton.addEventListener('click', this.handleMouseClick.bind(this));
 
       this._menuContainer.appendChild(tempButton);
-
-      if (description) {
-        const descDiv = document.createElement('div');
-        descDiv.style.display = 'none';
-        descDiv.style.textAlign = 'center';
-        descDiv.style.color = 'white';
-        descDiv.style.fontSize = '16px';
-        descDiv.innerHTML = `${description}`;
-        // descDiv.style.marginTop = '3px';
-        // descDiv.style.width = 'min-content'
-        // descDiv.style.height = '20px'
-        descDiv.id = `desc${index}`;
-        this._menuContainer.appendChild(descDiv);
-      }
+      this._descriptions.push(description);
     }
 
     switch (menuSelect) {
       case MenuSelect.START_MENU:
         geneButton(lang.arcadeMode,
           () => this.generateButtons(MenuSelect.ARCADE_SELECT_1),
-          lang.arcadeModeDesc, 0
+          lang.arcadeModeDesc
         );
         geneButton(lang.scoreMode,
           () => this.generateButtons(MenuSelect.ENDURANCE_SELECT_1),
-          lang.scoreModeDesc, 1
+          lang.scoreModeDesc
         );
         geneButton(lang.customMode,
           () => { this.customMode(); },
-          lang.customModeDesc, 2
+          lang.customModeDesc
+        );
+        geneButton(lang.guide,
+          () => { this.showGuide(); },
+          lang.guideDesc
         );
         geneButton(lang.setting,
           () => { this.gameSetting(); },
-          lang.settingDesc, 3
+          lang.settingDesc
         );
         break;
       case MenuSelect.ARCADE_SELECT_1:
         geneButton(lang.easyMountain,
           () => { this.arcadeEasy(); this.closeModal(); },
-          lang.difficultyEasy, 0
+          lang.difficultyEasy
         );
         geneButton(lang.normalMountain,
           () => { this.arcadeNormal(); this.closeModal(); },
-          lang.difficultyNormal, 1
+          lang.difficultyNormal
         );
         geneButton(lang.hardMountain,
           () => { this.arcadeHard(); this.closeModal(); },
-          lang.difficultyHard, 2
+          lang.difficultyHard
         );
         geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
       case MenuSelect.ENDURANCE_SELECT_1:
         geneButton(lang.k2,
           () => { this.enduranceMode1(); this.closeModal(); },
-          lang.k2Desc(gameConfig.ENDURANCE_MIN_ONCE1, gameConfig.ENDURANCE_MAX_ONCE1, gameConfig.ENDURANCE_TOTAL1),
-          0
+          lang.k2Desc(gameConfig.ENDURANCE_MIN_ONCE1, gameConfig.ENDURANCE_MAX_ONCE1, gameConfig.ENDURANCE_TOTAL1)
         );
         // geneButton('モード2（テスト用）',
         //   () => { this.enduranceMode2(); this.closeModal(); },
@@ -210,8 +241,7 @@ export class Menu {
         // );
         geneButton(lang.watchRecords,
           () => { this.watchHighScores(); },
-          lang.watchRecordsDesc,
-          1
+          lang.watchRecordsDesc
         );
         geneButton(lang.back, () => { this.generateButtons(MenuSelect.START_MENU) });
         break;
@@ -219,6 +249,7 @@ export class Menu {
         geneButton(lang.backToGame, () => { this.backToGameInPause(); this.closeModal(); });
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); }); // this is not afterGameOver though
         geneButton(lang.backToMenu, () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
+        this._menuContainer.appendChild(createControlsList());
         break;
       case MenuSelect.GAME_OVER:
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); });
@@ -235,13 +266,17 @@ export class Menu {
         break;
     }
 
+    if (this._descriptions.some(desc => desc)) {
+      this._descPanel = document.createElement('div');
+      this._descPanel.classList.add('menu-desc');
+      this._menuContainer.appendChild(this._descPanel);
+    }
+
     // is here ok???
     this._buttons = this._menuContainer.querySelectorAll('button');
     this._selectedIndex = 0;
     this._buttons[this._selectedIndex].classList.add('selected');
-
-    const descDivFirst = document.getElementById(`desc0`) as HTMLElement;
-    if (descDivFirst) descDivFirst.style.display = '';
+    this.showDescription(0);
   }
 
   setCallback(
@@ -260,6 +295,7 @@ export class Menu {
     retryAfterGameClear,
     backToMenuAfterGameClear,
     watchReplay,
+    showGuide,
   ) {
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
@@ -276,6 +312,7 @@ export class Menu {
     this.retryAfterGameClear = retryAfterGameClear;
     this.backToMenuAfterGameClear = backToMenuAfterGameClear;
     this.watchReplay = watchReplay;
+    this.showGuide = showGuide;
   }
 }
 

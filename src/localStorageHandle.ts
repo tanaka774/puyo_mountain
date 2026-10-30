@@ -3,6 +3,7 @@ export class LSHandle {
   private _selectedCustomColorsKey: string;
   private _selectedDefaultColorsKey: string;
   private _zoomRateKey: string;
+  private _languageKey: string;
 
   constructor() {
     this._selectedColorOptionKey = "colorOption";
@@ -10,6 +11,7 @@ export class LSHandle {
     this._selectedCustomColorsKey = "customColors";
     this._selectedDefaultColorsKey = "defaultColors";
     this._zoomRateKey = "zoomRate";
+    this._languageKey = "language";
   }
 
   setColorOption(radioValue: string) {
@@ -88,6 +90,22 @@ export class LSHandle {
       } else {
         return undefined;
       }
+    } catch (err) {
+      console.error("Error getting data from localStorage:", err);
+    }
+  }
+
+  setLanguage(language: string) {
+    try {
+      localStorage.setItem(this._languageKey, language);
+    } catch (err) {
+      console.error("Error saving data to localStorage:", err);
+    }
+  }
+
+  getLanguage() {
+    try {
+      return localStorage.getItem(this._languageKey);
     } catch (err) {
       console.error("Error getting data from localStorage:", err);
     }

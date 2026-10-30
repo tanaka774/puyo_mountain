@@ -39,15 +39,15 @@ export class Input {
       if (e.key === 'ArrowDown') { this.isDownKeyPressed = true; }
 
       if (this.canTakeInput()) {
-        if (e.key === 'z') { this._rotate.rotatePuyo(this._board, -90); }
-        if (e.key === 'x') { this._rotate.rotatePuyo(this._board, 90); }
+        if (e.code === 'KeyZ') { this._rotate.rotatePuyo(this._board, -90); }
+        if (e.code === 'KeyX') { this._rotate.rotatePuyo(this._board, 90); }
       } else {
         // this.keyInputInit();
       }
     });
 
     // for quickturn
-    document.addEventListener('keydown', keyPressedTwice('x', () => {
+    document.addEventListener('keydown', keyPressedTwice('KeyX', () => {
       if (!stateHandle.duringGamePlay()) return;
 
       if (this._rotate.quickTurn.isPossible && this._current.currentPuyo) {
@@ -58,7 +58,7 @@ export class Input {
       }
     }, () => { this._rotate.quickTurn.willExecute = false; }, 1000));
 
-    document.addEventListener('keydown', keyPressedTwice('z', () => {
+    document.addEventListener('keydown', keyPressedTwice('KeyZ', () => {
       if (!stateHandle.duringGamePlay()) return;
 
       if (this._rotate.quickTurn.isPossible && this._current.currentPuyo) {

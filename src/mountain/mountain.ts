@@ -3,7 +3,7 @@ import { Chain } from "../chain";
 import { Move } from "../move";
 import { baseSinglePuyo } from "../types";
 import { Board } from "../board";
-import { MountainBase } from "./mountainBase";
+import { GameStatus, MountainBase } from "./mountainBase";
 import { Difficulty, MountainArcade } from "./mountainArcade";
 import { EnduranceMode, MountainEndurance } from "./mountainEndurance";
 import { MountainCustom } from "./mountainCustom";
@@ -153,7 +153,7 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
-  getGameStatus(): string {
+  getGameStatus(): GameStatus {
     return this._mountainBase.getGameStatus();
   }
 
@@ -167,8 +167,8 @@ export class Mountain {
     else console.error(`${this._mountainBase.constructor.name} doesn\'t have this method`);
   }
 
-  setCallback(changeBackground: (color: string) => void) {
-    this._mountainBase.setCallback(changeBackground);
+  setCallback(changeClimb: (progress: number) => void) {
+    this._mountainBase.setCallback(changeClimb);
   }
 
   detectTargetChain() { }

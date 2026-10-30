@@ -62,24 +62,31 @@ export const en = {
   setUnnamed: "Set: Mumei",
   customColor: "Custom (click to change color)",
 
+  // showGameSetting tabs
+  puyoColorTab: "Puyo Colors",
+  languageTab: "Language",
+
   // addCloseButton
   close: "Close",
 
   // drawWithCanvas
-  useVPuyo: "D: Use V Puyo",
+  useVPuyo: "V: Use V Puyo",
   changeVPuyoColor: "C: Change V Puyo Color",
   rotate: "Z,X: Rotate",
   move: "←↑→↓: Move",
   pause: "P: Pause",
+  pauseAndControls: "Pause / Controls",
+  controls: "Controls",
   vPuyo: "V Puyo",
   chain: "Chain",
   chainAllClearStr: "and All Clear!",
-  chainAllClear: (count: number) => `${count} Chain and All Clear!`,
-  chainLastPhase: (count: number) => `${count} Chain  Last Phase!`,
-  chainPhase: (count: number, phase: number) => `${count} Chain  Phase ${phase}`,
   chainMust: (count: number) => `Make a ${count}-Chain!`,
-  chainCustom: (current: number, total: number) => `${current} Chain Total ${total}`,
-  chainEndurance: (current: number, achieved: number, total: number) => `${current} Chain ${achieved} / ${total} Total`,
+  statusGoal: (count: number) => `Make a ${count}-Chain!`,
+  statusGoalAllClear: (count: number) => `${count}-Chain + All Clear!`,
+  statusPhase: (phase: number, phaseNum: number) => `Phase ${phase} / ${phaseNum}`,
+  statusLastPhase: "Final Phase!",
+  statusCustomTotal: (total: number) => `Chains so far: ${total}`,
+  statusEndurance: (achieved: number, total: number) => `Chains ${achieved} / ${total}`,
 
   // menu
   arcadeMode: "Arcade Mode",
@@ -113,4 +120,23 @@ export const en = {
   puyoMountainScore: "Puyo Mountain [Score]",
   rank: "Rank",
   summitReached: "Reached the summit!",
+  // guide
+  guide: "Climbing Guide",
+  guideDesc: "How to play, controls, and what makes this game unique",
+  guideFlowTitle: "How to Climb",
+  guideFlow: [
+    ["1. Seed puyos", "Seed puyos fall onto your board"],
+    ["2. Chain", "Build and fire a chain at least as long as the target"],
+    ["3. Next target", "Clearing it brings new seed puyos and a new target. Repeat to reach the summit"],
+  ],
+  guideModesTitle: "Game Modes",
+  guideArcade: "Three courses: Low, Normal and High Mountain. Clear all 4 phases to reach the summit. The final phase of High Mountain also requires an All Clear",
+  guideScore: (min: number, max: number, total: number) => `Fire ${min}~${max} chains over and over and race to a total of ${total} chains. Top times make it onto the rankings`,
+  guideCustom: "Set the seed puyo amount, width and required chains freely. With no seed puyos it plays like free practice",
+  guideFeaturesTitle: "Mountain Wisdom",
+  guideFeatures: [
+    ["MAX", "The longest chain you can fire from the current board. Its trigger puyos are marked with a frame"],
+    ["V Puyo", "A same-color pair you can use once per target. Pick its color with C and take it with V"],
+    ["Grade", "Puyos cleared by chains shorter than the target count as unnecessary. In Arcade, your clear time and this count decide your grade, S to C"],
+  ],
 };

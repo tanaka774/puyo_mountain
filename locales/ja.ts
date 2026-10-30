@@ -62,24 +62,31 @@ export const ja = {
   setUnnamed: "セット：むめい",
   customColor: "カスタム(クリックで色を変更できます)",
 
+  // showGameSetting tabs
+  puyoColorTab: "ぷよの色",
+  languageTab: "言語",
+
   // addCloseButton
   close: "閉じる",
 
   // drawWithCanvas
-  useVPuyo: "D: Vぷよ使用",
+  useVPuyo: "V: Vぷよ使用",
   changeVPuyoColor: "C: Vぷよ色変更",
   rotate: "Z,X: 回転",
   move: "←↑→↓: 移動",
   pause: "P: ポーズ",
+  pauseAndControls: "ポーズ・操作説明",
+  controls: "操作",
   vPuyo: "Vぷよ",
   chain: "れんさ",
   chainAllClearStr: "ぜんけしすべし",
-  chainAllClear: (count: number) => `${count}連鎖全消しすべし`,
-  chainLastPhase: (count: number) => `${count}連鎖すべし 最終フェーズ`,
-  chainPhase: (count: number, phase: number) => `${count}連鎖すべし フェーズ ${phase}`,
   chainMust: (count: number) => `${count}れんさすべし`,
-  chainCustom: (current: number, total: number) => `${current}連鎖すべし　計 ${total}連鎖`,
-  chainEndurance: (current: number, achieved: number, total: number) => `${current}連鎖すべし 　${achieved} / ${total}連鎖`,
+  statusGoal: (count: number) => `${count}連鎖すべし`,
+  statusGoalAllClear: (count: number) => `${count}連鎖全消しすべし`,
+  statusPhase: (phase: number, phaseNum: number) => `フェーズ ${phase} / ${phaseNum}`,
+  statusLastPhase: "最終フェーズ",
+  statusCustomTotal: (total: number) => `累計 ${total}連鎖`,
+  statusEndurance: (achieved: number, total: number) => `累計 ${achieved} / ${total}連鎖`,
 
   // menu
   arcadeMode: "アーケードモード",
@@ -113,4 +120,23 @@ export const ja = {
   rank: "ランク",
   summitReached: "登頂達成！",
   puyoMountainArcade: "ぷよマウンテン【アーケード】",
+  // guide
+  guide: "登山の手引き",
+  guideDesc: "遊び方・操作方法・このゲームの特徴を確認できます",
+  guideFlowTitle: "登山の流れ",
+  guideFlow: [
+    ["1. 種ぷよ", "盤面に種ぷよが降ってきます"],
+    ["2. 連鎖", "指示された連鎖数以上の連鎖を組んで発火しましょう"],
+    ["3. 次の目標へ", "達成すると新たな種ぷよと目標連鎖数が届きます。これを繰り返して頂上を目指します"],
+  ],
+  guideModesTitle: "ゲームモード",
+  guideArcade: "低山・中山・高山の3コース。4つのフェーズを越えれば登頂です。高山の最終フェーズは全消しも必要です",
+  guideScore: (min: number, max: number, total: number) => `${min}~${max}連鎖を繰り返し、計${total}連鎖に届くまでのタイムを競います。上位に入るとランキングに名前を残せます`,
+  guideCustom: "種ぷよの量・幅・必要連鎖数を自由に決められます。種ぷよを「無」にすれば、とこぷよのようにも遊べます",
+  guideFeaturesTitle: "山の心得",
+  guideFeatures: [
+    ["MAX", "今の盤面で打てる最大連鎖数です。発火点となるぷよは盤面上に枠で示されます"],
+    ["Vぷよ", "目標ごとに1回だけ使える同色2個組のぷよ。Cで色を選び、Vで手元に取り出せます"],
+    ["評価", "目標に届かない連鎖で消したぷよは「不要に消したぷよ」として数えられます。アーケードではクリアタイムとこの数でS~Cの評価が決まります"],
+  ],
 };

@@ -282,7 +282,7 @@ export class Game {
     // const pauseButton = document.getElementById("pauseButton");
     // pauseButton.addEventListener('click', this.handlePause.bind(this));
     document.addEventListener('keydown', e => {
-      if (e.key === 'p') this.handlePause();
+      if (e.code === 'KeyP') this.handlePause();
     })
   }
 

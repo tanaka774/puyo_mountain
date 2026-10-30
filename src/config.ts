@@ -6,7 +6,7 @@ const MAIN_DRAW_WIDTH = CELL_SIZE * 6;
 const MAIN_DRAW_HEIGHT = CELL_SIZE * 14;
 const NEXT_DRAW_WIDTH = CELL_SIZE * 5;
 const NEXT_DRAW_HEIGHT = CELL_SIZE * 7;
-const VPUYO_DRAW_WIDTH = CELL_SIZE * 6;
+const VPUYO_DRAW_WIDTH = CELL_SIZE * 2;
 const VPUYO_DRAW_HEIGHT = CELL_SIZE * 4;
 
 if (DRAW_TOOL === 'canvas') {
@@ -120,9 +120,9 @@ if (defaultColors) {
   // non-user-setting
   PUYO_COLORS = [
     null,
-    "rgba(255, 0, 0, 1)",
-    "rgba(0, 0, 255, 1)",
-    "rgba(0, 200, 0, 1)",
-    "rgba(255, 255, 0, 1)"
+    "rgba(232, 62, 58, 1)",
+    "rgba(52, 108, 235, 1)",
+    "rgba(38, 184, 92, 1)",
+    "rgba(246, 204, 46, 1)"
   ]
 }
