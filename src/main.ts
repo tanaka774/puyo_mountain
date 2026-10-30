@@ -175,6 +175,10 @@ function main() {
       () => {
         // replay mode
         replay.startReplay();
+      },
+      () => {
+        // guide
+        htmlHandle.showGuide();
       }
     );
   }

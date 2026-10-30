@@ -15,6 +15,7 @@ import { showHighScoresModal } from "./htmlHandler/highScoreModal";
 import { showArcadeResult } from "./htmlHandler/arcadeResultModal";
 import { showCustomConfig } from "./htmlHandler/customConfigModal";
 import { showGameSetting } from "./htmlHandler/gameSettingModal";
+import { showGuide } from "./htmlHandler/guideModal";
 
 
 export class HtmlHandle {
@@ -124,5 +125,9 @@ export class HtmlHandle {
 
   showGameSetting() {
     showGameSetting(this._lSHandle);
+  }
+
+  showGuide() {
+    showGuide();
   }
 }

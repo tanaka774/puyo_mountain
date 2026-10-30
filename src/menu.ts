@@ -2,6 +2,7 @@ import { gameConfig } from "./config";
 import { FontHandle } from "./fontHandle";
 import { GameState, stateHandle } from "./state";
 import lang from "../locales";
+import { createControlsList } from "./htmlHandler/utils";
 
 export enum MenuSelect {
   START_MENU,
@@ -28,6 +29,7 @@ export class Menu {
   private enduranceMode2: () => void;
   private customMode: () => void;
   private gameSetting: () => void;
+  private showGuide: () => void;
   private watchHighScores: () => void;
   private watchReplay: () => void;
   private backToGameInPause: () => void;
@@ -59,8 +61,17 @@ export class Menu {
     this.handleMouseOver = this.handleMouseOver.bind(this);
     this.handleMouseClick = this.handleMouseClick.bind(this);
 
+    // ignore keys meant for a dialog opened over the menu (guide, settings...),
+    // including the Enter keyup right after it closes, which would reopen it
+    const isOtherDialogOpen = () => document.querySelector('dialog[open]:not(#menu)') !== null;
+    let enterDownInMenu = false;
+    // capture phase: check before the dialog's own Enter handler closes it
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') enterDownInMenu = !isOtherDialogOpen();
+    }, true);
+
     document.addEventListener('keyup', e => {
-      if (!stateHandle.menuButtonAppears()) return;
+      if (!stateHandle.menuButtonAppears() || isOtherDialogOpen()) return;
 
       if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -70,7 +81,7 @@ export class Menu {
         this.handleArrowDown();
       }
 
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && enterDownInMenu) {
         // console.log("I'm called mom!")
         e.preventDefault();
         this.enterKeyUpCallback();
@@ -179,6 +190,10 @@ export class Menu {
           () => { this.customMode(); },
           lang.customModeDesc
         );
+        geneButton(lang.guide,
+          () => { this.showGuide(); },
+          lang.guideDesc
+        );
         geneButton(lang.setting,
           () => { this.gameSetting(); },
           lang.settingDesc
@@ -219,7 +234,7 @@ export class Menu {
         geneButton(lang.backToGame, () => { this.backToGameInPause(); this.closeModal(); });
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); }); // this is not afterGameOver though
         geneButton(lang.backToMenu, () => { this.backToMenuInPause(); this.generateButtons(MenuSelect.START_MENU) });
-        this.appendControlsList();
+        this._menuContainer.appendChild(createControlsList());
         break;
       case MenuSelect.GAME_OVER:
         geneButton(lang.retry, () => { this.retryAfterGameOver(); this.closeModal(); });
@@ -249,32 +264,6 @@ export class Menu {
     this.showDescription(0);
   }
 
-  // locale strings look like "Z,X: Rotate"; show the keys as keycaps
-  private appendControlsList() {
-    const list = document.createElement('div');
-    list.classList.add('controls-list');
-    const title = document.createElement('div');
-    title.classList.add('controls-title');
-    title.textContent = lang.controls;
-    list.appendChild(title);
-    for (const line of [lang.move, lang.rotate, lang.changeVPuyoColor, lang.useVPuyo, lang.pause]) {
-      const sep = line.indexOf(':');
-      const row = document.createElement('div');
-      row.classList.add('controls-row');
-      const keys = document.createElement('span');
-      line.slice(0, sep).split(',').forEach(key => {
-        const kbd = document.createElement('kbd');
-        kbd.textContent = key.trim();
-        keys.appendChild(kbd);
-      });
-      const desc = document.createElement('span');
-      desc.textContent = line.slice(sep + 1).trim();
-      row.append(keys, desc);
-      list.appendChild(row);
-    }
-    this._menuContainer.appendChild(list);
-  }
-
   setCallback(
     arcadeEasy,
     arcadeNormal,
@@ -291,6 +280,7 @@ export class Menu {
     retryAfterGameClear,
     backToMenuAfterGameClear,
     watchReplay,
+    showGuide,
   ) {
     this.arcadeEasy = arcadeEasy;
     this.arcadeNormal = arcadeNormal;
@@ -307,6 +297,7 @@ export class Menu {
     this.retryAfterGameClear = retryAfterGameClear;
     this.backToMenuAfterGameClear = backToMenuAfterGameClear;
     this.watchReplay = watchReplay;
+    this.showGuide = showGuide;
   }
 }
 

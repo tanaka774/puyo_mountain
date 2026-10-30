@@ -80,3 +80,29 @@ export function scaleAndSetFixedPosition(element: HTMLElement, scale: number) {
   // this does nothing... maybe origin:top, left; in css is just enough
   // element.style.transform = `scale(${scale}) (${translateX}px, ${translateY}px)`;
 }
+
+// locale strings look like "Z,X: Rotate"; show the keys as keycaps
+export function createControlsList(): HTMLElement {
+  const list = document.createElement('div');
+  list.classList.add('controls-list');
+  const title = document.createElement('div');
+  title.classList.add('controls-title');
+  title.textContent = lang.controls;
+  list.appendChild(title);
+  for (const line of [lang.move, lang.rotate, lang.changeVPuyoColor, lang.useVPuyo, lang.pause]) {
+    const sep = line.indexOf(':');
+    const row = document.createElement('div');
+    row.classList.add('controls-row');
+    const keys = document.createElement('span');
+    line.slice(0, sep).split(',').forEach(key => {
+      const kbd = document.createElement('kbd');
+      kbd.textContent = key.trim();
+      keys.appendChild(kbd);
+    });
+    const desc = document.createElement('span');
+    desc.textContent = line.slice(sep + 1).trim();
+    row.append(keys, desc);
+    list.appendChild(row);
+  }
+  return list;
+}

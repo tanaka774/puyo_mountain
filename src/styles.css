@@ -412,6 +412,61 @@ dialog tbody tr:nth-child(-n + 3) td:first-child {
   color: var(--paper-dim);
 }
 
+/* ---------------------------------------------------------------- guide */
+
+.guide {
+  width: min(90vw, 600px);
+}
+
+.guide h2 {
+  margin: 0 0 10px;
+  font-weight: normal;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+
+.guide-body {
+  max-height: 62vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.guide section {
+  margin: 0 4px;
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--keyline);
+}
+
+.guide h3 {
+  margin: 0 0 6px;
+  font-weight: normal;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--paper-dim);
+}
+
+.guide dl {
+  display: grid;
+  grid-template-columns: 8.5em 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 16px;
+}
+
+.guide dt {
+  color: var(--paper);
+}
+
+.guide dd {
+  margin: 0;
+  color: var(--paper-dim);
+}
+
+.guide .controls-list {
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+
 /* ---------------------------------------------------------------- misc parts */
 
 .score-container {
