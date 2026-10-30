@@ -62,6 +62,10 @@ export const ja = {
   setUnnamed: "セット：むめい",
   customColor: "カスタム(クリックで色を変更できます)",
 
+  // showGameSetting tabs
+  puyoColorTab: "ぷよの色",
+  languageTab: "言語",
+
   // addCloseButton
   close: "閉じる",
 

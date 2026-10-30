@@ -1,6 +1,6 @@
 import { LSHandle } from "../localStorageHandle";
 import { PUYO_COLORS } from "../config";
-import lang from "../../locales";
+import lang, { languageCode } from "../../locales";
 import { addCloseButton } from "./utils";
 
 export function showGameSetting(lSHandle: LSHandle) {
@@ -8,13 +8,41 @@ export function showGameSetting(lSHandle: LSHandle) {
   document.body.appendChild(settingDialog);
   settingDialog.showModal();
 
+  // tab bar + one panel per tab; only the selected panel is shown
+  const tabBar = document.createElement("div");
+  tabBar.classList.add("setting-tabs");
+  settingDialog.appendChild(tabBar);
+  const tabs: HTMLButtonElement[] = [];
+  const panels: HTMLElement[] = [];
+  const addTab = (tabText: string) => {
+    const tab = document.createElement("button");
+    tab.textContent = tabText;
+    const panel = document.createElement("div");
+    panel.classList.add("setting-panel");
+    const index = tabs.length;
+    tab.addEventListener("click", (e) => {
+      e.preventDefault();
+      tabs.forEach((t, i) => t.classList.toggle("active", i === index));
+      panels.forEach((p, i) => p.hidden = i !== index);
+    });
+    tabs.push(tab);
+    panels.push(panel);
+    tabBar.appendChild(tab);
+    settingDialog.appendChild(panel);
+    return panel;
+  }
+  const colorPanel = addTab(lang.puyoColorTab);
+  const languagePanel = addTab(lang.languageTab);
+  tabs[0].click();
+
   const makeRadioButton = (radioValue: string, labelText: string, parent: HTMLElement, colors: string[] = null, isChecked = false) => {
     const radioButton = document.createElement("input");
     radioButton.type = "radio";
     radioButton.name = "colorChoice";
     radioButton.value = radioValue;
 
-    const storedOption = lSHandle.getColorOption();
+    // nothing stored yet means the default colors, which are the first set
+    const storedOption = lSHandle.getColorOption() ?? '0';
     if (storedOption === radioButton.value) {
       radioButton.checked = true;
     }
@@ -128,12 +156,30 @@ export function showGameSetting(lSHandle: LSHandle) {
   const texts = [lang.setFamiliar, lang.setVegetable, lang.setItalian, lang.setKamakura, lang.setUnnamed];
 
   colorss.forEach((colors, index) => {
-    makeRadioButton(`${index}`, texts[index], settingDialog, colors);
-    createCircles(colors, settingDialog);
+    makeRadioButton(`${index}`, texts[index], colorPanel, colors);
+    createCircles(colors, colorPanel);
   })
 
-  makeRadioButton('custom', lang.customColor, settingDialog);
-  addColorPickers(settingDialog);
+  makeRadioButton('custom', lang.customColor, colorPanel);
+  addColorPickers(colorPanel);
+
+  // language names are shown in their own language so either can find theirs
+  [['ja', '日本語'], ['en', 'English']].forEach(([code, name]) => {
+    const radioButton = document.createElement("input");
+    radioButton.type = "radio";
+    radioButton.name = "languageChoice";
+    radioButton.value = code;
+    radioButton.checked = code === languageCode;
+    const label = document.createElement("label");
+    label.append(radioButton, document.createTextNode(name));
+    languagePanel.appendChild(label);
+  });
+
+  // keep the dialog from changing height when switching tabs
+  panels.forEach(panel => {
+    panel.style.minHeight = `${colorPanel.offsetHeight}px`;
+    panel.style.minWidth = `${colorPanel.offsetWidth}px`;
+  });
 
   // temp
   // this.addRecaptcha(settingDialog);
@@ -164,6 +210,14 @@ export function showGameSetting(lSHandle: LSHandle) {
       })
     }
 
+    const selectedLanguage = (document.querySelector('input[name="languageChoice"]:checked') as HTMLInputElement).value;
+
     settingDialog.innerHTML = '';
+
+    // every text is picked from the locale at load time, so reload to apply a new language
+    if (selectedLanguage !== languageCode) {
+      lSHandle.setLanguage(selectedLanguage);
+      location.reload();
+    }
   });
 }

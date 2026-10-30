@@ -62,6 +62,10 @@ export const en = {
   setUnnamed: "Set: Mumei",
   customColor: "Custom (click to change color)",
 
+  // showGameSetting tabs
+  puyoColorTab: "Puyo Colors",
+  languageTab: "Language",
+
   // addCloseButton
   close: "Close",
 
