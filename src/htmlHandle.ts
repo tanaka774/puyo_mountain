@@ -16,6 +16,7 @@ import { showArcadeResult } from "./htmlHandler/arcadeResultModal";
 import { showCustomConfig } from "./htmlHandler/customConfigModal";
 import { showGameSetting } from "./htmlHandler/gameSettingModal";
 import { showGuide } from "./htmlHandler/guideModal";
+import { isTouchMode, setupTouchControls } from "./touchControls";
 
 
 export class HtmlHandle {
@@ -32,6 +33,7 @@ export class HtmlHandle {
   private _zoomInButton: HTMLButtonElement;
   private _zoomOutButton: HTMLButtonElement;
   private _currentScale: number;
+  private _touchControls: HTMLElement;
 
   constructor(
     private _lSHandle: LSHandle,
@@ -56,7 +58,13 @@ export class HtmlHandle {
     this._zoomInButton = document.getElementById('zoom-in') as HTMLButtonElement;
     this._zoomOutButton = document.getElementById('zoom-out') as HTMLButtonElement;
     this._currentScale = this._lSHandle.getZoomRate() || gameConfig.DEFAULT_SCALE;
-    scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+    this._touchControls = setupTouchControls();
+    this.applyScale();
+    // touch mode fits the game to the screen; refit whenever the viewport or the game's own size changes
+    window.addEventListener('resize', () => this.applyScale());
+    window.addEventListener('orientationchange', () => this.applyScale());
+    new ResizeObserver(() => this.applyScale()).observe(this._canvasContainer);
+    new ResizeObserver(() => this.applyScale()).observe(this._touchControls);
 
     // this._pauseButton.addEventListener('click', this.handlePause);
     // document.addEventListener('keydown', e => {
@@ -67,17 +75,49 @@ export class HtmlHandle {
     this._zoomInButton.addEventListener('click', () => {
       this._zoomInButton.blur();
       this._currentScale += 0.1;
-      scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+      this.applyScale();
       this._lSHandle.setZoomRate(this._currentScale);
     });
 
     this._zoomOutButton.addEventListener('click', () => {
       this._zoomOutButton.blur();
       this._currentScale = Math.max(0.1, this._currentScale - 0.1);
-      scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+      this.applyScale();
       this._lSHandle.setZoomRate(this._currentScale);
     });
 
+  }
+
+  // desktop: the user's zoom. touch mode: the largest scale at which the whole game fits above the pad
+  applyScale() {
+    if (!isTouchMode()) {
+      scaleAndSetFixedPosition(this._canvasContainer, this._currentScale);
+      return;
+    }
+    // offsetWidth/Height are layout sizes, unaffected by the current transform
+    const contentH = this._canvasContainer.offsetHeight;
+    // the container spans the page width; measure its children for the real game width
+    let gameW = 0;
+    const gap = parseFloat(getComputedStyle(this._canvasContainer).columnGap) || 0;
+    Array.from(this._canvasContainer.children).forEach((c, i) => {
+      gameW += (c as HTMLElement).offsetWidth + (i > 0 ? gap : 0);
+    });
+    if (!gameW || !contentH) return;
+    const viewW = window.visualViewport?.width ?? window.innerWidth;
+    const viewH = window.visualViewport?.height ?? window.innerHeight;
+    const margin = 8;
+    let availW = viewW - margin * 2;
+    let availH = viewH - margin;
+    if (window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches) {
+      // landscape phone: the button clusters sit left and right of the board
+      const clusters = Array.from(this._touchControls.children) as HTMLElement[];
+      const sideW = Math.max(0, ...clusters.map(c => c.offsetWidth));
+      availW -= (sideW + margin) * 2;
+    } else {
+      availH -= this._touchControls.offsetHeight;
+    }
+    const scale = Math.min(availW / gameW, availH / contentH);
+    scaleAndSetFixedPosition(this._canvasContainer, Math.max(0.3, scale));
   }
 
   htmlUpdate() {

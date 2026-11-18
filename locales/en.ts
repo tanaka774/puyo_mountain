@@ -72,6 +72,8 @@ export const en = {
   // drawWithCanvas
   useVPuyo: "V: Use V Puyo",
   changeVPuyoColor: "C: Change V Puyo Color",
+  touchChangeVPuyoColor: "Color",
+  touchUseVPuyo: "V Puyo",
   rotate: "Z,X: Rotate",
   move: "←↑→↓: Move",
   pause: "P: Pause",

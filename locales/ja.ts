@@ -72,6 +72,8 @@ export const ja = {
   // drawWithCanvas
   useVPuyo: "V: Vぷよ使用",
   changeVPuyoColor: "C: Vぷよ色変更",
+  touchChangeVPuyoColor: "色変更",
+  touchUseVPuyo: "Vぷよ",
   rotate: "Z,X: 回転",
   move: "←↑→↓: 移動",
   pause: "P: ポーズ",
