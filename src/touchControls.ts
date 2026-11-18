@@ -55,8 +55,8 @@ function createButton(def: PadButton): HTMLButtonElement {
     pressed = true;
     btn.setPointerCapture(e.pointerId);
     btn.classList.add('pressed');
-    if (navigator.vibrate) navigator.vibrate(8);
     sendKey('keydown', def.key, def.code);
+    if (navigator.vibrate) navigator.vibrate(8);
   });
   btn.addEventListener('pointerup', release);
   btn.addEventListener('pointercancel', release);

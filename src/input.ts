@@ -30,10 +30,14 @@ export class Input {
       // if (this.canTakeInput()) {
       if (e.key === 'ArrowLeft') {
         // if (!this.isRightKeyPressed)
+        // move on the press itself instead of waiting for the next frame's throttle,
+        // so quick taps (touch buttons especially) are never dropped
+        if (!this.isLeftKeyPressed && !this.isRightKeyPressed) this.moveImmediately(-1);
         this.isLeftKeyPressed = true;
       }
       if (e.key === 'ArrowRight') {
         // if (!this.isLeftKeyPressed)
+        if (!this.isRightKeyPressed && !this.isLeftKeyPressed) this.moveImmediately(1);
         this.isRightKeyPressed = true;
       }
       if (e.key === 'ArrowDown') { this.isDownKeyPressed = true; }
@@ -130,6 +134,23 @@ export class Input {
       //   rightThrottleHandler();
       // if (this.isLeftKeyPressed)
       //   leftThrottleHandler();
+    }
+  }
+
+  // first step of a fresh press; afterwards inputHandle() continues with the usual repeat timing
+  private moveImmediately(direction: 1 | -1) {
+    if (!this.canTakeInput() || !this._current.currentPuyo) return;
+    const now = Date.now();
+    if (direction === 1) {
+      this.rightKeyHandle();
+      this._lastExecutionRight = now;
+      this._firstOccuredRight = true;
+      this._secondOccuredRight = false;
+    } else {
+      this.leftKeyHandle();
+      this._lastExecutionLeft = now;
+      this._firstOccuredLeft = true;
+      this._secondOccuredLeft = false;
     }
   }
 

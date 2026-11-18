@@ -27,8 +27,9 @@ export class Current {
     this.initPuyoPool();
     this.initNextMovingCount();
 
-    document.addEventListener('keyup', e => {
-      if (e.code === 'KeyC') {
+    // act on press (not release) so the touch buttons respond immediately; ignore auto-repeat
+    document.addEventListener('keydown', e => {
+      if (e.code === 'KeyC' && !e.repeat) {
         if (!stateHandle.checkCurrentState(GameState.MANIPULATING) ||
           !this._versatilePuyo
         ) return;
@@ -44,8 +45,9 @@ export class Current {
       }
     });
 
-    document.addEventListener('keyup', e => {
-      if (e.code === 'KeyV') {
+    // act on press (not release) so the touch buttons respond immediately; ignore auto-repeat
+    document.addEventListener('keydown', e => {
+      if (e.code === 'KeyV' && !e.repeat) {
         if (!stateHandle.checkCurrentState(GameState.MANIPULATING) ||
           this._hasVPuyoUsed
         ) return;
